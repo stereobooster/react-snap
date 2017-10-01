@@ -66,14 +66,14 @@ const crawl = options => {
     let filePath = path.join(buildDir, route);
     mkdirp.sync(filePath);
     const minifiedContent = minify(content, options.minifyOptions);
-    if (route === '') {
+    if (route === "") {
       indexPage = minifiedContent;
     } else {
       fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
     }
 
     return browser.close().then(() => {
-      console.log(`Crawled ${processed+1} out of ${enqued} (/${route})`);
+      console.log(`Crawled ${processed + 1} out of ${enqued} (/${route})`);
       processed++;
       if (enqued === processed) queue.end();
     });
@@ -99,7 +99,6 @@ const options = {
   concurrency: 3,
   minifyOptions: {
     minifyCSS: true,
-    removeComments: true,
     collapseBooleanAttributes: true,
     collapseWhitespace: true,
     collapseInlineTagWhitespace: true,
@@ -109,6 +108,6 @@ const options = {
     sortClassName: true
   },
   ...reactSnap
-}
+};
 
 crawl(options);
