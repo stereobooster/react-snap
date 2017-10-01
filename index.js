@@ -26,7 +26,7 @@ const crawl = options => {
     }
   });
 
-  const buildDir = path.normalize(`${__dirname}/${options.build || "build"}`);
+  const buildDir = path.normalize(`${process.cwd()}/${options.build || "build"}`);
   const startServer = options => {
     const app = express()
       .use(serveStatic(buildDir))
