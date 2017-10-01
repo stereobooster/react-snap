@@ -8,7 +8,6 @@ const fallback = require("express-history-api-fallback");
 const path = require("path");
 const Url = require("url");
 const _ = require("highland");
-const program = require("commander");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
@@ -26,7 +25,7 @@ const crawl = options => {
     }
   });
 
-  const buildDir = path.normalize(`${process.cwd()}/${options.build || "build"}`);
+  const buildDir = path.normalize(`${process.cwd()}/${options.build}`);
   const startServer = options => {
     const app = express()
       .use(serveStatic(buildDir))
@@ -41,13 +40,9 @@ const crawl = options => {
   const queue = _();
   let enqued = 0;
   let processed = 0;
-  const uniqRegister = {};
+  let indexPage;
   const addToQueue = (url, referer) => {
-    if (Url.parse(url).hostname === basedomain && !uniqRegister[url]) {
-      uniqRegister[url] = true;
-      enqued++;
-      queue.write(url);
-    }
+    if (Url.parse(url).hostname === basedomain) queue.write(url);
   };
 
   const fetchPage = async url => {
@@ -66,18 +61,12 @@ const crawl = options => {
     const route = url.replace(basePath, "");
     let filePath = path.join(buildDir, route);
     mkdirp.sync(filePath);
-    const minifiedContent = minify(content, {
-      minifyCSS: true,
-      removeComments: true,
-      collapseBooleanAttributes: true,
-      collapseWhitespace: true,
-      collapseInlineTagWhitespace: true,
-      decodeEntities: true,
-      keepClosingSlash: true,
-      sortAttributes: true,
-      sortClassName: true
-    });
-    fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
+    const minifiedContent = minify(content, options.minifyOptions);
+    if (route === '') {
+      indexPage = minifiedContent;
+    } else {
+      fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
+    }
 
     return browser.close().then(() => {
       processed++;
@@ -86,31 +75,37 @@ const crawl = options => {
   };
 
   const server = startServer(options);
-  const url = options.url || `http://localhost:${options.port}/`;
-  addToQueue(url);
-
+  addToQueue(basePath);
   queue
+    .uniq()
+    .map(x => { enqued++; return x})
     .map(x => _(fetchPage(x)))
     .parallel(options.concurrency)
     .collect()
     .done(function() {
+      fs.writeFileSync(path.join(buildDir, "index.html"), indexPage);
       server.close();
     });
 };
 
-const { version } = require("./package.json");
+const { reactSnap } = require(`${process.cwd()}/package.json`);
 
-program
-  .version(version)
-  .description("Prerender Create React App.")
-  .option(
-    "-p, --port [port]",
-    "Temporary webserver port (Default: 45678)",
-    45678
-  )
-  .option("-b, --build [build]", "Webserver root (Default: build)", "build")
-  .option("-c, --concurrency [concurrency]", "Concurrency of crawler", 3)
-  .option("--progress [progress]", "Show progress", true)
-  .parse(process.argv);
+const options = {
+  port: 45678,
+  build: "build",
+  concurrency: 3,
+  minifyOptions: {
+    minifyCSS: true,
+    removeComments: true,
+    collapseBooleanAttributes: true,
+    collapseWhitespace: true,
+    collapseInlineTagWhitespace: true,
+    decodeEntities: true,
+    keepClosingSlash: true,
+    sortAttributes: true,
+    sortClassName: true
+  },
+  ...reactSnap
+}
 
-crawl(program);
+crawl(options);
