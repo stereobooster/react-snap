@@ -1,0 +1,28 @@
+{
+  "name": "react-snap",
+  "version": "1.0.0",
+  "description": "react-snapshot, prep e.t.c",
+  "main": "index.js",
+  "author": "stereobooster",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.11.0",
+    "express": "^4.16.1",
+    "express-history-api-fallback": "^2.2.1",
+    "highland": "^2.11.1",
+    "html-minifier": "^3.5.5",
+    "mkdirp": "^0.5.1",
+    "puppeteer": "^0.11.0",
+    "serve-static": "^1.13.1"
+  },
+  "devDependencies": {
+    "prettier": "1.7.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "precommit": "prettier --write *.{js,json,css}"
+  },
+  "bin": {
+    "react-snap": "./index.js"
+  }
+}
