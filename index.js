@@ -40,14 +40,18 @@ const crawl = options => {
   const queue = _();
   let enqued = 0;
   let processed = 0;
-  let indexPage;
+  const uniqueUrls = {};
   const addToQueue = (url, referer) => {
-    if (Url.parse(url).hostname === basedomain) queue.write(url);
+    if (Url.parse(url).hostname === basedomain && !uniqueUrls[url]) {
+      uniqueUrls[url] = true;
+      enqued++;
+      queue.write(url);
+    }
   };
 
+  let indexPage;
   const fetchPage = async url => {
     if (shuttingDown) return;
-    console.log(url);
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.goto(url, { waitUntil: "networkidle" });
@@ -69,6 +73,7 @@ const crawl = options => {
     }
 
     return browser.close().then(() => {
+      console.log(`Crawled ${processed+1} out of ${enqued} (/${route})`);
       processed++;
       if (enqued === processed) queue.end();
     });
@@ -77,8 +82,6 @@ const crawl = options => {
   const server = startServer(options);
   addToQueue(basePath);
   queue
-    .uniq()
-    .map(x => { enqued++; return x})
     .map(x => _(fetchPage(x)))
     .parallel(options.concurrency)
     .collect()
