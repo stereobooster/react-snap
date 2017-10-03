@@ -12,7 +12,7 @@ const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
 
-const crawl = options => {
+const crawl = async options => {
   let shuttingDown = false;
   process.on("SIGINT", () => {
     if (shuttingDown) {
@@ -50,10 +50,15 @@ const crawl = options => {
   };
 
   let indexPage;
+  const browser = await puppeteer.launch();
+
   const fetchPage = async url => {
     if (shuttingDown) return;
-    const browser = await puppeteer.launch();
     const page = await browser.newPage();
+    if (options.viewport) {
+      await page.setViewport(options.viewport);
+    }
+    await page.setUserAgent("ReactSnap");
     await page.goto(url, { waitUntil: "networkidle" });
     const links = await page.evaluate(() =>
       Array.from(document.querySelectorAll("a")).map(link => link.href)
@@ -65,18 +70,17 @@ const crawl = options => {
     const route = url.replace(basePath, "");
     let filePath = path.join(buildDir, route);
     mkdirp.sync(filePath);
-    const minifiedContent = minify(content, options.minifyOptions);
+    const minifiedContent = options.minifyOptions
+      ? minify(content, options.minifyOptions)
+      : content;
     if (route === "") {
       indexPage = minifiedContent;
     } else {
       fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
     }
-
-    return browser.close().then(() => {
-      console.log(`Crawled ${processed + 1} out of ${enqued} (/${route})`);
-      processed++;
-      if (enqued === processed) queue.end();
-    });
+    console.log(`Crawled ${processed + 1} out of ${enqued} (/${route})`);
+    processed++;
+    if (enqued === processed) queue.end();
   };
 
   const server = startServer(options);
@@ -85,9 +89,10 @@ const crawl = options => {
     .map(x => _(fetchPage(x)))
     .parallel(options.concurrency)
     .collect()
-    .done(function() {
+    .done(async function() {
       fs.writeFileSync(path.join(buildDir, "index.html"), indexPage);
       server.close();
+      await browser.close();
     });
 };
 
@@ -97,6 +102,7 @@ const options = {
   port: 45678,
   build: "build",
   concurrency: 3,
+  viewport: false,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
