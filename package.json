@@ -1,12 +1,11 @@
 {
   "name": "react-snap",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "react-snapshot, prep e.t.c",
   "main": "index.js",
   "author": "stereobooster",
   "license": "MIT",
   "dependencies": {
-    "critical": "^0.9.1",
     "express": "^4.16.1",
     "express-history-api-fallback": "^2.2.1",
     "highland": "^2.11.1",

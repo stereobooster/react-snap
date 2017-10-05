@@ -10,7 +10,7 @@ const _ = require("highland");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
-const critical = require("critical");
+// TODO: use penthouse instead of critical
 
 const crawl = async options => {
   let shuttingDown = false;
@@ -29,13 +29,13 @@ const crawl = async options => {
   const startServer = options => {
     const app = express()
       .use(serveStatic(buildDir))
-      .use(fallback("index.html", { root: buildDir }));
+      .use(fallback("200.html", { root: buildDir }));
     const server = http.createServer(app);
     server.listen(options.port);
     return server;
   };
 
-  const basePath = `http://localhost:${options.port}/`;
+  const basePath = `http://localhost:${options.port}`;
   const basedomain = "localhost";
   const queue = _();
   let enqued = 0;
@@ -49,7 +49,6 @@ const crawl = async options => {
     }
   };
 
-  let indexPage;
   const browser = await puppeteer.launch();
 
   const fetchPage = async url => {
@@ -77,42 +76,32 @@ const crawl = async options => {
     );
     const route = url.replace(basePath, "");
     let filePath = path.join(buildDir, route);
-    mkdirp.sync(filePath);
     const minifiedContent = options.minifyOptions
       ? minify(content, options.minifyOptions)
       : content;
-
-    if (route === "") {
-      indexPage = minifiedContent;
+    if (filePath.endsWith("/")) {
+      mkdirp.sync(filePath);
+      fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
     } else {
-      // fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
-      const criticalOptions = {
-        inline: true,
-        base: buildDir,
-        html: minifiedContent,
-        dest: path.join(filePath, "index.html"),
-        minify: true,
-        timeout: 30000
-      };
-      if (options.viewport) {
-        criticalOptions.width = options.viewport.width;
-        criticalOptions.height = options.viewport.height;
-      }
-      critical.generate(criticalOptions);
+      mkdirp.sync(path.dirname(filePath));
+      fs.writeFileSync(`${filePath}.html`, minifiedContent);
     }
     console.log(`Crawled ${processed + 1} out of ${enqued} (/${route})`);
     processed++;
     if (enqued === processed) queue.end();
   };
 
+  fs
+    .createReadStream(path.join(buildDir, "index.html"))
+    .pipe(fs.createWriteStream(path.join(buildDir, "200.html")));
   const server = startServer(options);
-  addToQueue(basePath);
+
+  addToQueue(`${basePath}/`);
   queue
     .map(x => _(fetchPage(x)))
     .parallel(options.concurrency)
     .collect()
     .done(async function() {
-      fs.writeFileSync(path.join(buildDir, "index.html"), indexPage);
       server.close();
       await browser.close();
     });
