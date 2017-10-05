@@ -98,7 +98,7 @@ const crawl = async options => {
         criticalOptions.width = options.viewport.width;
         criticalOptions.height = options.viewport.height;
       }
-      critical.generate(options);
+      critical.generate(criticalOptions);
     }
     console.log(`Crawled ${processed + 1} out of ${enqued} (/${route})`);
     processed++;
