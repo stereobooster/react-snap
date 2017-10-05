@@ -84,7 +84,7 @@ const crawl = async options => {
       mkdirp.sync(path.dirname(filePath));
       fs.writeFileSync(`${filePath}.html`, minifiedContent);
     }
-    console.log(`Crawled ${processed + 1} out of ${enqued} (/${route})`);
+    console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     processed++;
     if (enqued === processed) queue.end();
   };
