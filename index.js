@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 const puppeteer = require("puppeteer");
 const http = require("http");
-const https = require("https");
 const express = require("express");
 const serveStatic = require("serve-static");
 const fallback = require("express-history-api-fallback");
@@ -11,6 +10,7 @@ const _ = require("highland");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
+const critical = require("critical");
 
 const crawl = async options => {
   let shuttingDown = false;
@@ -58,12 +58,20 @@ const crawl = async options => {
     if (options.viewport) {
       await page.setViewport(options.viewport);
     }
+    page.on("console", msg => console.log(msg));
+    page.on("error", msg => console.log(msg));
+    page.on("pageerror", msg => console.log(msg));
+    await page.exposeFunction("reactSnap", msg => console.log(msg));
     await page.setUserAgent("ReactSnap");
     await page.goto(url, { waitUntil: "networkidle" });
-    const links = await page.evaluate(() =>
-      Array.from(document.querySelectorAll("a")).map(link => link.href)
+    const anchors = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
     );
-    links.map(addToQueue);
+    anchors.map(addToQueue);
+    const iframes = await page.evaluate(() =>
+      Array.from(document.querySelectorAll("iframe")).map(iframe => iframe.src)
+    );
+    iframes.map(addToQueue);
     const content = await page.evaluate(
       () => document.documentElement.outerHTML
     );
@@ -73,10 +81,24 @@ const crawl = async options => {
     const minifiedContent = options.minifyOptions
       ? minify(content, options.minifyOptions)
       : content;
+
     if (route === "") {
       indexPage = minifiedContent;
     } else {
-      fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
+      // fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
+      const criticalOptions = {
+        inline: true,
+        base: buildDir,
+        html: minifiedContent,
+        dest: path.join(filePath, "index.html"),
+        minify: true,
+        timeout: 30000
+      };
+      if (options.viewport) {
+        criticalOptions.width = options.viewport.width;
+        criticalOptions.height = options.viewport.height;
+      }
+      critical.generate(options);
     }
     console.log(`Crawled ${processed + 1} out of ${enqued} (/${route})`);
     processed++;
