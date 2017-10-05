@@ -35,22 +35,20 @@ const crawl = async options => {
     return server;
   };
 
-  const basePath = `http://localhost:${options.port}`;
-  const basedomain = "localhost";
   const queue = _();
   let enqued = 0;
   let processed = 0;
   const uniqueUrls = {};
   const addToQueue = (url, referer) => {
-    if (Url.parse(url).hostname === basedomain && !uniqueUrls[url]) {
+    if (Url.parse(url).hostname === "localhost" && !uniqueUrls[url]) {
       uniqueUrls[url] = true;
       enqued++;
       queue.write(url);
     }
   };
 
+  const basePath = `http://localhost:${options.port}`;
   const browser = await puppeteer.launch();
-
   const fetchPage = async url => {
     if (shuttingDown) return;
     const page = await browser.newPage();
@@ -97,6 +95,9 @@ const crawl = async options => {
   const server = startServer(options);
 
   addToQueue(`${basePath}/`);
+  if (options.include) {
+    options.include.map(x => addToQueue(`${basePath}${x}`));
+  }
   queue
     .map(x => _(fetchPage(x)))
     .parallel(options.concurrency)
@@ -114,6 +115,7 @@ const options = {
   build: "build",
   concurrency: 3,
   viewport: false,
+  include: ["/404"],
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
