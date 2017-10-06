@@ -48,6 +48,15 @@ if (rootElement.hasChildNodes()) {
 }
 ```
 
+### GoogleAnalytics
+
+```js
+import ReactGA from 'react-ga'
+const snap = navigator.userAgent !== 'ReactSnap';
+const production = process.env.NODE_ENV === 'production';
+if (production && snap) { ReactGA.initialize('XX-XXXXXXXX-X') }
+```
+
 ## Hosting on AWS S3 + cloudflare.com
 
 If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from cloudflare.
@@ -116,6 +125,7 @@ Caveats:
 ## TODO
 
 - Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
+- Gracefull shutdown doesn't work
 
 ## Headless browsers
 
