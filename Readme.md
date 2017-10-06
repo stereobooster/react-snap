@@ -1,9 +1,16 @@
 # React snap
 
+## TODO
+
+- Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
+- Gracefull shutdown doesn't work
+
 ## Usage
 
+Example project [badsyntax/react-snap-example](https://github.com/badsyntax/react-snap-example).
+
 ```
-yarn add https://github.com/stereobooster/react-snap.git
+yarn add react-snap
 ```
 
 `scripts/sw-precache-config.js`:
@@ -67,7 +74,7 @@ Basic AWS S3 setup: http://docs.aws.amazon.com/AmazonS3/latest/user-guide/static
 
 Setup Cloudflare:
 
-- Set `Browser Cache Expiration` to `Respect Existing Headers`.
+- Set `Browser Cache Expiration` to `Respect Existing Headers`
 - Set `Always use HTTPS` to `On`
 - `Auto Minify` uncheck all checkboxes
 
@@ -123,13 +130,6 @@ _(files)
 Caveats:
 
 - AWS S3 does not support custom HTTP headers, that is why you will not be able to use [HTTP2 push with Cloudflare](https://blog.cloudflare.com/announcing-support-for-http-2-server-push-2/)
-
-## TODO
-
-- publish package
-- add link to example
-- Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
-- Gracefull shutdown doesn't work
 
 ## Headless browsers
 
