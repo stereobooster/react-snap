@@ -59,7 +59,9 @@ if (production && snap) { ReactGA.initialize('XX-XXXXXXXX-X') }
 
 ## Hosting on AWS S3 + cloudflare.com
 
-If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from cloudflare.
+If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from Cloudflare.
+
+There is [blogpost](https://medium.com/@omgwtfmarc/deploying-create-react-app-to-s3-or-cloudfront-48dae4ce0af) recommended by CRA. **Do not follow it**.
 
 Basic AWS S3 setup: http://docs.aws.amazon.com/AmazonS3/latest/user-guide/static-website-hosting.html
 
@@ -124,6 +126,8 @@ Caveats:
 
 ## TODO
 
+- publish package
+- add link to example
 - Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
 - Gracefull shutdown doesn't work
 
