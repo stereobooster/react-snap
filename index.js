@@ -10,7 +10,6 @@ const _ = require("highland");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
-// TODO: use penthouse instead of critical
 
 const crawl = async options => {
   let shuttingDown = false;

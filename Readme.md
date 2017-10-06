@@ -6,7 +6,7 @@
 yarn add https://github.com/stereobooster/react-snap.git
 ```
 
-Use `sw-precache-config.js`:
+`scripts/sw-precache-config.js`:
 
 ```js
 module.exports = {
@@ -32,6 +32,19 @@ module.exports = {
 "scripts": {
     "generate-sw": "sw-precache --root=build --config scripts/sw-precache-config.js && uglifyjs build/service-worker.js -o build/service-worker.js",
     "build-snap": "react-scripts build && react-snap && yarn run generate-sw"
+}
+```
+
+`index.js`
+
+```js
+import { hydrate, render } from 'react-dom';
+
+const rootElement = document.getElementById('root');
+if (rootElement.hasChildNodes()) {
+  hydrate(<App />, rootElement);
+} else {
+  render(<App />, rootElement);
 }
 ```
 
@@ -98,7 +111,7 @@ _(files)
 
 Caveats:
 
-- AWS S3 does not support custom HTTP headers, that is why will not be able to use HTTP push with Cloudflare
+- AWS S3 does not support custom HTTP headers, that is why you will not be able to use [HTTP2 push with Cloudflare](https://blog.cloudflare.com/announcing-support-for-http-2-server-push-2/)
 
 ## TODO
 
