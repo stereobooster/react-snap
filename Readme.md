@@ -1,4 +1,4 @@
-# React snap
+# react-snap ![npm](https://img.shields.io/npm/v/react-snap.svg) ![npm](https://img.shields.io/npm/dt/react-snap.svg)
 
 ## TODO
 
