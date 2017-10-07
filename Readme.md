@@ -6,6 +6,9 @@ Pre-renders web app into static HTML. Uses headless chrome to prerender. Crawls 
 
 - Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
 - Gracefull shutdown doesn't work
+- Check deployments to [now](https://zeit.co/now#features)
+- Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
+- Docuemnt example with [appcache-nanny](https://github.com/gr2m/appcache-nanny), while webkit doesn't support [seviceWorkers](https://webkit.org/status/#specification-service-workers). Keep an eye on [isserviceworkerready](https://jakearchibald.github.io/isserviceworkerready/)
 
 ## Features
 
