@@ -49,40 +49,41 @@ const crawl = async options => {
   const basePath = `http://localhost:${options.port}`;
   const browser = await puppeteer.launch();
   const fetchPage = async url => {
-    if (shuttingDown) return;
-    const route = url.replace(basePath, "");
-    const page = await browser.newPage();
-    if (options.viewport) {
-      await page.setViewport(options.viewport);
+    if (!shuttingDown) {
+      const route = url.replace(basePath, "");
+      const page = await browser.newPage();
+      if (options.viewport) {
+        await page.setViewport(options.viewport);
+      }
+      page.on("console", msg => console.log(`${route}: ${msg}`));
+      page.on("error", msg => console.log(`${route}: ${msg}`));
+      page.on("pageerror", msg => console.log(`${route}: ${msg}`));
+      await page.setUserAgent("ReactSnap");
+      await page.goto(url, { waitUntil: "networkidle" });
+      const anchors = await page.evaluate(() =>
+        Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
+      );
+      anchors.map(addToQueue);
+      const iframes = await page.evaluate(() =>
+        Array.from(document.querySelectorAll("iframe")).map(iframe => iframe.src)
+      );
+      iframes.map(addToQueue);
+      const content = await page.evaluate(
+        () => document.documentElement.outerHTML
+      );
+      const filePath = path.join(buildDir, route);
+      const minifiedContent = options.minifyOptions
+        ? minify(content, options.minifyOptions)
+        : content;
+      if (filePath.endsWith("/")) {
+        mkdirp.sync(filePath);
+        fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
+      } else {
+        mkdirp.sync(path.dirname(filePath));
+        fs.writeFileSync(`${filePath}.html`, minifiedContent);
+      }
+      console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     }
-    page.on("console", msg => console.log(`${route}: ${msg}`));
-    page.on("error", msg => console.log(`${route}: ${msg}`));
-    page.on("pageerror", msg => console.log(`${route}: ${msg}`));
-    await page.setUserAgent("ReactSnap");
-    await page.goto(url, { waitUntil: "networkidle" });
-    const anchors = await page.evaluate(() =>
-      Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
-    );
-    anchors.map(addToQueue);
-    const iframes = await page.evaluate(() =>
-      Array.from(document.querySelectorAll("iframe")).map(iframe => iframe.src)
-    );
-    iframes.map(addToQueue);
-    const content = await page.evaluate(
-      () => document.documentElement.outerHTML
-    );
-    const filePath = path.join(buildDir, route);
-    const minifiedContent = options.minifyOptions
-      ? minify(content, options.minifyOptions)
-      : content;
-    if (filePath.endsWith("/")) {
-      mkdirp.sync(filePath);
-      fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
-    } else {
-      mkdirp.sync(path.dirname(filePath));
-      fs.writeFileSync(`${filePath}.html`, minifiedContent);
-    }
-    console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     processed++;
     if (enqued === processed) queue.end();
   };

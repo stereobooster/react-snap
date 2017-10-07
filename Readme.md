@@ -15,7 +15,7 @@ Example project [badsyntax/react-snap-example](https://github.com/badsyntax/reac
 Install:
 
 ```sh
-yarn add react-snap
+yarn add --dev react-snap
 ```
 
 Change `package.json`:

@@ -1,12 +1,12 @@
 {
   "name": "react-snap",
   "version": "0.1.9",
-  "description": "react-snapshot, prep e.t.c",
+  "description": "Pre-renders web app into static HTML",
   "main": "index.js",
   "author": "stereobooster",
   "license": "MIT",
-  "repository": "stereobooster/react-snap.git",
-  "engines": { "node": ">=8.6.0" },
+  "repository": "stereobooster/react-snap",
+  "engines": { "node": ">= 8.6.0" },
   "dependencies": {
     "express": "^4.16.1",
     "express-history-api-fallback": "^2.2.1",
