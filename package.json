@@ -6,6 +6,7 @@
   "author": "stereobooster",
   "license": "MIT",
   "repository": "stereobooster/react-snap.git",
+  "engines": { "node": ">=8.6.0" },
   "dependencies": {
     "express": "^4.16.1",
     "express-history-api-fallback": "^2.2.1",

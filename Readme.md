@@ -23,6 +23,15 @@ yarn add react-snap
 
 Example project [badsyntax/react-snap-example](https://github.com/badsyntax/react-snap-example).
 
+`package.json`:
+
+```json
+"scripts": {
+    "generate-sw": "sw-precache --root=build --config scripts/sw-precache-config.js && uglifyjs build/service-worker.js -o build/service-worker.js",
+    "build-snap": "react-scripts build && react-snap && yarn run generate-sw"
+}
+```
+
 `scripts/sw-precache-config.js`:
 
 ```js
@@ -43,16 +52,7 @@ module.exports = {
 };
 ```
 
-`package.json`:
-
-```json
-"scripts": {
-    "generate-sw": "sw-precache --root=build --config scripts/sw-precache-config.js && uglifyjs build/service-worker.js -o build/service-worker.js",
-    "build-snap": "react-scripts build && react-snap && yarn run generate-sw"
-}
-```
-
-`src/index.js`
+`src/index.js` (for React 16)
 
 ```js
 import { hydrate, render } from 'react-dom';
@@ -80,7 +80,7 @@ If you have less than 20k requests in a month you can host for free. Plus you ca
 
 There is [blogpost](https://medium.com/@omgwtfmarc/deploying-create-react-app-to-s3-or-cloudfront-48dae4ce0af) recommended by CRA. **Do not follow it**.
 
-Basic AWS S3 setup is described [here](http://docs.aws.amazon.com/AmazonS3/latest/user-guide/static-website-hosting.html)
+Basic AWS S3 setup described [here](http://docs.aws.amazon.com/AmazonS3/latest/user-guide/static-website-hosting.html).
 
 ### Setup Cloudflare
 
@@ -141,5 +141,6 @@ _(files)
 
 ### Caveats
 
-- AWS S3 does not support custom HTTP headers, that is why you will not be able to use [HTTP2 push with Cloudflare](https://blog.cloudflare.com/announcing-support-for-http-2-server-push-2/)
+- AWS S3 does not support custom HTTP headers, that is why you will not be able to use [HTTP2 push with Cloudflare](https://blog.cloudflare.com/announcing-support-for-http-2-server-push-2/).
+- [s3-sync-aws](https://github.com/andreialecu/s3-sync-aws/issues/3) does not remove old files.
 
