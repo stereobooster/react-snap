@@ -68,6 +68,14 @@ const crawl = async options => {
         Array.from(document.querySelectorAll("iframe")).map(iframe => iframe.src)
       );
       iframes.map(addToQueue);
+      if (options.removeStyleTags) {
+        await page.evaluate(() => {
+          var x = Array.from(document.querySelectorAll("style"));
+          for (var i = x.length - 1; i >= 0; i--) {
+            x[i].parentElement.removeChild(x[i]);
+          }
+        });
+      }
       const content = await page.evaluate(
         () => document.documentElement.outerHTML
       );
@@ -112,9 +120,10 @@ const { reactSnap } = require(`${process.cwd()}/package.json`);
 const options = {
   port: 45678,
   build: "build",
-  concurrency: 3,
+  concurrency: 4,
   viewport: false,
   include: ["/404"],
+  removeStyleTags: false,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,

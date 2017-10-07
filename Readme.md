@@ -149,13 +149,13 @@ _(files)
 ### Caveats
 
 - AWS S3 does not support custom HTTP headers, that is why you will not be able to use [HTTP2 push with Cloudflare](https://blog.cloudflare.com/announcing-support-for-http-2-server-push-2/).
-- [s3-sync-aws](https://github.com/andreialecu/s3-sync-aws/issues/3) does not remove old files.
+- [s3-sync-aws does not remove old files](https://github.com/andreialecu/s3-sync-aws/issues/3).
 
 ## TODO
 
 - Tests
 - Documentation
-- Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
+- Use [penthouse](https://github.com/pocketjoso/penthouse) or [minimalcss](https://github.com/peterbe/minimalcss) to extract critical CSS
 - Gracefull shutdown doesn't work
 - Check deployments to [now](https://zeit.co/now#features)
 - Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
