@@ -50,14 +50,14 @@ const crawl = async options => {
   const browser = await puppeteer.launch();
   const fetchPage = async url => {
     if (shuttingDown) return;
+    const route = url.replace(basePath, "");
     const page = await browser.newPage();
     if (options.viewport) {
       await page.setViewport(options.viewport);
     }
-    page.on("console", msg => console.log(msg));
-    page.on("error", msg => console.log(msg));
-    page.on("pageerror", msg => console.log(msg));
-    await page.exposeFunction("reactSnap", msg => console.log(msg));
+    page.on("console", msg => console.log(`${route}: ${msg}`));
+    page.on("error", msg => console.log(`${route}: ${msg}`));
+    page.on("pageerror", msg => console.log(`${route}: ${msg}`));
     await page.setUserAgent("ReactSnap");
     await page.goto(url, { waitUntil: "networkidle" });
     const anchors = await page.evaluate(() =>
@@ -71,8 +71,7 @@ const crawl = async options => {
     const content = await page.evaluate(
       () => document.documentElement.outerHTML
     );
-    const route = url.replace(basePath, "");
-    let filePath = path.join(buildDir, route);
+    const filePath = path.join(buildDir, route);
     const minifiedContent = options.minifyOptions
       ? minify(content, options.minifyOptions)
       : content;

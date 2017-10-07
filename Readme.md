@@ -2,29 +2,46 @@
 
 Pre-renders web app into static HTML. Uses headless chrome to prerender. Crawls all available links starting from root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch to be lightweight. Thanksfully to [puppeteer](https://github.com/GoogleChrome/puppeteer) and [highland](https://github.com/caolan/highland) code is very short and easy to understand. It is about 100 LOC - take a [look](https://github.com/stereobooster/react-snap/blob/master/index.js)
 
-## TODO
-
-- Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
-- Gracefull shutdown doesn't work
-- Check deployments to [now](https://zeit.co/now#features)
-- Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
-- Docuemnt example with [appcache-nanny](https://github.com/gr2m/appcache-nanny), while webkit doesn't support [seviceWorkers](https://webkit.org/status/#specification-service-workers). Keep an eye on [isserviceworkerready](https://jakearchibald.github.io/isserviceworkerready/)
-
 ## Features
 
 - Enables SEO for SPA (google, duckduckgo...)
 - Enables SMO for SPA (twitter, facebook...)
-- Works out-of-the-box - no code-changes needed
+- Works out-of-the-box - almost no code-changes needed
 
-## Install
+## Basic usage with create-react-app
+
+Example project [badsyntax/react-snap-example](https://github.com/badsyntax/react-snap-example).
+
+Install:
 
 ```sh
 yarn add react-snap
 ```
 
-## Usage
+Change `package.json`:
 
-Example project [badsyntax/react-snap-example](https://github.com/badsyntax/react-snap-example).
+```json
+"scripts": {
+    "build": "react-scripts build && react-snap"
+}
+```
+
+Change `src/index.js` (for React 16):
+
+```js
+import { hydrate, render } from 'react-dom';
+
+const rootElement = document.getElementById('root');
+if (rootElement.hasChildNodes()) {
+  hydrate(<App />, rootElement);
+} else {
+  render(<App />, rootElement);
+}
+```
+
+Thats it!
+
+### Usage with service workers
 
 `package.json`:
 
@@ -55,20 +72,7 @@ module.exports = {
 };
 ```
 
-`src/index.js` (for React 16)
-
-```js
-import { hydrate, render } from 'react-dom';
-
-const rootElement = document.getElementById('root');
-if (rootElement.hasChildNodes()) {
-  hydrate(<App />, rootElement);
-} else {
-  render(<App />, rootElement);
-}
-```
-
-### Google Analytics
+### Usage with Google Analytics
 
 ```js
 import ReactGA from 'react-ga'
@@ -81,7 +85,7 @@ if (production && snap) { ReactGA.initialize('XX-XXXXXXXX-X') }
 
 If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from Cloudflare.
 
-There is [blogpost](https://medium.com/@omgwtfmarc/deploying-create-react-app-to-s3-or-cloudfront-48dae4ce0af) recommended by CRA. **Do not follow it**.
+There is [blogpost](https://medium.com/@omgwtfmarc/deploying-create-react-app-to-s3-or-cloudfront-48dae4ce0af) recommended by c-r-a. **Do not follow it**.
 
 Basic AWS S3 setup described [here](http://docs.aws.amazon.com/AmazonS3/latest/user-guide/static-website-hosting.html).
 
@@ -147,3 +151,12 @@ _(files)
 - AWS S3 does not support custom HTTP headers, that is why you will not be able to use [HTTP2 push with Cloudflare](https://blog.cloudflare.com/announcing-support-for-http-2-server-push-2/).
 - [s3-sync-aws](https://github.com/andreialecu/s3-sync-aws/issues/3) does not remove old files.
 
+## TODO
+
+- Tests
+- Documentation
+- Use [penthouse](https://github.com/pocketjoso/penthouse) to extract critical CSS
+- Gracefull shutdown doesn't work
+- Check deployments to [now](https://zeit.co/now#features)
+- Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
+- Docuemnt example with [appcache-nanny](https://github.com/gr2m/appcache-nanny), while webkit doesn't support [seviceWorkers](https://webkit.org/status/#specification-service-workers). Keep an eye on [isserviceworkerready](https://jakearchibald.github.io/isserviceworkerready/)
