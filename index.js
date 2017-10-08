@@ -10,6 +10,7 @@ const _ = require("highland");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
+const minimalcss = require("minimalcss");
 
 const crawl = async options => {
   let shuttingDown = false;
@@ -48,6 +49,7 @@ const crawl = async options => {
 
   const basePath = `http://localhost:${options.port}`;
   const browser = await puppeteer.launch();
+  const cssLinks = new Set();
   const fetchPage = async url => {
     if (!shuttingDown) {
       const route = url.replace(basePath, "");
@@ -58,6 +60,7 @@ const crawl = async options => {
       page.on("console", msg => console.log(`${route}: ${msg}`));
       page.on("error", msg => console.log(`${route}: ${msg}`));
       page.on("pageerror", msg => console.log(`${route}: ${msg}`));
+      page.on("requestfailed", msg => console.log(`${route}: ${msg}`));
       await page.setUserAgent("ReactSnap");
       await page.goto(url, { waitUntil: "networkidle" });
       const anchors = await page.evaluate(() =>
@@ -65,7 +68,9 @@ const crawl = async options => {
       );
       anchors.map(addToQueue);
       const iframes = await page.evaluate(() =>
-        Array.from(document.querySelectorAll("iframe")).map(iframe => iframe.src)
+        Array.from(document.querySelectorAll("iframe")).map(
+          iframe => iframe.src
+        )
       );
       iframes.map(addToQueue);
       if (options.removeStyleTags) {
@@ -75,6 +80,33 @@ const crawl = async options => {
             x[i].parentElement.removeChild(x[i]);
           }
         });
+      }
+      if (options.minimalCss) {
+        const css = await page.evaluate(() =>
+          Array.from(document.querySelectorAll("link[rel=stylesheet]")).map(
+            link => link.href
+          )
+        );
+        css.map(x => cssLinks.add(x));
+      }
+      if (options.inlineCss) {
+        const cssText = await minimalcss
+          .minimize({ urls: [url] })
+          .then(result => {
+            console.log("inline css", result.finalCss.length);
+            return result.finalCss;
+          });
+        await page.evaluate(cssText => {
+          var head = document.head || document.getElementsByTagName("head")[0],
+            style = document.createElement("style");
+          style.type = "text/css";
+          if (style.styleSheet) {
+            style.styleSheet.cssText = cssText;
+          } else {
+            style.appendChild(document.createTextNode(cssText));
+          }
+          head.appendChild(style);
+        }, cssText);
       }
       const content = await page.evaluate(
         () => document.documentElement.outerHTML
@@ -94,6 +126,7 @@ const crawl = async options => {
     }
     processed++;
     if (enqued === processed) queue.end();
+    return url;
   };
 
   fs
@@ -108,10 +141,20 @@ const crawl = async options => {
   queue
     .map(x => _(fetchPage(x)))
     .parallel(options.concurrency)
-    .collect()
-    .done(async function() {
-      server.close();
+    .toArray(async function(urls) {
+      if (options.minimalCss) {
+        await minimalcss.minimize({ urls }).then(result => {
+          console.log("minimal css", result.finalCss.length);
+          if (cssLinks.values.length !== 1) return;
+          const url = cssLinks.values[0];
+          if (url.indexOf(basePath) !== 0) return;
+          const route = url.replace(basePath, "");
+          const filePath = path.join(buildDir, route);
+          fs.writeFileSync(filePath, result.finalCss);
+        });
+      }
       await browser.close();
+      server.close();
     });
 };
 
@@ -124,6 +167,8 @@ const options = {
   viewport: false,
   include: ["/404"],
   removeStyleTags: false,
+  minimalCss: false, // experimental
+  inlineCss: false, // experimental
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
