@@ -1,4 +1,4 @@
-# react-snap ![npm](https://img.shields.io/npm/v/react-snap.svg) ![npm](https://img.shields.io/npm/dt/react-snap.svg)
+# react-snap [![npm](https://img.shields.io/npm/v/react-snap.svg)](https://www.npmjs.com/package/react-snap) ![npm](https://img.shields.io/npm/dt/react-snap.svg)
 
 Pre-renders web app into static HTML. Uses headless chrome to prerender. Crawls all available links starting from root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch to be lightweight. Thanksfully to [puppeteer](https://github.com/GoogleChrome/puppeteer) and [highland](https://github.com/caolan/highland) code is very short and easy to understand. It is about 100 LOC - take a [look](https://github.com/stereobooster/react-snap/blob/master/index.js)
 
