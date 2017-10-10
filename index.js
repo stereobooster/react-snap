@@ -64,7 +64,7 @@ const crawl = async options => {
           mapStackTrace(
             stacktrace,
             result => {
-              console.log(`${route}: ${mappedStack.join("\n")}`);
+              console.log(`${route}: ${result.join("\n")}`);
             },
             { isChromeOrEdge: true }
           );
