@@ -11,6 +11,7 @@ const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
 const minimalcss = require("minimalcss");
+const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 
 const crawl = async options => {
   let shuttingDown = false;
@@ -58,7 +59,19 @@ const crawl = async options => {
         await page.setViewport(options.viewport);
       }
       page.on("console", msg => console.log(`${route}: ${msg}`));
-      page.on("error", msg => console.log(`${route}: ${msg}`));
+      page.on("error", stacktrace => {
+        if (options.sourceMaps) {
+          mapStackTrace(
+            stacktrace,
+            result => {
+              console.log(`${route}: ${mappedStack.join("\n")}`);
+            },
+            { isChromeOrEdge: true }
+          );
+        } else {
+          console.log(`${route}: ${stacktrace}`);
+        }
+      });
       page.on("pageerror", msg => console.log(`${route}: ${msg}`));
       page.on("requestfailed", msg => console.log(`${route}: ${msg}`));
       await page.setUserAgent("ReactSnap");
@@ -169,6 +182,7 @@ const options = {
   removeStyleTags: false,
   minimalCss: false, // experimental
   inlineCss: false, // experimental
+  sourceMaps: false, // experimental
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
