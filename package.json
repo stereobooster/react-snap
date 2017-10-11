@@ -1,6 +1,6 @@
 {
   "name": "react-snap",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "description": "Pre-renders web app into static HTML",
   "main": "index.js",
   "author": "stereobooster",
@@ -18,7 +18,7 @@
     "mkdirp": "^0.5.1",
     "puppeteer": "^0.11.0",
     "serve-static": "^1.13.1",
-    "sourcemapped-stacktrace-node": "^2.0.2"
+    "sourcemapped-stacktrace-node": "^2.0.4"
   },
   "devDependencies": {
     "prettier": "1.7.3"

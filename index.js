@@ -59,7 +59,8 @@ const crawl = async options => {
         await page.setViewport(options.viewport);
       }
       page.on("console", msg => console.log(`${route}: ${msg}`));
-      page.on("error", stacktrace => {
+      page.on("error", msg => console.log(`${route}: ${msg}`));
+      page.on("pageerror", stacktrace => {
         if (options.sourceMaps) {
           mapStackTrace(
             stacktrace,
@@ -72,7 +73,6 @@ const crawl = async options => {
           console.log(`${route}: ${stacktrace}`);
         }
       });
-      page.on("pageerror", msg => console.log(`${route}: ${msg}`));
       page.on("requestfailed", msg => console.log(`${route}: ${msg}`));
       await page.setUserAgent("ReactSnap");
       await page.goto(url, { waitUntil: "networkidle" });
