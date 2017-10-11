@@ -60,17 +60,18 @@ const crawl = async options => {
       }
       page.on("console", msg => console.log(`${route}: ${msg}`));
       page.on("error", msg => console.log(`${route}: ${msg}`));
-      page.on("pageerror", stacktrace => {
+      page.on("pageerror", e => {
         if (options.sourceMaps) {
+          // console.log(e.stack.split("\n")[0])
           mapStackTrace(
-            stacktrace,
+            e.stack,
             result => {
               console.log(`${route}: ${result.join("\n")}`);
             },
             { isChromeOrEdge: true }
           );
         } else {
-          console.log(`${route}: ${stacktrace}`);
+          console.log(`${route}: ${e}`);
         }
       });
       page.on("requestfailed", msg => console.log(`${route}: ${msg}`));
@@ -182,7 +183,7 @@ const options = {
   removeStyleTags: false,
   minimalCss: false, // experimental
   inlineCss: false, // experimental
-  sourceMaps: false, // experimental
+  sourceMaps: true,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
