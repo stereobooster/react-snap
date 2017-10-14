@@ -125,6 +125,9 @@ const crawl = async reactSnap => {
       // );
       await page.setUserAgent(options.userAgent);
       await page.goto(url, { waitUntil: "networkidle" });
+      if (options.waitFor) {
+        await page.waitFor(options.waitFor);
+      }
       if (options.crawl) {
         const anchors = await page.evaluate(() =>
           Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
@@ -198,9 +201,6 @@ const crawl = async reactSnap => {
         await page.screenshot({ path: screenshotPath });
       } else {
         throw new Error(`Unexpected value for saveAs: ${options.saveAs}`);
-      }
-      if (options.waitFor) {
-        await page.waitFor(options.waitFor);
       }
       await page.close();
       console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
