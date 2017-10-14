@@ -140,6 +140,7 @@ const crawl = async options => {
         mkdirp.sync(path.dirname(filePath));
         fs.writeFileSync(`${filePath}.html`, minifiedContent);
       }
+      await page.close();
       console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     }
     processed++;
