@@ -1,6 +1,6 @@
 {
   "name": "react-snap",
-  "version": "0.3.6",
+  "version": "0.4.0",
   "description": "Pre-renders web app into static HTML",
   "main": "index.js",
   "author": "stereobooster",
@@ -28,6 +28,6 @@
     "precommit": "prettier --write *.{js,json,css}"
   },
   "bin": {
-    "react-snap": "./index.js"
+    "react-snap": "./run.js"
   }
 }

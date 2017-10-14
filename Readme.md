@@ -81,6 +81,19 @@ const production = process.env.NODE_ENV === 'production';
 if (production && snap) { ReactGA.initialize('XX-XXXXXXXX-X') }
 ```
 
+### Use to render screenshots
+
+`screenshots.js`
+
+```js
+const { crawl } = require("react-snap");
+
+crawl({
+  destination: "build/screenshots",
+  saveAs: "png"
+});
+```
+
 ## Hosting on AWS S3 + cloudflare.com
 
 If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from Cloudflare.

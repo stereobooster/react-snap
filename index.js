@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 const puppeteer = require("puppeteer");
 const http = require("http");
 const express = require("express");
@@ -13,7 +12,43 @@ const minify = require("html-minifier").minify;
 const minimalcss = require("minimalcss");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 
-const crawl = async options => {
+const defaultOptions = {
+  port: 45678,
+  source: "build",
+  destination: null,
+  concurrency: 4,
+  viewport: false,
+  include: ["/404"],
+  removeStyleTags: false,
+  minimalCss: false, // experimental
+  inlineCss: false, // experimental
+  sourceMaps: false, // experimental
+  headless: true,
+  userAgent: "ReactSnap",
+  saveAs: "html",
+  minifyOptions: {
+    minifyCSS: true,
+    collapseBooleanAttributes: true,
+    collapseWhitespace: true,
+    collapseInlineTagWhitespace: true,
+    decodeEntities: true,
+    keepClosingSlash: true,
+    sortAttributes: true,
+    sortClassName: true
+  }
+};
+
+const defaults = reactSnap => {
+  const options = {
+    ...defaultOptions,
+    ...reactSnap
+  };
+  options.destination = options.destination || options.source;
+  return options;
+};
+
+const crawl = async reactSnap => {
+  const options = defaults(reactSnap);
   let shuttingDown = false;
   process.on("SIGINT", () => {
     if (shuttingDown) {
@@ -26,11 +61,12 @@ const crawl = async options => {
     }
   });
 
-  const buildDir = path.normalize(`${process.cwd()}/${options.build}`);
+  const sourceDir = path.normalize(`${process.cwd()}/${options.source}`);
+  const destinationDir = path.normalize(`${process.cwd()}/${options.destination}`);
   const startServer = options => {
     const app = express()
-      .use(serveStatic(buildDir))
-      .use(fallback("200.html", { root: buildDir }));
+      .use(serveStatic(sourceDir))
+      .use(fallback("200.html", { root: sourceDir }));
     const server = http.createServer(app);
     server.listen(options.port);
     return server;
@@ -49,7 +85,9 @@ const crawl = async options => {
   };
 
   const basePath = `http://localhost:${options.port}`;
-  const browser = await puppeteer.launch({ headless: options.headless });
+  const browser = await puppeteer.launch({
+    headless: options.headless
+  });
   const cssLinks = new Set();
   const fetchPage = async url => {
     if (!shuttingDown) {
@@ -76,10 +114,10 @@ const crawl = async options => {
           console.log(`${route} pageerror:`, e);
         }
       });
-      page.on("requestfailed", msg =>
-        console.log(`${route} requestfailed:`, msg)
-      );
-      await page.setUserAgent("ReactSnap");
+      // page.on("requestfailed", msg =>
+      //   console.log(`${route} requestfailed:`, msg)
+      // );
+      await page.setUserAgent(options.userAgent);
       await page.goto(url, { waitUntil: "networkidle" });
       const anchors = await page.evaluate(() =>
         Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
@@ -126,19 +164,32 @@ const crawl = async options => {
           head.appendChild(style);
         }, cssText);
       }
-      const content = await page.evaluate(
-        () => document.documentElement.outerHTML
-      );
-      const filePath = path.join(buildDir, route);
-      const minifiedContent = options.minifyOptions
-        ? minify(content, options.minifyOptions)
-        : content;
-      if (filePath.endsWith("/")) {
-        mkdirp.sync(filePath);
-        fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
-      } else {
+      const filePath = path.join(destinationDir, route);
+      if (options.saveAs === "html") {
+        const content = await page.evaluate(
+          () => document.documentElement.outerHTML
+        );
+        const minifiedContent = options.minifyOptions
+          ? minify(content, options.minifyOptions)
+          : content;
+        if (filePath.endsWith("/")) {
+          mkdirp.sync(filePath);
+          fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
+        } else {
+          mkdirp.sync(path.dirname(filePath));
+          fs.writeFileSync(`${filePath}.html`, minifiedContent);
+        }
+      } else if (options.saveAs === "png") {
         mkdirp.sync(path.dirname(filePath));
-        fs.writeFileSync(`${filePath}.html`, minifiedContent);
+        let screenshotPath;
+        if (route === "/") {
+          screenshotPath = `${filePath}/index.png`;
+        } else {
+          screenshotPath = `${filePath.replace(/\/$/, "")}.png`;
+        }
+        await page.screenshot({ path: screenshotPath });
+      } else {
+        throw new Error(`Unexpected value for saveAs: ${options.saveAs}`);
       }
       await page.close();
       console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
@@ -149,8 +200,8 @@ const crawl = async options => {
   };
 
   fs
-    .createReadStream(path.join(buildDir, "index.html"))
-    .pipe(fs.createWriteStream(path.join(buildDir, "200.html")));
+    .createReadStream(path.join(sourceDir, "index.html"))
+    .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
   const server = startServer(options);
 
   addToQueue(`${basePath}/`);
@@ -167,8 +218,8 @@ const crawl = async options => {
           if (cssLinks.values.length !== 1) return;
           const url = cssLinks.values[0];
           if (url.indexOf(basePath) !== 0) return;
-          const route = url.replace(basePath, "");
-          const filePath = path.join(buildDir, route);
+          const route = url.replace(destinationDir, "");
+          const filePath = path.join(destinationDir, route);
           fs.writeFileSync(filePath, result.finalCss);
         });
       }
@@ -177,30 +228,5 @@ const crawl = async options => {
     });
 };
 
-const { reactSnap } = require(`${process.cwd()}/package.json`);
-
-const options = {
-  port: 45678,
-  build: "build",
-  concurrency: 4,
-  viewport: false,
-  include: ["/404"],
-  removeStyleTags: false,
-  minimalCss: false, // experimental
-  inlineCss: false, // experimental
-  sourceMaps: false, // experimental
-  headless: true,
-  minifyOptions: {
-    minifyCSS: true,
-    collapseBooleanAttributes: true,
-    collapseWhitespace: true,
-    collapseInlineTagWhitespace: true,
-    decodeEntities: true,
-    keepClosingSlash: true,
-    sortAttributes: true,
-    sortClassName: true
-  },
-  ...reactSnap
-};
-
-crawl(options);
+exports.defaultOptions = defaultOptions;
+exports.crawl = crawl;
