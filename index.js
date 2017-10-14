@@ -18,7 +18,7 @@ const defaultOptions = {
   destination: null,
   concurrency: 4,
   viewport: false,
-  include: ["/404"],
+  include: ["/", "/404"],
   removeStyleTags: false,
   minimalCss: false, // experimental
   inlineCss: false, // experimental
@@ -26,6 +26,7 @@ const defaultOptions = {
   headless: true,
   userAgent: "ReactSnap",
   saveAs: "html",
+  crawl: true,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
@@ -44,6 +45,8 @@ const defaults = reactSnap => {
     ...reactSnap
   };
   options.destination = options.destination || options.source;
+  if (!options.include || !options.include.length)
+    throw new Error("include should be an array");
   return options;
 };
 
@@ -62,7 +65,9 @@ const crawl = async reactSnap => {
   });
 
   const sourceDir = path.normalize(`${process.cwd()}/${options.source}`);
-  const destinationDir = path.normalize(`${process.cwd()}/${options.destination}`);
+  const destinationDir = path.normalize(
+    `${process.cwd()}/${options.destination}`
+  );
   const startServer = options => {
     const app = express()
       .use(serveStatic(sourceDir))
@@ -119,23 +124,25 @@ const crawl = async reactSnap => {
       // );
       await page.setUserAgent(options.userAgent);
       await page.goto(url, { waitUntil: "networkidle" });
-      const anchors = await page.evaluate(() =>
-        Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
-      );
-      anchors.map(addToQueue);
-      const iframes = await page.evaluate(() =>
-        Array.from(document.querySelectorAll("iframe")).map(
-          iframe => iframe.src
-        )
-      );
-      iframes.map(addToQueue);
-      if (options.removeStyleTags) {
-        await page.evaluate(() => {
-          var x = Array.from(document.querySelectorAll("style"));
-          for (var i = x.length - 1; i >= 0; i--) {
-            x[i].parentElement.removeChild(x[i]);
-          }
-        });
+      if (options.crawl) {
+        const anchors = await page.evaluate(() =>
+          Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
+        );
+        anchors.map(addToQueue);
+        const iframes = await page.evaluate(() =>
+          Array.from(document.querySelectorAll("iframe")).map(
+            iframe => iframe.src
+          )
+        );
+        iframes.map(addToQueue);
+        if (options.removeStyleTags) {
+          await page.evaluate(() => {
+            var x = Array.from(document.querySelectorAll("style"));
+            for (var i = x.length - 1; i >= 0; i--) {
+              x[i].parentElement.removeChild(x[i]);
+            }
+          });
+        }
       }
       if (options.minimalCss) {
         const css = await page.evaluate(() =>
@@ -204,7 +211,6 @@ const crawl = async reactSnap => {
     .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
   const server = startServer(options);
 
-  addToQueue(`${basePath}/`);
   if (options.include) {
     options.include.map(x => addToQueue(`${basePath}${x}`));
   }
