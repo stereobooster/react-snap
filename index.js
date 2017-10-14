@@ -27,6 +27,7 @@ const defaultOptions = {
   userAgent: "ReactSnap",
   saveAs: "html",
   crawl: true,
+  waitFor: false,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
@@ -197,6 +198,9 @@ const crawl = async reactSnap => {
         await page.screenshot({ path: screenshotPath });
       } else {
         throw new Error(`Unexpected value for saveAs: ${options.saveAs}`);
+      }
+      if (options.waitFor) {
+        await page.waitFor(options.waitFor);
       }
       await page.close();
       console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
