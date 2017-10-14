@@ -49,7 +49,7 @@ const crawl = async options => {
   };
 
   const basePath = `http://localhost:${options.port}`;
-  const browser = await puppeteer.launch();
+  const browser = await puppeteer.launch({ headless: options.headless });
   const cssLinks = new Set();
   const fetchPage = async url => {
     if (!shuttingDown) {
@@ -58,26 +58,27 @@ const crawl = async options => {
       if (options.viewport) {
         await page.setViewport(options.viewport);
       }
-      page.on("console", msg => console.log(`${route}: ${msg}`));
-      page.on("error", msg => console.log(`${route}: ${msg}`));
+      page.on("console", msg => console.log(`${route} log:`, msg));
+      page.on("error", msg => console.log(`${route} error:`, msg));
       page.on("pageerror", e => {
         if (options.sourceMaps) {
           mapStackTrace(
             e.stack,
             result => {
               console.log(
-                `${route}: ${e.stack.split("\n")[0] + "\n"} ${result.join(
-                  "\n"
-                )}`
+                `${route} pageerror: ${e.stack.split("\n")[0] +
+                  "\n"}${result.join("\n")}`
               );
             },
             { isChromeOrEdge: true }
           );
         } else {
-          console.log(`${route}: ${e}`);
+          console.log(`${route} pageerror:`, e);
         }
       });
-      page.on("requestfailed", msg => console.log(`${route}: ${msg}`));
+      page.on("requestfailed", msg =>
+        console.log(`${route} requestfailed:`, msg)
+      );
       await page.setUserAgent("ReactSnap");
       await page.goto(url, { waitUntil: "networkidle" });
       const anchors = await page.evaluate(() =>
@@ -186,7 +187,8 @@ const options = {
   removeStyleTags: false,
   minimalCss: false, // experimental
   inlineCss: false, // experimental
-  sourceMaps: false,
+  sourceMaps: false, // experimental
+  headless: true,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
