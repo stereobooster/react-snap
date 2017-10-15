@@ -28,6 +28,7 @@ const defaultOptions = {
   saveAs: "html",
   crawl: true,
   waitFor: false,
+  externalServer: false,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
@@ -213,7 +214,7 @@ const crawl = async reactSnap => {
   fs
     .createReadStream(path.join(sourceDir, "index.html"))
     .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
-  const server = startServer(options);
+  const server = options.externalServer ? false : startServer(options);
 
   if (options.include) {
     options.include.map(x => addToQueue(`${basePath}${x}`));
@@ -234,7 +235,7 @@ const crawl = async reactSnap => {
         });
       }
       await browser.close();
-      server.close();
+      if (!options.externalServer) server.close();
     });
 };
 
