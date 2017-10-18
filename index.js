@@ -20,7 +20,7 @@ const defaultOptions = {
   viewport: false,
   include: ["/", "/404"],
   removeStyleTags: false,
-  minimalCss: false, // experimental
+  minimalCss: false, // depricated
   inlineCss: false, // experimental
   sourceMaps: false, // experimental
   headless: true,
@@ -51,6 +51,11 @@ const defaults = reactSnap => {
     throw new Error("include should be an array");
   return options;
 };
+
+const preloadPolyfill = fs.readFileSync(
+  `${__dirname}/vendor/preload_polyfill.min.js`,
+  "utf8"
+);
 
 const crawl = async reactSnap => {
   const options = defaults(reactSnap);
@@ -124,6 +129,56 @@ const crawl = async reactSnap => {
       // page.on("requestfailed", msg =>
       //   console.log(`${route} requestfailed:`, msg)
       // );
+      const uniqueResources = {};
+      page.on("response", async response => {
+        // TODO: this can be improved
+        const url = response.url;
+        if (/^data:/i.test(url)) return;
+        const ct = response.headers["content-type"] || "";
+        const route = url.replace(basePath, "");
+        if (/^http:\/\/localhost/i.test(url)) {
+          if (uniqueResources[url]) return;
+          if (/\.(png|jpg|jpeg)$/.test(url)) {
+            await page.evaluate(route => {
+              var linkTag = document.createElement("link");
+              linkTag.setAttribute("rel", "preload");
+              linkTag.setAttribute("as", "image");
+              linkTag.setAttribute("href", route);
+              document.body.appendChild(linkTag);
+            }, route);
+          } else if (ct.indexOf("json") > -1) {
+            const text = await response.text();
+            await page.evaluate(
+              (route, text) => {
+                var scriptTag = document.createElement("script");
+                scriptTag.type = "text/javascript";
+                scriptTag.text = [
+                  'window.snapStore = window.snapStore || {}; window.snapStore["',
+                  route,
+                  '"] = ',
+                  text,
+                  ";"
+                ].join("");
+                document.body.appendChild(scriptTag);
+              },
+              route,
+              text
+            );
+          }
+          uniqueResources[url] = true;
+        } else {
+          const urlObj = Url.parse(url);
+          const domain = `${urlObj.protocol}//${urlObj.host}`;
+          if (uniqueResources[domain]) return;
+          await page.evaluate(route => {
+            var linkTag = document.createElement("link");
+            linkTag.setAttribute("rel", "preconnect");
+            linkTag.setAttribute("href", route);
+            document.head.appendChild(linkTag);
+          }, domain);
+          uniqueResources[domain] = true;
+        }
+      });
       await page.setUserAgent(options.userAgent);
       await page.goto(url, { waitUntil: "networkidle" });
       if (options.waitFor) {
@@ -149,32 +204,54 @@ const crawl = async reactSnap => {
           });
         }
       }
-      if (options.minimalCss) {
-        const css = await page.evaluate(() =>
-          Array.from(document.querySelectorAll("link[rel=stylesheet]")).map(
-            link => link.href
-          )
-        );
-        css.map(x => cssLinks.add(x));
-      }
       if (options.inlineCss) {
-        const cssText = await minimalcss
-          .minimize({ urls: [url] })
-          .then(result => {
-            console.log("inline css", result.finalCss.length);
-            return result.finalCss;
-          });
-        await page.evaluate(cssText => {
-          var head = document.head || document.getElementsByTagName("head")[0],
-            style = document.createElement("style");
-          style.type = "text/css";
-          if (style.styleSheet) {
-            style.styleSheet.cssText = cssText;
-          } else {
-            style.appendChild(document.createTextNode(cssText));
-          }
-          head.appendChild(style);
-        }, cssText);
+        const minimalcssResult = await minimalcss.minimize({ urls: [url] });
+        const cssText = minimalcssResult.finalCss;
+        console.log("inline css", cssText.length);
+        await page.evaluate(
+          (cssText, preloadPolyfill) => {
+            var head =
+                document.head || document.getElementsByTagName("head")[0],
+              style = document.createElement("style");
+            style.type = "text/css";
+            if (style.styleSheet) {
+              style.styleSheet.cssText = cssText;
+            } else {
+              style.appendChild(document.createTextNode(cssText));
+            }
+            head.appendChild(style);
+
+            var stylesheets = Array.from(
+              document.querySelectorAll("link[rel=stylesheet]")
+            );
+            stylesheets.forEach(link => {
+              // TODO: this doesn't work
+              // var wrap = document.createElement('div');
+              // wrap.appendChild(link.cloneNode(false));
+              // var noscriptTag = document.createElement('noscript');
+              // noscriptTag.innerHTML = wrap.innerHTML;
+              // document.head.appendChild(noscriptTag);
+              link.parentNode.removeChild(link);
+              link.setAttribute("rel", "preload");
+              link.setAttribute("as", "style");
+              link.setAttribute("onload", "this.rel='stylesheet'");
+              document.head.appendChild(link);
+            });
+
+            Array.from(document.querySelectorAll("script[src]")).forEach(x => {
+              x.parentNode.removeChild(x);
+              x.setAttribute("async", "true");
+              document.head.appendChild(x);
+            });
+
+            var scriptTag = document.createElement("script");
+            scriptTag.type = "text/javascript";
+            scriptTag.text = preloadPolyfill;
+            document.body.appendChild(scriptTag);
+          },
+          cssText,
+          preloadPolyfill
+        );
       }
       const filePath = path.join(destinationDir, route);
       if (options.saveAs === "html") {
@@ -223,17 +300,6 @@ const crawl = async reactSnap => {
     .map(x => _(fetchPage(x)))
     .parallel(options.concurrency)
     .toArray(async function(urls) {
-      if (options.minimalCss) {
-        await minimalcss.minimize({ urls }).then(result => {
-          console.log("minimal css", result.finalCss.length);
-          if (cssLinks.values.length !== 1) return;
-          const url = cssLinks.values[0];
-          if (url.indexOf(basePath) !== 0) return;
-          const route = url.replace(destinationDir, "");
-          const filePath = path.join(destinationDir, route);
-          fs.writeFileSync(filePath, result.finalCss);
-        });
-      }
       await browser.close();
       if (!options.externalServer) server.close();
     });
