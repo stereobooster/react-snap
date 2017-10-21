@@ -6,9 +6,9 @@ Pre-renders web app into static HTML. Uses headless chrome to prerender. Crawls 
 
 - Enables SEO for SPA (google, duckduckgo...)
 - Enables SMO for SPA (twitter, facebook...)
-- Works out-of-the-box wit c-r-a - no code-changes required. Also, can work with another setup.
+- Works out-of-the-box wit create-react-app - no code-changes required. Also, can work with another setup.
 - Thanks to prerendered HTML and inlined critical CSS you will get very fast first paint.
-- Thanks to preloading you will get very fast interaction time
+- Thanks to `Preload resources` feature you will get very fast first interaction time.
 
 ## Basic usage with create-react-app
 
@@ -43,6 +43,14 @@ if (rootElement.hasChildNodes()) {
 
 That's it!
 
+### Inline css
+
+ReactSnap can inline critical CSS with the help of [minimalcss](https://github.com/peterbe/minimalcss) and full CSS will be loaded in a nonblocking manner with the help of [loadCss](https://www.npmjs.com/package/fg-loadcss).
+
+Use `inlineCss: true` to enable this feature.
+
+Caveat: as of now `<noscript>` fallback not implemented. As soon it will be implemented, this feature will be enabled by default.
+
 ### Preload resources
 
 ReactSnap can capture all required resources on the page and modify HTML, to instruct browser to preload those resources. 
@@ -51,13 +59,28 @@ ReactSnap can capture all required resources on the page and modify HTML, to ins
 
 Use `preloadResources: true` to enable this feature.
 
-### Inline css
+### Even faster first interaction time
 
-ReactSnap can inline critical CSS with the help of [minimalcss](https://github.com/peterbe/minimalcss) and full CSS will be loaded in a nonblocking manner with the help of [loadCss](https://www.npmjs.com/package/fg-loadcss).
+You can use Preact instead of React
 
-Use `inlineCss: true` to enable this feature.
+```sh
+yarn add preact preact-compat
+````
 
-Caveat: as of now `<noscript>` fallback not implemented. As soon it will be implemented, this feature will be enabled by default.
+```js
+process.env.NODE_ENV = "production"
+
+const config = require("react-scripts/config/webpack.config.prod")
+
+config.resolve.alias["react"] = "preact-compat"
+config.resolve.alias["react-dom"] = "preact-compat"
+
+require("react-scripts/scripts/build")
+```
+
+If you use webpack 2+ you can use dynamic `import` to split bundles in chunks. See:
+- http://thejameskyle.com/react-loadable.html
+- https://serverless-stack.com/chapters/code-splitting-in-create-react-app.html
 
 ### Usage with service workers
 
