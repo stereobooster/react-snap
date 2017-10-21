@@ -60,7 +60,7 @@ Use `preloadResources: true` to enable this feature.
 
 ## Recieps
 
-See [recieps](/react-snap/blob/master/Recieps.md) for more examples.
+See [recieps](Recieps.md) for more examples.
 
 ## TODO
 
