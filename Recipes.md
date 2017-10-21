@@ -19,6 +19,8 @@
 
 <!-- tocstop -->
 
+[![Hacker News](https://img.shields.io/badge/Hacker%20News-Y-orange.svg)](https://news.ycombinator.com/item?id=15521574)
+
 ## General
 
 ### Prerender website without ejecting
