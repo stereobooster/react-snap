@@ -1,10 +1,10 @@
-# create-react-app reciepes
+# create-react-app recipes
 
 <!-- toc -->
 
 - [General](#general)
   * [Prerender website without ejecting](#prerender-website-without-ejecting)
-  * [Preact without eject](#preact-without-eject)
+  * [Preact without ejecting](#preact-without-ejecting)
   * [Split in chunks](#split-in-chunks)
   * [Configure sw-precache without ejecting](#configure-sw-precache-without-ejecting)
   * [Add Appcache](#add-appcache)
@@ -24,7 +24,7 @@
 
 Use [preact-snap](https://github.com/stereobooster/react-snap/blob/master/Readme.md#basic-usage-with-create-react-app) ;)
 
-### Preact without eject
+### Preact without ejecting
 
 ```sh
 yarn add preact preact-compat
@@ -80,7 +80,7 @@ module.exports = {
 };
 ```
 
-You can use `200.html` instead of `shell.html` if you use `react-snap` and do not have separate `shell.html`. This is important, because `react-snap` will prerender `index.html` and when user will be oflline their will see flash of your homepage on navigation.
+You can use `200.html` instead of `shell.html` if you use `react-snap` and do not have separate `shell.html`. This is important because `react-snap` will prerender `index.html` and when user will be offline their will see a flash of your homepage on navigation.
 
 ### Add Appcache
 
@@ -289,4 +289,3 @@ run({
   saveAs: "png"
 });
 ```
-

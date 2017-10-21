@@ -60,7 +60,7 @@ Use `preloadResources: true` to enable this feature.
 
 ## Recieps
 
-See [recieps](Recieps.md) for more examples.
+See [recipes](Recipes.md) for more examples.
 
 ## TODO
 
