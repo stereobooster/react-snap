@@ -1,12 +1,14 @@
 # react-snap [![npm](https://img.shields.io/npm/v/react-snap.svg)](https://www.npmjs.com/package/react-snap) ![npm](https://img.shields.io/npm/dt/react-snap.svg)
 
-Pre-renders web app into static HTML. Uses headless chrome to prerender. Crawls all available links starting from root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch to be lightweight. Thanksfully to [puppeteer](https://github.com/GoogleChrome/puppeteer) and [highland](https://github.com/caolan/highland) code is very short and easy to understand. It is about 100 LOC - take a [look](https://github.com/stereobooster/react-snap/blob/master/index.js)
+Pre-renders web app into static HTML. Uses headless chrome to prerender. Crawls all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get best loading speed.
 
 ## Features
 
 - Enables SEO for SPA (google, duckduckgo...)
 - Enables SMO for SPA (twitter, facebook...)
-- Works out-of-the-box - almost no code-changes needed
+- Works out-of-the-box wit c-r-a - no code-changes required. Also, can work with another setup.
+- Thanks to prerendered HTML and inlined critical CSS you will get very fast first paint.
+- Thanks to preloading you will get very fast interaction time
 
 ## Basic usage with create-react-app
 
@@ -26,7 +28,7 @@ Change `package.json`:
 }
 ```
 
-Change `src/index.js` (for React 16):
+Change `src/index.js` (for React 16+):
 
 ```js
 import { hydrate, render } from 'react-dom';
@@ -39,7 +41,23 @@ if (rootElement.hasChildNodes()) {
 }
 ```
 
-Thats it!
+That's it!
+
+### Preload resources
+
+ReactSnap can capture all required resources on the page and modify HTML, to instruct browser to preload those resources. 
+- It will use `<link rel="preload" as="image">` for images.
+- it will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request
+
+Use `preloadResources: true` to enable this feature.
+
+### Inline css
+
+ReactSnap can inline critical CSS with the help of [minimalcss](https://github.com/peterbe/minimalcss) and full CSS will be loaded in a nonblocking manner with the help of [loadCss](https://www.npmjs.com/package/fg-loadcss).
+
+Use `inlineCss: true` to enable this feature.
+
+Caveat: as of now `<noscript>` fallback not implemented. As soon it will be implemented, this feature will be enabled by default.
 
 ### Usage with service workers
 
@@ -96,7 +114,7 @@ crawl({
 
 ## Hosting on AWS S3 + cloudflare.com
 
-If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from Cloudflare.
+If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from CloudFlare.
 
 There is [blogpost](https://medium.com/@omgwtfmarc/deploying-create-react-app-to-s3-or-cloudfront-48dae4ce0af) recommended by c-r-a. **Do not follow it**.
 
@@ -108,7 +126,7 @@ Basic AWS S3 setup described [here](http://docs.aws.amazon.com/AmazonS3/latest/u
 - Set `Always use HTTPS` to `On`
 - `Auto Minify` uncheck all checkboxes
 
-Some additional bits about Cloudflare: https://github.com/virtualjj/aws-s3-backed-cloudflare-static-website
+Some additional bits about CloudFlare: https://github.com/virtualjj/aws-s3-backed-cloudflare-static-website
 
 ### Deployment
 
@@ -166,9 +184,12 @@ _(files)
 
 ## TODO
 
+- Use [npm package for loadCss](https://www.npmjs.com/package/fg-loadcss) instead of vendoring it.
+- Improve `preconnect`, `dns-prefetch` functionality
+- Implement `noscript` fallback for loadCss trick
 - Tests
 - Documentation
-- Use [penthouse](https://github.com/pocketjoso/penthouse) or [minimalcss](https://github.com/peterbe/minimalcss) to extract critical CSS
+- Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
 - Gracefull shutdown doesn't work
 - Check deployments to [now](https://zeit.co/now#features)
 - Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)

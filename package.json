@@ -25,7 +25,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "precommit": "prettier --write *.{js,json,css}"
+    "precommit": "prettier --write {*,src/*}.{js,json,css}"
   },
   "bin": {
     "react-snap": "./run.js"
