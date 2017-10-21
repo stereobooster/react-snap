@@ -21,9 +21,11 @@
     "sourcemapped-stacktrace-node": "^2.0.4"
   },
   "devDependencies": {
+    "markdown-toc": "^1.2.0",
     "prettier": "1.7.3"
   },
   "scripts": {
+    "toc": "yarn run markdown-toc -i Recieps.md",
     "test": "echo \"Error: no test specified\" && exit 1",
     "precommit": "prettier --write {*,src/*}.{js,json,css}"
   },
