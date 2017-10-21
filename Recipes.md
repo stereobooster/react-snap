@@ -1,5 +1,7 @@
 # create-react-app recipes
 
+[![Hacker News](https://img.shields.io/badge/Hacker%20News-Y-orange.svg)](https://news.ycombinator.com/item?id=15521574)
+
 <!-- toc -->
 
 - [General](#general)
@@ -18,8 +20,6 @@
   * [Use to render screenshots](#use-to-render-screenshots)
 
 <!-- tocstop -->
-
-[![Hacker News](https://img.shields.io/badge/Hacker%20News-Y-orange.svg)](https://news.ycombinator.com/item?id=15521574)
 
 ## General
 
