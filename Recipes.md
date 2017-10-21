@@ -54,6 +54,8 @@ With webpack 2+ you can use dynamic `import` to split bundles in chunks. See art
 
 ### Configure sw-precache without ejecting
 
+Tip: See [material design offline states](https://material.io/guidelines/patterns/offline-states.html) for UI advices on offline applications. Also see section about [snackbars & toasts](https://material.io/guidelines/components/snackbars-toasts.html).
+
 `package.json`:
 
 ```json
@@ -88,6 +90,8 @@ You can use `200.html` instead of `shell.html` if you use `react-snap` and do no
 ### Add Appcache
 
 [Webkit promises to add Service Worker support](https://webkit.org/status/#specification-service-workers) meantime we can use Appcache.
+
+Tip: you can prompt user to "install your site as web app", like [this](https://www.npmjs.com/package/angular-add-to-home-screen).
 
 ```sh
 yarn add appcache-nanny
