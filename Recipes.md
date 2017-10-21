@@ -198,6 +198,8 @@ export function unregister() {
 
 ### Meta tags
 
+Tip: If you do not have images for social media, you can use screenshots of your website. See [Use to render screenshots](#use-to-render-screenshots) section.
+
 ```sh
 yarn add react-helmet
 ```
