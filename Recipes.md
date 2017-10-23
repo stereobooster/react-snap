@@ -25,7 +25,7 @@
 
 ### Prerender website without ejecting
 
-Use [preact-snap](https://github.com/stereobooster/react-snap/blob/master/Readme.md#basic-usage-with-create-react-app) ;)
+Use [react-snap](https://github.com/stereobooster/react-snap/blob/master/Readme.md#basic-usage-with-create-react-app) ;)
 
 ### Preact without ejecting
 
