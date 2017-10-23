@@ -188,7 +188,8 @@ const saveAsHtml = async ({ page, filePath, options }) => {
   const minifiedContent = options.minifyOptions
     ? minify(content, options.minifyOptions)
     : content;
-  if (filePath.endsWith("/")) {
+  filePath = filePath.replace(/\//g, path.sep);
+  if (filePath.endsWith(path.sep)) {
     mkdirp.sync(filePath);
     fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   } else {
