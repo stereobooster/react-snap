@@ -64,8 +64,12 @@ const getLinks = async ({ page }) => {
 const crawl = async ({
   options,
   basePath,
-  beforeFetch = ({ page, route }) => { ({ page, route }) },
-  aferFeth = ({ page, route }) => { ({ page, route }) },
+  beforeFetch = ({ page, route }) => {
+    ({ page, route });
+  },
+  aferFeth = ({ page, route }) => {
+    ({ page, route });
+  },
   onEnd = () => {}
 }) => {
   let shuttingDown = false;
@@ -90,7 +94,7 @@ const crawl = async ({
    * @param {string} url
    * @returns {void}
    */
-  const addToQueue = (url) => {
+  const addToQueue = url => {
     if (Url.parse(url).hostname === "localhost" && !uniqueUrls[url]) {
       uniqueUrls[url] = true;
       enqued++;

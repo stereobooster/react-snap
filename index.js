@@ -26,6 +26,8 @@ const defaultOptions = {
   crawl: true,
   waitFor: false,
   externalServer: false,
+  // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
+  fixWebpackChunksIssue: false, // experimental
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
@@ -148,6 +150,7 @@ const inlineCss = async ({ page, url }) => {
         document.head.appendChild(link);
       });
 
+      // TODO: separate config for this
       Array.from(document.querySelectorAll("script[src]")).forEach(x => {
         x.parentNode.removeChild(x);
         x.setAttribute("async", "true");
@@ -162,6 +165,22 @@ const inlineCss = async ({ page, url }) => {
     cssText,
     preloadPolyfill
   );
+};
+
+const fixWebpackChunksIssue = ({ page, basePath }) => {
+  return page.evaluate(basePath => {
+    const localScripts = Array.from(
+      document.querySelectorAll("script[src]")
+    ).filter(x => x.src.startsWith(basePath));
+    const mainRegexp = /main\.[\w]{8}.js/;
+    const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+    const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
+    const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+    chunkSripts.forEach(x => {
+      x.parentElement.removeChild(x);
+      mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
+    });
+  }, basePath);
 };
 
 const saveAsHtml = async ({ page, filePath, options }) => {
@@ -220,6 +239,8 @@ const run = async userOptions => {
     aferFeth: async ({ page, route }) => {
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.inlineCss) await inlineCss({ page, url });
+      if (options.fixWebpackChunksIssue)
+        await fixWebpackChunksIssue({ page, basePath });
       const filePath = path.join(destinationDir, route);
       if (options.saveAs === "html") {
         await saveAsHtml({ page, filePath, options });
