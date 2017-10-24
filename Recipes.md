@@ -87,6 +87,10 @@ module.exports = {
 
 You can use `200.html` instead of `shell.html` if you use `react-snap` and do not have separate `shell.html`. This is important because `react-snap` will prerender `index.html` and when user will be offline their will see a flash of your homepage on navigation.
 
+### Use sw-precache with Google Analytics
+
+See this article https://developers.google.com/web/updates/2016/07/offline-google-analytics
+
 ### Add Appcache
 
 [Webkit promises to add Service Worker support](https://webkit.org/status/#specification-service-workers) meantime we can use Appcache.

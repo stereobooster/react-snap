@@ -5,9 +5,9 @@ Pre-renders web app into static HTML. Uses headless chrome to prerender. Crawls 
 ## Features
 
 - Enables SEO (google, duckduckgo...) and SMO (twitter, facebook...) for SPA. Use [React Helmet](https://github.com/nfl/react-helmet) to generate meta tags.
-- Works out-of-the-box with [create-react-app](https://github.com/facebookincubator/create-react-app) - no code-changes required. Also, can work with another setup.
-- Thanks to prerendered HTML and inlined critical CSS you will get very fast first paint.
-- Thanks to `Preload resources` feature you will get very fast first interaction time.
+- Works out-of-the-box with [create-react-app](https://github.com/facebookincubator/create-react-app) - no code-changes required. Also, can work with another setup or technology.
+- Thanks to prerendered HTML and inlined critical CSS you will get very fast first paint. Functionality similar to [critical](https://github.com/addyosmani/critical).
+- Thanks to `Preload resources` feature you will get fast first interaction time.
 
 ## Basic usage with create-react-app
 
@@ -52,28 +52,29 @@ Caveat: as of now `<noscript>` fallback not implemented. As soon it will be impl
 
 ### Preload resources
 
-ReactSnap can capture all required resources on the page and modify HTML, to instruct browser to preload those resources.
+ReactSnap can capture all required resources on the page and modify HTML, to instruct a browser to preload those resources.
 - It will use `<link rel="preload" as="image">` for images.
 - it will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request
 
 Use `preloadResources: true` to enable this feature.
 
-## Recieps
+## Recipes
 
 See [recipes](Recipes.md) for more examples.
 
 ## TODO
 
-- Add blog post with case study
+- Check if `200.html` is present in target directory and exit with error if it is present
 - Use [npm package for loadCss](https://www.npmjs.com/package/fg-loadcss) instead of vendoring it.
 - Implement `noscript` fallback for loadCss trick
 - Improve `preconnect`, `dns-prefetch` functionality
+- [Decide what is the optimal strategy for chunks](https://github.com/geelen/react-snapshot/issues/66#issuecomment-338923985)
+- Add blog post with case study
 - Tests
-- Add typechecking, like [puppeteer](https://github.com/GoogleChrome/puppeteer/pull/986) did
-- Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
 - Bug: gracefull shutdown doesn't work
 - Check deployments to [now](https://zeit.co/now#features)
 - Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
+- Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
 
 ## Ideas
 
