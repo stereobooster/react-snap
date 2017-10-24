@@ -69,6 +69,12 @@ See [recipes](Recipes.md) for more examples.
 - Implement `noscript` fallback for loadCss trick
 - Improve `preconnect`, `dns-prefetch` functionality
 - [Decide what is the optimal strategy for chunks](https://github.com/geelen/react-snapshot/issues/66#issuecomment-338923985)
+- [minimalcss hits google analytics](https://github.com/peterbe/minimalcss/issues/19)
+- [minimalcss doesn't handle blob urls](https://github.com/peterbe/minimalcss/pull/18)
+- [minimalcss css 404](https://github.com/peterbe/minimalcss/issues/2)
+- [minimalcss path url resolution error](https://github.com/peterbe/minimalcss/issues/12)
+- do not load assets
+- forbid third party requests
 - Add blog post with case study
 - Tests
 - Bug: gracefull shutdown doesn't work
