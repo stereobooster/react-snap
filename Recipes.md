@@ -97,6 +97,8 @@ See this article https://developers.google.com/web/updates/2016/07/offline-googl
 
 Tip: you can prompt user to "install your site as web app", like [this](https://www.npmjs.com/package/angular-add-to-home-screen).
 
+Tip 2: you may want something like [localForage](https://localforage.github.io/localForage/) to save data on client side
+
 ```sh
 yarn add appcache-nanny
 ```
