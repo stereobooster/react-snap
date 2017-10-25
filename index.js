@@ -61,7 +61,7 @@ const preloadResources = ({ page, basePath }) => {
     const route = url.replace(basePath, "");
     if (/^http:\/\/localhost/i.test(url)) {
       if (uniqueResources[url]) return;
-      if (/\.(png|jpg|jpeg|webp)$/.test(url)) {
+      if (/\.(png|jpg|jpeg|webp|gif)$/.test(url)) {
         await page.evaluate(route => {
           var linkTag = document.createElement("link");
           linkTag.setAttribute("rel", "preload");
