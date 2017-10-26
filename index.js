@@ -141,7 +141,7 @@ const inlineCss = async opt => {
   const minimalcssResult = await minimalcss.minimize({
     urls: [pageUrl],
     skippable: request =>
-      options.skipThirdPartyRequests && request.url.startsWith(basePath)
+      options.skipThirdPartyRequests && !request.url.startsWith(basePath)
   });
   const cssText = minimalcssResult.finalCss;
   console.log("inline css", cssText.length);

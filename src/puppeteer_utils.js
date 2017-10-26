@@ -13,10 +13,10 @@ const skipThirdPartyRequests = async opt => {
   if (!options.skipThirdPartyRequests) return;
   await page.setRequestInterceptionEnabled(true);
   page.on("request", request => {
-    if (!request.url.startsWith(basePath)) {
-      request.abort();
-    } else {
+    if (request.url.startsWith(basePath)) {
       request.continue();
+    } else {
+      request.abort();
     }
   });
 };
