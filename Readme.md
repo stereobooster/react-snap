@@ -4,7 +4,7 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 
 ## Features
 
-- Does not depend on React. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with create-react-app. Actually, it works with any technology. Thinking about changing the name.
+- Does not depend on React. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with `create-react-app`. Actually, it works with any technology. Thinking about changing the name.
 - Enables SEO (google, duckduckgo...) and SMO (twitter, facebook...) for SPA.
 - Works out-of-the-box with [create-react-app](https://github.com/facebookincubator/create-react-app) - no code-changes required.
 - Uses real browser behind the scene, so no issue with unsupported HTML5 features, like WebGL or Blobs.
@@ -17,8 +17,6 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 Please note: some features are experimental, but basic prerendering is considered stable enough. API is subject to change before freeze in version `1.0`.
 
 ## Basic usage with create-react-app
-
-Example project [badsyntax/react-snap-example](https://github.com/badsyntax/react-snap-example).
 
 Install:
 
