@@ -107,10 +107,13 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 
 ## TODO
 
-- fail if any page fails
+- Fail if any page fails
 - Check if `200.html` is present in target directory and exit with error if it is already there
-- [minimalcss css 404](https://github.com/peterbe/minimalcss/issues/2)
-- [minimalcss path url resolution error](https://github.com/peterbe/minimalcss/issues/12)
+- remove `preloadResources: true`: instead change it to `cacheAjaxRequests: true`
+- remove `preloadResources: true`, instead create separate config to preload images, and preload only visible. This would make sense if you use something like LQIP with lazy-loading for images
+- separate config to add `async` to script tags and move it to the header
+- [minimalcss css 404](https://github.com/peterbe/minimalcss/pull/27)
+- [minimalcss path url resolution error](https://github.com/peterbe/minimalcss/pull/28)
 - Improve `preconnect`, `dns-prefetch` functionality
 - [Decide what is the optimal strategy for chunks](https://github.com/geelen/react-snapshot/issues/66#issuecomment-338923985)
 - Do not load assets, the same way as minimalcss does
