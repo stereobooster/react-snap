@@ -109,17 +109,11 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 
 - fail if any page fails
 - Check if `200.html` is present in target directory and exit with error if it is already there
-- Use [npm package for loadCss](https://www.npmjs.com/package/fg-loadcss) instead of vendoring it.
-- Implement `noscript` fallback for loadCss trick
 - [minimalcss css 404](https://github.com/peterbe/minimalcss/issues/2)
 - [minimalcss path url resolution error](https://github.com/peterbe/minimalcss/issues/12)
 - Improve `preconnect`, `dns-prefetch` functionality
 - [Decide what is the optimal strategy for chunks](https://github.com/geelen/react-snapshot/issues/66#issuecomment-338923985)
 - Do not load assets, the same way as minimalcss does
-- Forbid third party requests
-- Add blog post with case study
-- Tests
-- Bug: gracefull shutdown doesn't work
 - Check deployments to [now](https://zeit.co/now#features)
 - Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
 - Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
