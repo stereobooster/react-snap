@@ -1,6 +1,6 @@
 {
   "name": "react-snap",
-  "version": "0.5.4",
+  "version": "0.6.0.alpha",
   "description": "Pre-renders web app into static HTML",
   "main": "index.js",
   "author": "stereobooster",
@@ -43,5 +43,8 @@
   },
   "bin": {
     "react-snap": "./run.js"
+  },
+  "reactSnap": {
+    "destination": "test"
   }
 }

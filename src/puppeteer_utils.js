@@ -5,12 +5,28 @@ const url = require("url");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 
 /**
- * @param {!Puppeteer.Page} page
- * @param {!Object} options
- * @param {!string} route
+ * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
+ * @return {Promise<void>}
+ */
+const skipThirdPartyRequests = async opt => {
+  const { page, options, basePath } = opt;
+  if (!options.skipThirdPartyRequests) return;
+  await page.setRequestInterceptionEnabled(true);
+  page.on("request", request => {
+    if (!request.url.startsWith(basePath)) {
+      request.abort();
+    } else {
+      request.continue();
+    }
+  });
+};
+
+/**
+ * @param {{page: Page, options: {sourceMaps: boolean}, route: string}} opt
  * @return {void}
  */
-const enableLogging = ({ page, options, route }) => {
+const enableLogging = opt => {
+  const { page, options, route } = opt;
   page.on("console", msg => console.log(`${route} log:`, msg));
   page.on("error", msg => console.log(`${route} error:`, msg));
   page.on("pageerror", e => {
@@ -33,14 +49,14 @@ const enableLogging = ({ page, options, route }) => {
   // page.on("requestfailed", msg =>
   //   console.log(`${route} requestfailed:`, msg)
   // );
-  return page;
 };
 
 /**
- * @param {!Puppeteer.Page} page
+ * @param {{page: Page}} opt
  * @return {Promise<Array<string>>}
  */
-const getLinks = async ({ page }) => {
+const getLinks = async opt => {
+  const { page } = opt;
   const anchors = await page.evaluate(() =>
     Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
   );
@@ -54,24 +70,11 @@ const getLinks = async ({ page }) => {
 /**
  * can not use null as default for function because of TS error https://github.com/Microsoft/TypeScript/issues/14889
  *
- * @param {!Object} options
- * @param {!string} basePath
- * @param {function({ page: !Puppeteer.Page, route: !string }):Promise} beforeFetch
- * @param {function({ page: !Puppeteer.Page, route: !string }):Promise} aferFeth
- * @param {function():void} onEnd
+ * @param {{options: *, basePath: string, beforeFetch: ?(function({ page: Page, route: string }):Promise), afterFetch: ?(function({ page: Page, route: string }):Promise), onEnd: ?(function():void)}} opt
  * @return {Promise}
  */
-const crawl = async ({
-  options,
-  basePath,
-  beforeFetch = ({ page, route }) => {
-    ({ page, route });
-  },
-  aferFeth = ({ page, route }) => {
-    ({ page, route });
-  },
-  onEnd = () => {}
-}) => {
+const crawl = async opt => {
+  const { options, basePath, beforeFetch, afterFetch, onEnd } = opt;
   let shuttingDown = false;
   // TODO: this doesn't work as expected
   process.on("SIGINT", () => {
@@ -105,31 +108,34 @@ const crawl = async ({
   const browser = await puppeteer.launch({
     headless: options.headless
   });
+
   /**
-   * @param {string} url
+   * @param {string} pageUrl
    * @returns {Promise<string>}
    */
-  const fetchPage = async url => {
+  const fetchPage = async pageUrl => {
     if (!shuttingDown) {
-      const route = url.replace(basePath, "");
+      const route = pageUrl.replace(basePath, "");
       const page = await browser.newPage();
       if (options.viewport) await page.setViewport(options.viewport);
+      if (options.skipThirdPartyRequests)
+        await skipThirdPartyRequests({ page, options, basePath });
       enableLogging({ page, options, route });
-      beforeFetch({ page, route });
+      beforeFetch && beforeFetch({ page, route });
       await page.setUserAgent(options.userAgent);
-      await page.goto(url, { waitUntil: "networkidle" });
+      await page.goto(pageUrl, { waitUntil: "networkidle" });
       if (options.waitFor) await page.waitFor(options.waitFor);
       if (options.crawl) {
         const links = await getLinks({ page });
         links.forEach(addToQueue);
       }
-      await aferFeth({ page, route });
+      afterFetch && (await afterFetch({ page, route }));
       await page.close();
       console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     }
     processed++;
     if (enqued === processed) queue.end();
-    return url;
+    return pageUrl;
   };
 
   if (options.include) {
@@ -141,10 +147,11 @@ const crawl = async ({
     .parallel(options.concurrency)
     .toArray(async function() {
       await browser.close();
-      onEnd();
+      onEnd && onEnd();
     });
 };
 
+exports.skipThirdPartyRequests = skipThirdPartyRequests;
 exports.enableLogging = enableLogging;
 exports.getLinks = getLinks;
 exports.crawl = crawl;

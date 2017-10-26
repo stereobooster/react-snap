@@ -73,11 +73,10 @@ See [recipes](Recipes.md) for more examples.
 
 ## TODO
 
+- fail if any page fails
 - Check if `200.html` is present in target directory and exit with error if it is already there
 - Use [npm package for loadCss](https://www.npmjs.com/package/fg-loadcss) instead of vendoring it.
 - Implement `noscript` fallback for loadCss trick
-- [minimalcss hits google analytics](https://github.com/peterbe/minimalcss/issues/19)
-- [minimalcss doesn't handle blob urls](https://github.com/peterbe/minimalcss/pull/18)
 - [minimalcss css 404](https://github.com/peterbe/minimalcss/issues/2)
 - [minimalcss path url resolution error](https://github.com/peterbe/minimalcss/issues/12)
 - Improve `preconnect`, `dns-prefetch` functionality

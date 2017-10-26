@@ -31,6 +31,7 @@ const defaultOptions = {
   externalServer: false,
   // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
   fixWebpackChunksIssue: false, // experimental
+  skipThirdPartyRequests: false,
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
@@ -43,6 +44,11 @@ const defaultOptions = {
   }
 };
 
+/**
+ *
+ * @param {{source: ?string, destination: ?string, include: ?Array<string>, sourceMaps: ?boolean, skipThirdPartyRequests: ?boolean }} userOptions
+ * @return {*}
+ */
 const defaults = userOptions => {
   const options = {
     ...defaultOptions,
@@ -54,7 +60,12 @@ const defaults = userOptions => {
   return options;
 };
 
-const preloadResources = ({ page, basePath }) => {
+/**
+ *
+ * @param {{page: Page, basePath: string}} opt
+ */
+const preloadResources = opt => {
+  const { page, basePath } = opt;
   const uniqueResources = {};
   page.on("response", async response => {
     // TODO: this can be improved
@@ -111,7 +122,8 @@ const removeStyleTags = ({ page }) =>
   page.evaluate(() => {
     var x = Array.from(document.querySelectorAll("style"));
     for (var i = x.length - 1; i >= 0; i--) {
-      x[i].parentElement.removeChild(x[i]);
+      const ell = x[i];
+      ell.parentElement && ell.parentElement.removeChild(ell);
     }
   });
 
@@ -121,13 +133,16 @@ const preloadPolyfill = fs.readFileSync(
 );
 
 /**
- * @param {!Puppeteer.Page} page
- * @param {!string} url
- * @param {!Object} options
+ * @param {{page: Page, pageUrl: string, options: {skipThirdPartyRequests: boolean}, basePath: string}} opt
  * @return {Promise}
  */
-const inlineCss = async ({ page, url }) => {
-  const minimalcssResult = await minimalcss.minimize({ urls: [url] });
+const inlineCss = async opt => {
+  const { page, pageUrl, options, basePath } = opt;
+  const minimalcssResult = await minimalcss.minimize({
+    urls: [pageUrl],
+    skippable: request =>
+      options.skipThirdPartyRequests && request.url.startsWith(basePath)
+  });
   const cssText = minimalcssResult.finalCss;
   console.log("inline css", cssText.length);
   return page.evaluate(
@@ -148,7 +163,7 @@ const inlineCss = async ({ page, url }) => {
         // var noscriptTag = document.createElement('noscript');
         // noscriptTag.innerHTML = wrap.innerHTML;
         // document.head.appendChild(noscriptTag);
-        link.parentNode.removeChild(link);
+        link.parentNode && link.parentNode.removeChild(link);
         link.setAttribute("rel", "preload");
         link.setAttribute("as", "style");
         link.setAttribute("onload", "this.rel='stylesheet'");
@@ -157,7 +172,7 @@ const inlineCss = async ({ page, url }) => {
 
       // TODO: separate config for this
       Array.from(document.querySelectorAll("script[src]")).forEach(x => {
-        x.parentNode.removeChild(x);
+        x.parentNode && x.parentNode.removeChild(x);
         x.setAttribute("async", "true");
         document.head.appendChild(x);
       });
@@ -174,16 +189,17 @@ const inlineCss = async ({ page, url }) => {
 
 const fixWebpackChunksIssue = ({ page, basePath }) => {
   return page.evaluate(basePath => {
-    const localScripts = Array.from(
-      document.scripts
-    ).filter(x => x.src && x.src.startsWith(basePath));
+    const localScripts = Array.from(document.scripts).filter(
+      x => x.src && x.src.startsWith(basePath)
+    );
     const mainRegexp = /main\.[\w]{8}.js/;
     const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
     const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
     const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
     chunkSripts.forEach(x => {
-      x.parentElement.removeChild(x);
-      mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
+      x.parentElement && x.parentElement.removeChild(x);
+      mainScript.parentNode &&
+        mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
     });
   }, basePath);
 };
@@ -233,6 +249,13 @@ const run = async userOptions => {
   fs
     .createReadStream(path.join(sourceDir, "index.html"))
     .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
+
+  if (destinationDir !== sourceDir) {
+    fs
+      .createReadStream(path.join(destinationDir, "index.html"))
+      .pipe(fs.createWriteStream(path.join(destinationDir, "200.html")));
+  }
+
   const server = options.externalServer ? null : startServer(options);
 
   const basePath = `http://localhost:${options.port}`;
@@ -242,9 +265,16 @@ const run = async userOptions => {
     beforeFetch: async ({ page }) => {
       if (options.preloadResources) preloadResources({ page, basePath });
     },
-    aferFeth: async ({ page, route }) => {
+    afterFetch: async ({ page, route }) => {
+      const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
-      if (options.inlineCss) await inlineCss({ page, url });
+      if (options.inlineCss)
+        await inlineCss({
+          page,
+          pageUrl,
+          options,
+          basePath
+        });
       if (options.fixWebpackChunksIssue)
         await fixWebpackChunksIssue({ page, basePath });
       const filePath = path.join(destinationDir, route);
@@ -257,7 +287,7 @@ const run = async userOptions => {
       }
     },
     onEnd: () => {
-      if (!options.externalServer) server.close();
+      if (server) server.close();
     }
   });
 };
