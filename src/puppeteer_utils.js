@@ -1,6 +1,6 @@
 const puppeteer = require("puppeteer");
 const _ = require("highland");
-const Url = require("url");
+const url = require("url");
 // @ts-ignore
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 
@@ -91,14 +91,14 @@ const crawl = async ({
   const uniqueUrls = {};
 
   /**
-   * @param {string} url
+   * @param {string} path
    * @returns {void}
    */
-  const addToQueue = url => {
-    if (Url.parse(url).hostname === "localhost" && !uniqueUrls[url]) {
-      uniqueUrls[url] = true;
+  const addToQueue = path => {
+    if (url.parse(path).hostname === "localhost" && !uniqueUrls[path]) {
+      uniqueUrls[path] = true;
       enqued++;
-      queue.write(url);
+      queue.write(path);
     }
   };
 

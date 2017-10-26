@@ -2,11 +2,14 @@ const crawl = require("./src/puppeteer_utils.js").crawl;
 const http = require("http");
 const express = require("express");
 const serveStatic = require("serve-static");
+// @ts-ignore
 const fallback = require("express-history-api-fallback");
 const path = require("path");
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
+const url = require("url");
+// @ts-ignore https://github.com/peterbe/minimalcss/pull/30
 const minimalcss = require("minimalcss");
 
 const defaultOptions = {
@@ -55,13 +58,13 @@ const preloadResources = ({ page, basePath }) => {
   const uniqueResources = {};
   page.on("response", async response => {
     // TODO: this can be improved
-    const url = response.url;
-    if (/^data:/i.test(url)) return;
+    const responseUrl = response.url;
+    if (/^data:/i.test(responseUrl)) return;
     const ct = response.headers["content-type"] || "";
-    const route = url.replace(basePath, "");
-    if (/^http:\/\/localhost/i.test(url)) {
-      if (uniqueResources[url]) return;
-      if (/\.(png|jpg|jpeg|webp|gif)$/.test(url)) {
+    const route = responseUrl.replace(basePath, "");
+    if (/^http:\/\/localhost/i.test(responseUrl)) {
+      if (uniqueResources[responseUrl]) return;
+      if (/\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
         await page.evaluate(route => {
           var linkTag = document.createElement("link");
           linkTag.setAttribute("rel", "preload");
@@ -88,9 +91,9 @@ const preloadResources = ({ page, basePath }) => {
           text
         );
       }
-      uniqueResources[url] = true;
+      uniqueResources[responseUrl] = true;
     } else {
-      const urlObj = Url.parse(url);
+      const urlObj = url.parse(responseUrl);
       const domain = `${urlObj.protocol}//${urlObj.host}`;
       if (uniqueResources[domain]) return;
       await page.evaluate(route => {
@@ -117,6 +120,12 @@ const preloadPolyfill = fs.readFileSync(
   "utf8"
 );
 
+/**
+ * @param {!Puppeteer.Page} page
+ * @param {!string} url
+ * @param {!Object} options
+ * @return {Promise}
+ */
 const inlineCss = async ({ page, url }) => {
   const minimalcssResult = await minimalcss.minimize({ urls: [url] });
   const cssText = minimalcssResult.finalCss;
@@ -126,11 +135,7 @@ const inlineCss = async ({ page, url }) => {
       var head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
-      if (style.styleSheet) {
-        style.styleSheet.cssText = cssText;
-      } else {
-        style.appendChild(document.createTextNode(cssText));
-      }
+      style.appendChild(document.createTextNode(cssText));
       head.appendChild(style);
 
       var stylesheets = Array.from(
@@ -170,8 +175,8 @@ const inlineCss = async ({ page, url }) => {
 const fixWebpackChunksIssue = ({ page, basePath }) => {
   return page.evaluate(basePath => {
     const localScripts = Array.from(
-      document.querySelectorAll("script[src]")
-    ).filter(x => x.src.startsWith(basePath));
+      document.scripts
+    ).filter(x => x.src && x.src.startsWith(basePath));
     const mainRegexp = /main\.[\w]{8}.js/;
     const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
     const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
@@ -183,7 +188,7 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
   }, basePath);
 };
 
-const saveAsHtml = async ({ page, filePath, options }) => {
+const saveAsHtml = async ({ page, filePath, options, route }) => {
   const content = await page.evaluate(() => document.documentElement.outerHTML);
   const minifiedContent = options.minifyOptions
     ? minify(content, options.minifyOptions)
@@ -198,7 +203,7 @@ const saveAsHtml = async ({ page, filePath, options }) => {
   }
 };
 
-const saveAsPng = ({ page, filePath, options }) => {
+const saveAsPng = ({ page, filePath, options, route }) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
   if (route === "/") {
@@ -228,13 +233,13 @@ const run = async userOptions => {
   fs
     .createReadStream(path.join(sourceDir, "index.html"))
     .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
-  const server = options.externalServer ? false : startServer(options);
+  const server = options.externalServer ? null : startServer(options);
 
   const basePath = `http://localhost:${options.port}`;
   await crawl({
     options,
     basePath,
-    beforeFeth: async ({ page, route }) => {
+    beforeFetch: async ({ page }) => {
       if (options.preloadResources) preloadResources({ page, basePath });
     },
     aferFeth: async ({ page, route }) => {
@@ -244,9 +249,9 @@ const run = async userOptions => {
         await fixWebpackChunksIssue({ page, basePath });
       const filePath = path.join(destinationDir, route);
       if (options.saveAs === "html") {
-        await saveAsHtml({ page, filePath, options });
+        await saveAsHtml({ page, filePath, options, route });
       } else if (options.saveAs === "png") {
-        await saveAsPng({ page, filePath, options });
+        await saveAsPng({ page, filePath, options, route });
       } else {
         throw new Error(`Unexpected value for saveAs: ${options.saveAs}`);
       }

@@ -14,23 +14,32 @@
     "express-history-api-fallback": "^2.2.1",
     "highland": "^2.11.1",
     "html-minifier": "^3.5.5",
-    "minimalcss": "^0.2.1",
+    "minimalcss": "^0.2.4",
     "mkdirp": "^0.5.1",
     "puppeteer": "^0.11.0",
     "serve-static": "^1.13.1",
     "sourcemapped-stacktrace-node": "^2.0.4"
   },
   "devDependencies": {
+    "@types/express": "^4.0.38",
     "@types/highland": "^2.10.5",
+    "@types/html-minifier": "^1.1.30",
+    "@types/mkdirp": "^0.5.1",
     "@types/node": "^8.0.46",
     "@types/puppeteer": "^0.12.0",
+    "@types/serve-static": "^1.13.0",
+    "jsdoc": "^3.5.5",
     "markdown-toc": "^1.2.0",
-    "prettier": "1.7.3"
+    "prettier": "1.7.3",
+    "tsd-jsdoc": "^2.0.0-beta.3",
+    "typescript": "^2.7.0-dev.20171026"
   },
   "scripts": {
     "toc": "yarn run markdown-toc -i Recipes.md",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "precommit": "prettier --write {*,src/*}.{js,json,css}"
+    "precommit": "prettier --write {*,src/*}.{js,json,css}",
+    "tsc": "tsc -p .",
+    "ts-definitions": "jsdoc -t node_modules/tsd-jsdoc -r src"
   },
   "bin": {
     "react-snap": "./run.js"
