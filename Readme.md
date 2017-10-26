@@ -108,6 +108,7 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 ## TODO
 
 - Fail if any page fails
+- Handle minimalcss failures
 - Check if `200.html` is present in target directory and exit with error if it is already there
 - remove `preloadResources: true`: instead change it to `cacheAjaxRequests: true`
 - remove `preloadResources: true`, instead create separate config to preload images, and preload only visible. This would make sense if you use something like LQIP with lazy-loading for images
