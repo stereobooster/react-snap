@@ -32,6 +32,7 @@ const defaultOptions = {
   // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
   fixWebpackChunksIssue: false, // experimental
   skipThirdPartyRequests: false,
+  asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
@@ -170,16 +171,10 @@ const inlineCss = async opt => {
         document.head.appendChild(link);
       });
 
-      // TODO: separate config for this
-      Array.from(document.querySelectorAll("script[src]")).forEach(x => {
-        x.parentNode && x.parentNode.removeChild(x);
-        x.setAttribute("async", "true");
-        document.head.appendChild(x);
-      });
-
       var scriptTag = document.createElement("script");
       scriptTag.type = "text/javascript";
       scriptTag.text = preloadPolyfill;
+      // scriptTag.id = "preloadPolyfill";
       document.body.appendChild(scriptTag);
     },
     cssText,
@@ -187,7 +182,17 @@ const inlineCss = async opt => {
   );
 };
 
-const fixWebpackChunksIssue = ({ page, basePath }) => {
+const asyncJs = ({ page }) => {
+  return page.evaluate(() => {
+    Array.from(document.querySelectorAll("script[src]")).forEach(x => {
+      x.parentNode && x.parentNode.removeChild(x);
+      x.setAttribute("async", "true");
+      document.head.appendChild(x);
+    });
+  });
+};
+
+const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
   return page.evaluate(basePath => {
     const localScripts = Array.from(document.scripts).filter(
       x => x.src && x.src.startsWith(basePath)
@@ -197,9 +202,11 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
     const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
     const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
     chunkSripts.forEach(x => {
-      x.parentElement && x.parentElement.removeChild(x);
-      mainScript.parentNode &&
+      if (x.parentElement && mainScript.parentNode) {
+        x.parentElement.removeChild(x);
+        if (asyncJs) { x.setAttribute("async", "true"); }
         mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
+      }
     });
   }, basePath);
 };
@@ -275,8 +282,11 @@ const run = async userOptions => {
           options,
           basePath
         });
-      if (options.fixWebpackChunksIssue)
-        await fixWebpackChunksIssue({ page, basePath });
+      if (options.fixWebpackChunksIssue) {
+        await fixWebpackChunksIssue({ page, basePath, asyncJs: options.asyncJs });
+      } else if (options.asyncJs) {
+        await asyncJs({ page });
+      }
       const filePath = path.join(destinationDir, route);
       if (options.saveAs === "html") {
         await saveAsHtml({ page, filePath, options, route });
