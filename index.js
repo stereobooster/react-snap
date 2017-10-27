@@ -193,22 +193,28 @@ const asyncJs = ({ page }) => {
 };
 
 const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
-  return page.evaluate(basePath => {
-    const localScripts = Array.from(document.scripts).filter(
-      x => x.src && x.src.startsWith(basePath)
-    );
-    const mainRegexp = /main\.[\w]{8}.js/;
-    const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
-    const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
-    const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
-    chunkSripts.forEach(x => {
-      if (x.parentElement && mainScript.parentNode) {
-        x.parentElement.removeChild(x);
-        if (asyncJs) { x.setAttribute("async", "true"); }
-        mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
-      }
-    });
-  }, basePath);
+  return page.evaluate(
+    (basePath, asyncJs) => {
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
+      const mainRegexp = /main\.[\w]{8}.js/;
+      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+      const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
+      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+      chunkSripts.forEach(x => {
+        if (x.parentElement && mainScript.parentNode) {
+          x.parentElement.removeChild(x);
+          if (asyncJs) {
+            x.setAttribute("async", "true");
+          }
+          mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
+        }
+      });
+    },
+    basePath,
+    asyncJs
+  );
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
@@ -283,7 +289,11 @@ const run = async userOptions => {
           basePath
         });
       if (options.fixWebpackChunksIssue) {
-        await fixWebpackChunksIssue({ page, basePath, asyncJs: options.asyncJs });
+        await fixWebpackChunksIssue({
+          page,
+          basePath,
+          asyncJs: options.asyncJs
+        });
       } else if (options.asyncJs) {
         await asyncJs({ page });
       }
