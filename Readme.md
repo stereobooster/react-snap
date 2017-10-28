@@ -2,9 +2,10 @@
 
 Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get best loading performance.
 
+**Does not depend on React**. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with `create-react-app`. Actually, it works with any technology. Thinking about changing the name.
+
 ## Features
 
-- Does not depend on React. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with `create-react-app`. Actually, it works with any technology. Thinking about changing the name.
 - Enables SEO (google, duckduckgo...) and SMO (twitter, facebook...) for SPA.
 - Works out-of-the-box with [create-react-app](https://github.com/facebookincubator/create-react-app) - no code-changes required.
 - Uses real browser behind the scene, so no issue with unsupported HTML5 features, like WebGL or Blobs.
@@ -111,12 +112,10 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 - Handle minimalcss failures
 - Check if `200.html` is present in target directory and exit with error if it is already there
 - remove `preloadResources: true`: instead change it to `cacheAjaxRequests: true`
-- remove `preloadResources: true`, instead create separate config to preload images, and preload only visible. This would make sense if you use something like LQIP with lazy-loading for images
-- separate config to add `async` to script tags and move it to the header
-- [minimalcss css 404](https://github.com/peterbe/minimalcss/pull/27)
-- [minimalcss path url resolution error](https://github.com/peterbe/minimalcss/pull/28)
-- Improve `preconnect`, `dns-prefetch` functionality
-- [Decide what is the optimal strategy for chunks](https://github.com/geelen/react-snapshot/issues/66#issuecomment-338923985)
+- remove `preloadResources: true`, instead create separate config to preload images, and preload only visible (need to detect if images are actually visible). This would make sense if you use something like LQIP with lazy-loading for images. What about fonts?
+- [minimalcss path URL resolution error](https://github.com/peterbe/minimalcss/pull/28)
+- Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example load in
+- [Decide what is the optimal strategy for chunks](https://github.com/geelen/react-snapshot/issues/66#issuecomment-338923985). Use link [preload](http://caniuse.com/#feat=link-rel-preload) or script tag with async
 - Do not load assets, the same way as minimalcss does
 - Check deployments to [now](https://zeit.co/now#features)
 - Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
