@@ -50,23 +50,25 @@ That's it!
 
 ### Inline css
 
-Experimental feature. Requires improvements.
+Experimental feature - requires improvements.
 
 `react-snap` can inline critical CSS with the help of [minimalcss](https://github.com/peterbe/minimalcss) and full CSS will be loaded in a nonblocking manner with the help of [loadCss](https://www.npmjs.com/package/fg-loadcss).
 
 Use `inlineCss: true` to enable this feature.
 
-Caveat: as of now `<noscript>` fallback not implemented. As soon it will be implemented, this feature will be enabled by default.
+TODO: as soon as the feature will be stable it should be enabled by default. As of now `<noscript>` fallback not implemented.
 
 ### Preload resources
 
-Experimental feature. Requires improvements.
+Experimental feature - requires improvements.
 
 `react-snap` can capture all required resources on the page and modify HTML, to instruct a browser to preload those resources.
 - It will use `<link rel="preload" as="image">` for images.
 - it will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request
 
 Use `preloadResources: true` to enable this feature.
+
+TODO: as soon as the feature will be stable it should be enabled by default.
 
 ## Recipes
 
@@ -79,7 +81,7 @@ See [recipes](Recipes.md) for more examples.
 You can block all third-party requests with the following config
 
 ```
-"skipThirdPartyRequests": false,
+"skipThirdPartyRequests": false
 ```
 
 ### WebGL
@@ -87,7 +89,7 @@ You can block all third-party requests with the following config
 Headless chrome does not fully support WebGL, if you need render it you can use
 
 ```
-"headless": false,
+"headless": false
 ```
 
 ### Webpack 2+ and dynamic import
@@ -98,6 +100,8 @@ If you get following error `Uncaught ReferenceError: webpackJsonp is not defined
 "fixWebpackChunksIssue": true
 ```
 
+TODO: as soon as the feature will be stable it should be enabled by default.
+
 ### Error stack trace in production build
 
 If you get an error in a production build, you can use sourcemaps to decode stack trace:
@@ -105,6 +109,8 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 ```
 "sourceMaps": true
 ```
+
+TODO: as soon as the feature will be stable it should be enabled by default.
 
 ## TODO
 
