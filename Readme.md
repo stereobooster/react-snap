@@ -2,7 +2,7 @@
 
 Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get best loading performance.
 
-**Does not depend on React**. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with `create-react-app`. Actually, it works with any technology. Thinking about changing the name.
+**Does not depend on React**. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with `create-react-app`. Actually, it works with any technology. Considering to change the name.
 
 ## Features
 
@@ -67,8 +67,6 @@ Experimental feature - requires improvements.
 - it will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request
 
 Use `preloadResources: true` to enable this feature.
-
-TODO: as soon as the feature will be stable it should be enabled by default.
 
 ## Recipes
 
