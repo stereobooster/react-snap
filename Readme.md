@@ -114,7 +114,7 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 - remove `preloadResources: true`: instead change it to `cacheAjaxRequests: true`
 - remove `preloadResources: true`, instead create separate config to preload images, and preload only visible (need to detect if images are actually visible). This would make sense if you use something like LQIP with lazy-loading for images. What about fonts?
 - [minimalcss path URL resolution error](https://github.com/peterbe/minimalcss/pull/28)
-- Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example load in
+- Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example: load in small screen - capture all assets, add with a media query for the small screen, load in big screen add the rest of the assets with a media query for the big screen.
 - [Decide what is the optimal strategy for chunks](https://github.com/geelen/react-snapshot/issues/66#issuecomment-338923985). Use link [preload](http://caniuse.com/#feat=link-rel-preload) or script tag with async
 - Do not load assets, the same way as minimalcss does
 - Check deployments to [now](https://zeit.co/now#features)
