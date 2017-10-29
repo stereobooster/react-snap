@@ -264,8 +264,9 @@ const run = async userOptions => {
     .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
 
   if (destinationDir !== sourceDir && options.saveAs === "html") {
+    mkdirp.sync(destinationDir);
     fs
-      .createReadStream(path.join(destinationDir, "index.html"))
+      .createReadStream(path.join(sourceDir, "index.html"))
       .pipe(fs.createWriteStream(path.join(destinationDir, "200.html")));
   }
 

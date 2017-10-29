@@ -77,6 +77,7 @@ const crawl = async opt => {
   const { options, basePath, beforeFetch, afterFetch, onEnd } = opt;
   let shuttingDown = false;
   // TODO: this doesn't work as expected
+  // process.stdin.resume();
   process.on("SIGINT", () => {
     if (shuttingDown) {
       process.exit();
