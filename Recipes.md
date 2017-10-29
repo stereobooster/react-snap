@@ -9,8 +9,10 @@
   * [Preact without ejecting](#preact-without-ejecting)
   * [Split in chunks](#split-in-chunks)
   * [Configure sw-precache without ejecting](#configure-sw-precache-without-ejecting)
+  * [Use sw-precache with Google Analytics](#use-sw-precache-with-google-analytics)
   * [Add Appcache](#add-appcache)
   * [Meta tags](#meta-tags)
+  * [The Perfect 404](#the-perfect-404)
 - [Hosting on AWS S3 + cloudflare.com](#hosting-on-aws-s3--cloudflarecom)
   * [Setup Cloudflare](#setup-cloudflare)
   * [Deployment](#deployment)
@@ -270,6 +272,10 @@ const Meta = (data) => {
 export default Meta
 ```
 
+### The Perfect 404
+
+See [The Perfect 404](https://alistapart.com/article/perfect404)
+
 ## Hosting on AWS S3 + cloudflare.com
 
 If you have less than 20k requests in a month you can host for free. Plus you can get free SSL from CloudFlare.
@@ -351,6 +357,8 @@ const snap = navigator.userAgent !== 'ReactSnap';
 const production = process.env.NODE_ENV === 'production';
 if (production && snap) { ReactGA.initialize('XX-XXXXXXXX-X') }
 ```
+
+Tip: see [The Google Analytics Setup I Use on Every Site I Build](https://philipwalton.com/articles/the-google-analytics-setup-i-use-on-every-site-i-build/)
 
 ### Use to render screenshots
 
