@@ -92,6 +92,7 @@ const crawl = async opt => {
   const queue = _();
   let enqued = 0;
   let processed = 0;
+  // use Set instead
   const uniqueUrls = {};
 
   /**
@@ -99,7 +100,9 @@ const crawl = async opt => {
    * @returns {void}
    */
   const addToQueue = path => {
-    if (url.parse(path).hostname === "localhost" && !uniqueUrls[path]) {
+    const { hostname, search, hash } = url.parse(path);
+    path = path.replace(`${search || ""}${hash || ""}`, "");
+    if (hostname === "localhost" && !uniqueUrls[path]) {
       uniqueUrls[path] = true;
       enqued++;
       queue.write(path);
