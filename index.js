@@ -31,6 +31,7 @@ const defaultOptions = {
   externalServer: false,
   // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
   fixWebpackChunksIssue: false, // experimental
+  chunkRegexp: "([\\d]+)\\.[\\w]{8}\\.chunk\\.js", // experimental
   skipThirdPartyRequests: false,
   asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
   minifyOptions: {
@@ -192,15 +193,15 @@ const asyncJs = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
+const fixWebpackChunksIssue = ({ page, basePath, asyncJs, options }) => {
   return page.evaluate(
-    (basePath, asyncJs) => {
+    (basePath, asyncJs, options) => {
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
       );
       const mainRegexp = /main\.[\w]{8}.js/;
       const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
-      const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
+      const chunkRegexp = new RegExp(options.chunkRegexp);
       const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
       chunkSripts.forEach(x => {
         if (x.parentElement && mainScript.parentNode) {
@@ -213,7 +214,8 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
       });
     },
     basePath,
-    asyncJs
+    asyncJs,
+    options
   );
 };
 
@@ -293,7 +295,8 @@ const run = async userOptions => {
         await fixWebpackChunksIssue({
           page,
           basePath,
-          asyncJs: options.asyncJs
+          asyncJs: options.asyncJs,
+          options
         });
       } else if (options.asyncJs) {
         await asyncJs({ page });
