@@ -96,6 +96,7 @@ If you get following error `Uncaught ReferenceError: webpackJsonp is not defined
 
 ```
 "fixWebpackChunksIssue": true
+"chunkRegexp": "([\\d]+)\\.[\\w]{8}\\.chunk\\.js", // default
 ```
 
 TODO: as soon as the feature will be stable it should be enabled by default.
