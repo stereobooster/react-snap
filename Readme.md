@@ -14,6 +14,7 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 - With `Preload resources` feature you will get faster first interaction time if your page does do AJAX requests.
 - [Works with webpack 2 code splitting feature](https://github.com/stereobooster/react-snap/issues/5)
 - [Handles sourcemaps](https://github.com/stereobooster/react-snap/issues/4)
+- Supports non-root paths (eg for create-react-app relative paths)
 
 Please note: some features are experimental, but basic prerendering is considered stable enough. API is subject to change before freeze in version `1.0`.
 
