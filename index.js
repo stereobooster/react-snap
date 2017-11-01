@@ -200,7 +200,7 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
       );
       const mainRegexp = /main\.[\w]{8}.js/;
       const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
-      const chunkRegexp = /([\d]+)\.[\w]{8}\.chunk\.js/;
+      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
       const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
       chunkSripts.forEach(x => {
         if (x.parentElement && mainScript.parentNode) {
