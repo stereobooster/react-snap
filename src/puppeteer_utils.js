@@ -70,7 +70,7 @@ const getLinks = async opt => {
 /**
  * can not use null as default for function because of TS error https://github.com/Microsoft/TypeScript/issues/14889
  *
- * @param {{options: *, basePath: string, beforeFetch: ?(function({ page: Page, route: string }):Promise), afterFetch: ?(function({ page: Page, route: string }):Promise), onEnd: ?(function():void)}} opt
+ * @param {{options: *, basePath: string, beforeFetch: ?(function({ page: Page, route: string }):Promise), afterFetch: ?(function({ page: Page, browser: Browser, route: string }):Promise), onEnd: ?(function():void)}} opt
  * @return {Promise}
  */
 const crawl = async opt => {
@@ -133,7 +133,7 @@ const crawl = async opt => {
         const links = await getLinks({ page });
         links.forEach(addToQueue);
       }
-      afterFetch && (await afterFetch({ page, route }));
+      afterFetch && (await afterFetch({ page, route, browser }));
       await page.close();
       console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     }

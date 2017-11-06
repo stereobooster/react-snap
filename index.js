@@ -138,15 +138,17 @@ const preloadPolyfill = fs.readFileSync(
 );
 
 /**
- * @param {{page: Page, pageUrl: string, options: {skipThirdPartyRequests: boolean}, basePath: string}} opt
+ * @param {{page: Page, pageUrl: string, options: {skipThirdPartyRequests: boolean, userAgent: string}, basePath: string, browser: Browser}} opt
  * @return {Promise}
  */
 const inlineCss = async opt => {
-  const { page, pageUrl, options, basePath } = opt;
+  const { page, pageUrl, options, basePath, browser } = opt;
   const minimalcssResult = await minimalcss.minimize({
     urls: [pageUrl],
     skippable: request =>
-      options.skipThirdPartyRequests && !request.url.startsWith(basePath)
+      options.skipThirdPartyRequests && !request.url.startsWith(basePath),
+    browser: browser,
+    userAgent: options.userAgent
   });
   const cssText = minimalcssResult.finalCss;
   console.log("inline css", cssText.length);
@@ -283,7 +285,7 @@ const run = async userOptions => {
     beforeFetch: async ({ page }) => {
       if (options.preloadResources) preloadResources({ page, basePath });
     },
-    afterFetch: async ({ page, route }) => {
+    afterFetch: async ({ page, route, browser }) => {
       const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.inlineCss)
@@ -291,7 +293,8 @@ const run = async userOptions => {
           page,
           pageUrl,
           options,
-          basePath
+          basePath,
+          browser
         });
       if (options.fixWebpackChunksIssue) {
         await fixWebpackChunksIssue({
