@@ -33,7 +33,7 @@ const defaultOptions = {
   fixWebpackChunksIssue: false, // experimental
   skipThirdPartyRequests: false,
   asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
-  publicPath: '/',
+  publicPath: "/",
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
