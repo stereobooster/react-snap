@@ -33,6 +33,7 @@ const defaultOptions = {
   fixWebpackChunksIssue: false, // experimental
   skipThirdPartyRequests: false,
   asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
+  publicPath: '/',
   minifyOptions: {
     minifyCSS: true,
     collapseBooleanAttributes: true,
@@ -58,6 +59,9 @@ const defaults = userOptions => {
   options.destination = options.destination || options.source;
   if (!options.include || !options.include.length)
     throw new Error("include should be an array");
+  options.include = options.include.map(include =>
+    path.normalize(options.publicPath + include)
+  );
   return options;
 };
 
@@ -252,7 +256,7 @@ const run = async userOptions => {
   );
   const startServer = options => {
     const app = express()
-      .use(serveStatic(sourceDir))
+      .use(options.publicPath, serveStatic(sourceDir))
       .use(fallback("200.html", { root: sourceDir }));
     const server = http.createServer(app);
     server.listen(options.port);
@@ -298,7 +302,9 @@ const run = async userOptions => {
       } else if (options.asyncJs) {
         await asyncJs({ page });
       }
-      const filePath = path.join(destinationDir, route);
+      const publicPath = options.publicPath.replace(/\/$/, "");
+      const routePath = route.replace(publicPath, "");
+      const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
         await saveAsHtml({ page, filePath, options, route });
       } else if (options.saveAs === "png") {
