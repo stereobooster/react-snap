@@ -666,9 +666,9 @@ mime@1.4.1, mime@^1.3.4:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.4.1.tgz#121f9ebc49e3766f311a76e1fa1c8003c4b03aa6"
 
-minimalcss@^0.3.0:
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.3.0.tgz#65b157e654f26e14284aa6166bbb8fb82c4debca"
+minimalcss@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.3.1.tgz#d893604080a64c8e12122316dbb4e37e925e5d9e"
   dependencies:
     css-tree "1.0.0-alpha25"
     csso "3.3.1"

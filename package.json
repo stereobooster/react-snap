@@ -1,6 +1,6 @@
 {
   "name": "react-snap",
-  "version": "0.8.1",
+  "version": "0.8.2",
   "description": "Pre-renders web app into static HTML",
   "main": "index.js",
   "author": "stereobooster",
@@ -14,7 +14,7 @@
     "express-history-api-fallback": "^2.2.1",
     "highland": "^2.11.1",
     "html-minifier": "^3.5.5",
-    "minimalcss": "^0.3.0",
+    "minimalcss": "^0.3.1",
     "mkdirp": "^0.5.1",
     "puppeteer": "^0.11.0",
     "serve-static": "^1.13.1",
