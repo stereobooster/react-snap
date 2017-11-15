@@ -56,34 +56,12 @@ If you need to pass some options for `react-snap`, you can do this in the `packa
 ```json
 {
   "reactSnap": {
-    "include": [
-      "/",
-      "/404"
-    ],
-    "userAgent": "ReactSnap",
-    "saveAs": "html",
-    "publicPath": "/",
-    "inlineCss": true,
-    "preloadResources": true,
-    "skipThirdPartyRequests": true,
-    "headless": false,
-    "fixWebpackChunksIssue": true,
-    "sourceMaps": true,
-    "minifyOptions": {
-      "minifyCSS": false,
-      "collapseBooleanAttributes": false,
-      "collapseWhitespace": false,
-      "collapseInlineTagWhitespace": false,
-      "decodeEntities": false,
-      "keepClosingSlash": false,
-      "sortAttributes": false,
-      "sortClassName": false
-    }
+    "inlineCss": true
   }
 }
 ```
 
-All options are not documented yet, but you can check `defaultOptions` in `index.js`.
+Some options are not documented yet, but you can check `defaultOptions` in `index.js`.
 
 #### Inline css
 
