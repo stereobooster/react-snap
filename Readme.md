@@ -54,14 +54,38 @@ That's it!
 If you need to pass some options for `react-snap`, you can do this in the `package.json`, like this:
 
 ```json
-"reactSnap": {
-  "inlineCss": true
+{
+  "reactSnap": {
+    "include": [
+      "/",
+      "/404"
+    ],
+    "userAgent": "ReactSnap",
+    "saveAs": "html",
+    "publicPath": "/",
+    "inlineCss": true,
+    "preloadResources": true,
+    "skipThirdPartyRequests": true,
+    "headless": false,
+    "fixWebpackChunksIssue": true,
+    "sourceMaps": true,
+    "minifyOptions": {
+      "minifyCSS": false,
+      "collapseBooleanAttributes": false,
+      "collapseWhitespace": false,
+      "collapseInlineTagWhitespace": false,
+      "decodeEntities": false,
+      "keepClosingSlash": false,
+      "sortAttributes": false,
+      "sortClassName": false
+    }
+  }
 }
 ```
 
 All options are not documented yet, but you can check `defaultOptions` in `index.js`.
 
-### Inline css
+#### Inline css
 
 Experimental feature - requires improvements.
 
@@ -71,7 +95,7 @@ Use `inlineCss: true` to enable this feature.
 
 TODO: as soon as the feature will be stable it should be enabled by default. As of now `<noscript>` fallback not implemented.
 
-### Preload resources
+#### Preload resources
 
 Experimental feature - requires improvements.
 
@@ -81,13 +105,7 @@ Experimental feature - requires improvements.
 
 Use `preloadResources: true` to enable this feature.
 
-## Recipes
-
-See [recipes](Recipes.md) for more examples.
-
-## Caveats
-
-### Google Analytics, Mapbox, and other third-party requests
+#### Google Analytics, Mapbox, and other third-party requests
 
 You can block all third-party requests with the following config
 
@@ -95,7 +113,7 @@ You can block all third-party requests with the following config
 "skipThirdPartyRequests": false
 ```
 
-### WebGL
+#### WebGL
 
 Headless chrome does not fully support WebGL, if you need render it you can use
 
@@ -103,7 +121,7 @@ Headless chrome does not fully support WebGL, if you need render it you can use
 "headless": false
 ```
 
-### Webpack 2+ and dynamic import
+#### Webpack 2+ and dynamic import
 
 If you get following error `Uncaught ReferenceError: webpackJsonp is not defined`, you can use the following hack
 
@@ -113,7 +131,7 @@ If you get following error `Uncaught ReferenceError: webpackJsonp is not defined
 
 TODO: as soon as the feature will be stable it should be enabled by default.
 
-### Error stack trace in production build
+#### Error stack trace in production build
 
 If you get an error in a production build, you can use sourcemaps to decode stack trace:
 
@@ -122,6 +140,10 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 ```
 
 TODO: as soon as the feature will be stable it should be enabled by default.
+
+## Recipes
+
+See [recipes](Recipes.md) for more examples.
 
 ## TODO
 
