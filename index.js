@@ -20,6 +20,7 @@ const defaultOptions = {
   viewport: false,
   include: ["/", "/404"],
   removeStyleTags: false,
+  removeBlobs: true,
   inlineCss: false, // experimental
   sourceMaps: false, // experimental
   preloadResources: false,
@@ -136,6 +137,25 @@ const preloadPolyfill = fs.readFileSync(
   `${__dirname}/vendor/preload_polyfill.min.js`,
   "utf8"
 );
+
+/**
+ * TODO: do we need to remove blobs for js?
+ * @param {{page: Page}} opt
+ * @return Promise
+ */
+const removeBlobs = async opt => {
+  const { page } = opt;
+  return page.evaluate(() => {
+    var stylesheets = Array.from(
+      document.querySelectorAll("link[rel=stylesheet]")
+    );
+    stylesheets.forEach(link => {
+      if (link.href && link.href.startsWith("blob:")) {
+        link.parentNode && link.parentNode.removeChild(link);
+      }
+    });
+  });
+};
 
 /**
  * @param {{page: Page, pageUrl: string, options: {skipThirdPartyRequests: boolean, userAgent: string}, basePath: string, browser: Browser}} opt
@@ -288,6 +308,7 @@ const run = async userOptions => {
     afterFetch: async ({ page, route, browser }) => {
       const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
+      if (options.removeBlobs) await removeBlobs({ page });
       if (options.inlineCss)
         await inlineCss({
           page,
