@@ -291,6 +291,17 @@ const run = async userOptions => {
     return server;
   };
 
+  if (
+    destinationDir === sourceDir &&
+    options.saveAs === "html" &&
+    fs.existsSync(path.join(sourceDir, "200.html"))
+  ) {
+    console.log(
+      `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will brake the build`
+    );
+    process.exit(1);
+  }
+
   fs
     .createReadStream(path.join(sourceDir, "index.html"))
     .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
