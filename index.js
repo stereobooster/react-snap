@@ -23,7 +23,9 @@ const defaultOptions = {
   removeBlobs: true,
   inlineCss: false, // experimental
   sourceMaps: false, // experimental
-  preloadResources: false,
+  preloadImages: false,
+  cacheAjaxRequests: false,
+  preconnectThirdParty: true,
   headless: true,
   puppeteerArgs: [],
   userAgent: "ReactSnap",
@@ -62,6 +64,13 @@ const defaults = userOptions => {
   if (!options.include || !options.include.length)
     throw new Error("include should be an array");
 
+  if (options.preloadResources) {
+    console.log(
+      "preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
+    );
+    process.exit(1);
+  }
+
   if (!options.publicPath.startsWith("/")) {
     options.publicPath = `/${options.publicPath}`;
   }
@@ -78,17 +87,22 @@ const defaults = userOptions => {
  * @param {{page: Page, basePath: string}} opt
  */
 const preloadResources = opt => {
-  const { page, basePath } = opt;
-  const uniqueResources = {};
+  const {
+    page,
+    basePath,
+    preloadImages,
+    cacheAjaxRequests,
+    preconnectThirdParty
+  } = opt;
+  const uniqueResources = new Set();
   page.on("response", async response => {
-    // TODO: this can be improved
     const responseUrl = response.url;
     if (/^data:/i.test(responseUrl)) return;
     const ct = response.headers["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
     if (/^http:\/\/localhost/i.test(responseUrl)) {
-      if (uniqueResources[responseUrl]) return;
-      if (/\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
+      if (uniqueResources.has(responseUrl)) return;
+      if (preloadImages && /\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
         await page.evaluate(route => {
           var linkTag = document.createElement("link");
           linkTag.setAttribute("rel", "preload");
@@ -96,7 +110,7 @@ const preloadResources = opt => {
           linkTag.setAttribute("href", route);
           document.body.appendChild(linkTag);
         }, route);
-      } else if (ct.indexOf("json") > -1) {
+      } else if (cacheAjaxRequests && ct.indexOf("json") > -1) {
         const text = await response.text();
         await page.evaluate(
           (route, text) => {
@@ -115,18 +129,18 @@ const preloadResources = opt => {
           text
         );
       }
-      uniqueResources[responseUrl] = true;
-    } else {
+      uniqueResources.add(responseUrl);
+    } else if (preconnectThirdParty) {
       const urlObj = url.parse(responseUrl);
       const domain = `${urlObj.protocol}//${urlObj.host}`;
-      if (uniqueResources[domain]) return;
+      if (uniqueResources.has(domain)) return;
       await page.evaluate(route => {
         var linkTag = document.createElement("link");
         linkTag.setAttribute("rel", "preconnect");
         linkTag.setAttribute("href", route);
         document.head.appendChild(linkTag);
       }, domain);
-      uniqueResources[domain] = true;
+      uniqueResources.add(domain);
     }
   });
 };
@@ -323,7 +337,19 @@ const run = async userOptions => {
     basePath,
     publicPath,
     beforeFetch: async ({ page }) => {
-      if (options.preloadResources) preloadResources({ page, basePath });
+      const {
+        preloadImages,
+        cacheAjaxRequests,
+        preconnectThirdParty
+      } = options;
+      if (preloadImages || cacheAjaxRequests || preconnectThirdParty)
+        preloadResources({
+          page,
+          basePath,
+          preloadImages,
+          cacheAjaxRequests,
+          preconnectThirdParty
+        });
     },
     afterFetch: async ({ page, route, browser }) => {
       const pageUrl = `${basePath}${route}`;
