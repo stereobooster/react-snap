@@ -23,11 +23,11 @@ const skipThirdPartyRequests = async opt => {
 };
 
 /**
- * @param {{page: Page, options: {sourceMaps: boolean}, route: string}} opt
+ * @param {{page: Page, options: {sourceMaps: boolean}, route: string, onError: ?function }} opt
  * @return {void}
  */
 const enableLogging = opt => {
-  const { page, options, route } = opt;
+  const { page, options, route, onError } = opt;
   page.on("console", msg => console.log(`${route} log:`, msg));
   page.on("error", msg => console.log(`${route} error:`, msg));
   page.on("pageerror", e => {
@@ -36,16 +36,16 @@ const enableLogging = opt => {
         e.stack,
         result => {
           console.log(
-            `${route} pageerror: ${e.stack.split("\n")[0] + "\n"}${result.join(
-              "\n"
-            )}`
+            `🔥  pageerror (${route}): ${e.stack.split("\n")[0] +
+              "\n"}${result.join("\n")}`
           );
         },
         { isChromeOrEdge: true }
       );
     } else {
-      console.log(`${route} pageerror:`, e);
+      console.log(`🔥 pageerror: (${route})`, e);
     }
+    onError && onError();
   });
   // page.on("requestfailed", msg =>
   //   console.log(`${route} requestfailed:`, msg)
@@ -103,10 +103,12 @@ const crawl = async opt => {
   const addToQueue = newUrl => {
     const { hostname, search, hash } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
-    if (hostname === "localhost" && !uniqueUrls.has(newUrl)) {
+    if (hostname === "localhost" && !uniqueUrls.has(newUrl) && !shuttingDown) {
       uniqueUrls.add(newUrl);
       enqued++;
-      queue.write(newUrl);
+      try {
+        queue.write(newUrl);
+      } catch (e) {}
       if (enqued == 2) {
         addToQueue(`${basePath}${publicPath + "/404"}`);
       }
@@ -124,22 +126,34 @@ const crawl = async opt => {
   const fetchPage = async pageUrl => {
     if (!shuttingDown) {
       const route = pageUrl.replace(basePath, "");
-      const page = await browser.newPage();
-      if (options.viewport) await page.setViewport(options.viewport);
-      if (options.skipThirdPartyRequests)
-        await skipThirdPartyRequests({ page, options, basePath });
-      enableLogging({ page, options, route });
-      beforeFetch && beforeFetch({ page, route });
-      await page.setUserAgent(options.userAgent);
-      await page.goto(pageUrl, { waitUntil: "networkidle" });
-      if (options.waitFor) await page.waitFor(options.waitFor);
-      if (options.crawl) {
-        const links = await getLinks({ page });
-        links.forEach(addToQueue);
+      try {
+        const page = await browser.newPage();
+        if (options.viewport) await page.setViewport(options.viewport);
+        if (options.skipThirdPartyRequests)
+          await skipThirdPartyRequests({ page, options, basePath });
+        enableLogging({
+          page,
+          options,
+          route,
+          onError: () => {
+            shuttingDown = true;
+          }
+        });
+        beforeFetch && beforeFetch({ page, route });
+        await page.setUserAgent(options.userAgent);
+        await page.goto(pageUrl, { waitUntil: "networkidle" });
+        if (options.waitFor) await page.waitFor(options.waitFor);
+        if (options.crawl) {
+          const links = await getLinks({ page });
+          links.forEach(addToQueue);
+        }
+        afterFetch && (await afterFetch({ page, route, browser }));
+        await page.close();
+        console.log(`🕸  ${processed + 1} out of ${enqued} (${route})`);
+      } catch (e) {
+        shuttingDown = true;
+        console.log(`🔥  ${route}`);
       }
-      afterFetch && (await afterFetch({ page, route, browser }));
-      await page.close();
-      console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     }
     processed++;
     if (enqued === processed) queue.end();
@@ -156,6 +170,7 @@ const crawl = async opt => {
     .toArray(async function() {
       await browser.close();
       onEnd && onEnd();
+      if (shuttingDown) process.exit(1);
     });
 };
 
