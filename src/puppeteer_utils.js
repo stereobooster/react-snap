@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const _ = require("highland");
 const url = require("url");
+const path = require("path");
 // @ts-ignore
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 
@@ -74,13 +75,13 @@ const getLinks = async opt => {
  * @return {Promise}
  */
 const crawl = async opt => {
-  const { options, basePath, beforeFetch, afterFetch, onEnd } = opt;
+  const { options, basePath, beforeFetch, afterFetch, onEnd, publicPath } = opt;
   let shuttingDown = false;
   // TODO: this doesn't work as expected
   // process.stdin.resume();
   process.on("SIGINT", () => {
     if (shuttingDown) {
-      process.exit();
+      process.exit(0);
     } else {
       shuttingDown = true;
       console.log(
@@ -93,19 +94,22 @@ const crawl = async opt => {
   let enqued = 0;
   let processed = 0;
   // use Set instead
-  const uniqueUrls = {};
+  const uniqueUrls = new Set();
 
   /**
    * @param {string} path
    * @returns {void}
    */
-  const addToQueue = path => {
-    const { hostname, search, hash } = url.parse(path);
-    path = path.replace(`${search || ""}${hash || ""}`, "");
-    if (hostname === "localhost" && !uniqueUrls[path]) {
-      uniqueUrls[path] = true;
+  const addToQueue = newUrl => {
+    const { hostname, search, hash } = url.parse(newUrl);
+    newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
+    if (hostname === "localhost" && !uniqueUrls.has(newUrl)) {
+      uniqueUrls.add(newUrl);
       enqued++;
-      queue.write(path);
+      queue.write(newUrl);
+      if (enqued == 2) {
+        addToQueue(`${basePath}${publicPath + "/404"}`);
+      }
     }
   };
 
