@@ -335,7 +335,7 @@ const run = async userOptions => {
           options,
           basePath,
           browser
-        }).catch(e => console.log(1));
+        });
       if (options.fixWebpackChunksIssue) {
         await fixWebpackChunksIssue({
           page,
