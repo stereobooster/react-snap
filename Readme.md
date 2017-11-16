@@ -130,3 +130,9 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 - Check deployments to [now](https://zeit.co/now#features)
 - Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
 - Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
+
+## Alternatives
+
+- [Webcomponents SSR](https://youtu.be/yT-EsESAmgA)
+- https://github.com/prerender/prerender
+- [Simple express server for your Create React App projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
