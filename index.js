@@ -249,12 +249,12 @@ const saveAsHtml = async ({ page, filePath, options, route }) => {
     ? minify(content, options.minifyOptions)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
-  if (filePath.endsWith(path.sep)) {
-    mkdirp.sync(filePath);
-    fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
-  } else {
+  if (route === path.normalize(options.publicPath + "/404")) {
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(`${filePath}.html`, minifiedContent);
+  } else {
+    mkdirp.sync(filePath);
+    fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   }
 };
 
