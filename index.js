@@ -18,7 +18,7 @@ const defaultOptions = {
   destination: null,
   concurrency: 4,
   viewport: false,
-  include: ["/", "/404"],
+  include: ["/"],
   removeStyleTags: false,
   removeBlobs: true,
   inlineCss: false, // experimental
@@ -60,8 +60,14 @@ const defaults = userOptions => {
   options.destination = options.destination || options.source;
   if (!options.include || !options.include.length)
     throw new Error("include should be an array");
-  options.include = options.include.map(include =>
-    path.normalize(options.publicPath + include)
+
+  if (!options.publicPath.startsWith("/")) {
+    options.publicPath = `/${options.publicPath}`;
+  }
+  options.publicPath = options.publicPath.replace(/\/$/, "");
+
+  options.include = options.include.map(
+    include => options.publicPath + include
   );
   return options;
 };
@@ -248,7 +254,7 @@ const saveAsHtml = async ({ page, filePath, options, route }) => {
     ? minify(content, options.minifyOptions)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
-  if (route === path.normalize(options.publicPath + "/404")) {
+  if (route === options.publicPath + "/404") {
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(`${filePath}.html`, minifiedContent);
   } else {
@@ -298,9 +304,12 @@ const run = async userOptions => {
   const server = options.externalServer ? null : startServer(options);
 
   const basePath = `http://localhost:${options.port}`;
+  const publicPath = options.publicPath;
+
   await crawl({
     options,
     basePath,
+    publicPath,
     beforeFetch: async ({ page }) => {
       if (options.preloadResources) preloadResources({ page, basePath });
     },
@@ -324,7 +333,6 @@ const run = async userOptions => {
       } else if (options.asyncJs) {
         await asyncJs({ page });
       }
-      const publicPath = options.publicPath.replace(/\/$/, "");
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
