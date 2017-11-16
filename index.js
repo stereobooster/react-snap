@@ -177,7 +177,7 @@ const inlineCss = async opt => {
     userAgent: options.userAgent
   });
   const cssText = minimalcssResult.finalCss;
-  console.log("inline css", cssText.length);
+  // console.log("inline css", cssText.length);
   return page.evaluate(
     (cssText, preloadPolyfill) => {
       var head = document.head || document.getElementsByTagName("head")[0],
@@ -335,7 +335,7 @@ const run = async userOptions => {
           options,
           basePath,
           browser
-        });
+        }).catch(e => console.log(1));
       if (options.fixWebpackChunksIssue) {
         await fixWebpackChunksIssue({
           page,
