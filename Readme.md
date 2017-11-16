@@ -103,16 +103,6 @@ Headless chrome does not fully support WebGL, if you need render it you can use
 "headless": false
 ```
 
-### Webpack 2+ and dynamic import
-
-If you get following error `Uncaught ReferenceError: webpackJsonp is not defined`, you can use the following hack
-
-```
-"fixWebpackChunksIssue": true
-```
-
-TODO: as soon as the feature will be stable it should be enabled by default.
-
 ### Error stack trace in production build
 
 If you get an error in a production build, you can use sourcemaps to decode stack trace:
