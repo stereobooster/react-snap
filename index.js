@@ -19,6 +19,7 @@ const defaultOptions = {
   concurrency: 4,
   viewport: false,
   include: ["/", "/404"],
+  exclude: [],
   removeStyleTags: false,
   removeBlobs: true,
   inlineCss: false, // experimental
