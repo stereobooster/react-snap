@@ -28,7 +28,7 @@ const skipThirdPartyRequests = async opt => {
  */
 const enableLogging = opt => {
   const { page, options, route, onError } = opt;
-  page.on("console", msg => console.log(`☝  ${route} log:`, msg));
+  page.on("console", msg => console.log(`✏️  ${route} log:`, msg));
   page.on("error", msg => console.log(`🔥  ${route} error:`, msg));
   page.on("pageerror", e => {
     if (options.sourceMaps) {
@@ -82,7 +82,7 @@ const crawl = async opt => {
   // process.stdin.resume();
   process.on("SIGINT", () => {
     if (shuttingDown) {
-      process.exit(0);
+      process.exit(1);
     } else {
       shuttingDown = true;
       console.log(
@@ -108,7 +108,7 @@ const crawl = async opt => {
       uniqueUrls.add(newUrl);
       enqued++;
       queue.write(newUrl);
-      if (enqued == 2) {
+      if (enqued == 2 && options.crawl) {
         addToQueue(`${basePath}${publicPath + "/404"}`);
       }
     }
