@@ -32,7 +32,7 @@ const defaultOptions = {
   waitFor: false,
   externalServer: false,
   // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
-  fixWebpackChunksIssue: false, // experimental
+  fixWebpackChunksIssue: true,
   skipThirdPartyRequests: false,
   asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
   publicPath: "/",
@@ -218,29 +218,28 @@ const asyncJs = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
-  return page.evaluate(
-    (basePath, asyncJs) => {
-      const localScripts = Array.from(document.scripts).filter(
-        x => x.src && x.src.startsWith(basePath)
-      );
-      const mainRegexp = /main\.[\w]{8}.js/;
-      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
-      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
-      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
-      chunkSripts.forEach(x => {
-        if (x.parentElement && mainScript.parentNode) {
-          x.parentElement.removeChild(x);
-          if (asyncJs) {
-            x.setAttribute("async", "true");
-          }
-          mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
-        }
-      });
-    },
-    basePath,
-    asyncJs
-  );
+const fixWebpackChunksIssue = ({ page, basePath }) => {
+  return page.evaluate(basePath => {
+    const localScripts = Array.from(document.scripts).filter(
+      x => x.src && x.src.startsWith(basePath)
+    );
+    const mainRegexp = /main\.[\w]{8}.js/;
+    const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+    const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
+    const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+    chunkSripts.forEach(x => {
+      if (x.parentElement && mainScript.parentNode) {
+        x.parentElement.removeChild(x);
+
+        const linkTag = document.createElement("link");
+        linkTag.setAttribute("rel", "preload");
+        linkTag.setAttribute("as", "script");
+        linkTag.setAttribute("href", x.src);
+
+        mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+      }
+    });
+  }, basePath);
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
@@ -320,8 +319,7 @@ const run = async userOptions => {
       if (options.fixWebpackChunksIssue) {
         await fixWebpackChunksIssue({
           page,
-          basePath,
-          asyncJs: options.asyncJs
+          basePath
         });
       } else if (options.asyncJs) {
         await asyncJs({ page });
