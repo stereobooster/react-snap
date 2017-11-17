@@ -25,6 +25,7 @@ const defaultOptions = {
   sourceMaps: false, // experimental
   preloadResources: false,
   headless: true,
+  puppeteerArgs: [],
   userAgent: "ReactSnap",
   saveAs: "html",
   crawl: true,
