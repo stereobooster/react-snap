@@ -103,6 +103,17 @@ Headless chrome does not fully support WebGL, if you need render it you can use
 "headless": false
 ```
 
+### Containers and other restricted environments
+
+Puppeteer (headless chrome) may fail due to sandboxing issues. To get around this,
+you may use
+
+```
+"puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox"]
+```
+
+Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
+
 ### Webpack 2+ and dynamic import
 
 If you get following error `Uncaught ReferenceError: webpackJsonp is not defined`, you can use the following hack
