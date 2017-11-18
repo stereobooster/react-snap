@@ -58,7 +58,10 @@ const defaultOptions = {
   preloadImages: false,
   // add async true to scripts and move them to the header, to start download earlier
   // can use <link rel="preload"> instead
-  asyncJs: false
+  asyncJs: false,
+  //# another feature creep
+  // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
+  removeScriptTags: false
 };
 
 /**
@@ -167,6 +170,15 @@ const preloadResources = opt => {
 const removeStyleTags = ({ page }) =>
   page.evaluate(() => {
     var x = Array.from(document.querySelectorAll("style"));
+    for (var i = x.length - 1; i >= 0; i--) {
+      const ell = x[i];
+      ell.parentElement && ell.parentElement.removeChild(ell);
+    }
+  });
+
+const removeScriptTags = ({ page }) =>
+  page.evaluate(() => {
+    var x = Array.from(document.querySelectorAll("script"));
     for (var i = x.length - 1; i >= 0; i--) {
       const ell = x[i];
       ell.parentElement && ell.parentElement.removeChild(ell);
@@ -422,6 +434,7 @@ const run = async userOptions => {
     afterFetch: async ({ page, route, browser }) => {
       const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
+      if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
       if (options.inlineCss)
         await inlineCss({
