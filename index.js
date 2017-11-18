@@ -62,6 +62,7 @@ const defaultOptions = {
   asyncJs: false,
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
+  // but this will also remove code which registers service worker
   removeScriptTags: false
 };
 
@@ -325,16 +326,20 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
     const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
     const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
     const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+
+    const createLink = x => {
+      const linkTag = document.createElement("link");
+      linkTag.setAttribute("rel", "preload");
+      linkTag.setAttribute("as", "script");
+      linkTag.setAttribute("href", x.src.replace(basePath, ""));
+      mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+    };
+
+    createLink(mainScript);
     chunkSripts.forEach(x => {
       if (x.parentElement && mainScript.parentNode) {
         x.parentElement.removeChild(x);
-        // this will produce links like http://localhost:45678/static...
-        // and will confuse order of load
-        // const linkTag = document.createElement("link");
-        // linkTag.setAttribute("rel", "preload");
-        // linkTag.setAttribute("as", "script");
-        // linkTag.setAttribute("href", x.src);
-        // mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+        createLink(x);
       }
     });
   }, basePath);
