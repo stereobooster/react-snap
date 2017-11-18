@@ -315,13 +315,13 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
     chunkSripts.forEach(x => {
       if (x.parentElement && mainScript.parentNode) {
         x.parentElement.removeChild(x);
-
-        const linkTag = document.createElement("link");
-        linkTag.setAttribute("rel", "preload");
-        linkTag.setAttribute("as", "script");
-        linkTag.setAttribute("href", x.src);
-
-        mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+        // this will produce links like http://localhost:45678/static...
+        // and will confuse order of load
+        // const linkTag = document.createElement("link");
+        // linkTag.setAttribute("rel", "preload");
+        // linkTag.setAttribute("as", "script");
+        // linkTag.setAttribute("href", x.src);
+        // mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
       }
     });
   }, basePath);
