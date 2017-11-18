@@ -15,40 +15,50 @@ const CleanCSS = require("clean-css");
 const twentyKb = 20 * 1024;
 
 const defaultOptions = {
+  //# stable configurations
   port: 45678,
   source: "build",
   destination: null,
   concurrency: 4,
-  viewport: false,
   include: ["/"],
-  removeStyleTags: false,
-  removeBlobs: true,
-  inlineCss: false, // experimental
-  sourceMaps: false, // experimental
-  preloadImages: false,
-  cacheAjaxRequests: false,
-  preconnectThirdParty: true,
+  userAgent: "ReactSnap",
   headless: true,
   puppeteerArgs: [],
-  userAgent: "ReactSnap",
-  saveAs: "html",
-  crawl: true,
-  waitFor: false,
-  externalServer: false,
-  // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
-  fixWebpackChunksIssue: true,
-  skipThirdPartyRequests: false,
-  asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
   publicPath: "/",
-  minifyOptions: {
-    minifyCSS: true,
+  minifyCSS: {},
+  minifyHTML: {
     collapseBooleanAttributes: true,
     collapseWhitespace: true,
     decodeEntities: true,
     keepClosingSlash: true,
     sortAttributes: true,
     sortClassName: true
-  }
+  },
+  viewport: false, // TODO: set to mobile viewport by default?
+  //# feature creeps to generate screenshots
+  saveAs: "html",
+  crawl: true,
+  waitFor: false,
+  externalServer: false,
+  //# workarounds
+  fixWebpackChunksIssue: true,
+  removeBlobs: true,
+  skipThirdPartyRequests: false,
+  //# unstable configurations
+  preconnectThirdParty: true,
+  // Experimental. This config stands for two strategies inline and critical.
+  // TODO: inline strategy can contain errors, like, confuse relative urls
+  // TODO: critical strategy miss noscript fallback
+  inlineCss: false,
+  // Experimental. TODO: need to fix issues with sourcemaps
+  sourceMaps: false,
+  cacheAjaxRequests: false,
+  //# even more workarounds
+  removeStyleTags: false,
+  preloadImages: false,
+  // add async true to scripts and move them to the header, to start download earlier
+  // can use <link rel="preload"> instead
+  asyncJs: false
 };
 
 /**
@@ -70,6 +80,14 @@ const defaults = userOptions => {
       "preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
     );
     process.exit(1);
+  }
+  if (options.minifyOptions) {
+    console.log("minifyOptions option renamed to minifyHTML");
+    process.exit(1);
+  }
+
+  if (options.minifyHTML && !options.minifyHTML.minifyCSS) {
+    options.minifyHTML.minifyCSS = options.minifyCSS;
   }
 
   if (!options.publicPath.startsWith("/")) {
@@ -208,8 +226,7 @@ const inlineCss = async opt => {
     );
     return cssArray.join("");
   });
-  // TODO: improve CleanCSS options
-  const allCss = new CleanCSS({}).minify(result).styles;
+  const allCss = new CleanCSS(options.minifyCSS).minify(result).styles;
   const allCssSize = Buffer.byteLength(allCss, "utf8");
 
   let cssStrategy, cssSize;
@@ -236,7 +253,7 @@ const inlineCss = async opt => {
           document.querySelectorAll("link[rel=stylesheet]")
         );
         stylesheets.forEach(link => {
-          // TODO: this doesn't work
+          // noscript fallback which doesn't work
           // var wrap = document.createElement('div');
           // wrap.appendChild(link.cloneNode(false));
           // var noscriptTag = document.createElement('noscript');
@@ -312,8 +329,8 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
   const content = await page.content();
-  const minifiedContent = options.minifyOptions
-    ? minify(content, options.minifyOptions)
+  const minifiedContent = options.minifyHTML
+    ? minify(content, options.minifyHTML)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
   if (route === options.publicPath + "/404") {
