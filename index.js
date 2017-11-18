@@ -26,7 +26,7 @@ const defaultOptions = {
   puppeteerArgs: [],
   publicPath: "/",
   minifyCSS: {}, // <------ inconsistent naming, should be minifyCss
-  minifyHTML: {  // <------ inconsistent naming, should be minifyHtml
+  minifyHTML: { // <------ inconsistent naming, should be minifyHtml
     collapseBooleanAttributes: true,
     collapseWhitespace: true,
     decodeEntities: true,
@@ -334,13 +334,14 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
       mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
     };
 
-    createLink(mainScript);
-    chunkSripts.forEach(x => {
+    for (let i = chunkSripts.length - 1; i >= 0; --i) {
+      const x = chunkSripts[i];
       if (x.parentElement && mainScript.parentNode) {
         x.parentElement.removeChild(x);
         createLink(x);
       }
-    });
+    }
+    createLink(mainScript);
   }, basePath);
 };
 
