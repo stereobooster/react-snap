@@ -25,8 +25,8 @@ const defaultOptions = {
   headless: true,
   puppeteerArgs: [],
   publicPath: "/",
-  minifyCSS: {}, // <------ inconsistent naming, should be minifyCss
-  minifyHTML: { // <------ inconsistent naming, should be minifyHtml
+  minifyCss: {},
+  minifyHtml: {
     collapseBooleanAttributes: true,
     collapseWhitespace: true,
     decodeEntities: true,
@@ -58,7 +58,7 @@ const defaultOptions = {
   preloadImages: false,
   // add async true to scripts and move them to the header, to start download earlier
   // can use <link rel="preload"> instead
-  asyncJs: false, // <------ inconsistent naming, should be asyncScriptTags
+  asyncScriptTags: false,
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
@@ -86,12 +86,15 @@ const defaults = userOptions => {
     process.exit(1);
   }
   if (options.minifyOptions) {
-    console.log("minifyOptions option renamed to minifyHTML");
+    console.log("minifyOptions option renamed to minifyHtml");
     process.exit(1);
   }
-
-  if (options.minifyHTML && !options.minifyHTML.minifyCSS) {
-    options.minifyHTML.minifyCSS = options.minifyCSS;
+  if (options.asyncJs) {
+    console.log("asyncJs option renamed to asyncScriptTags");
+    process.exit(1);
+  }
+  if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
+    options.minifyHtml.minifyCSS = options.minifyCss;
   }
 
   if (!options.publicPath.startsWith("/")) {
@@ -239,7 +242,7 @@ const inlineCss = async opt => {
     );
     return cssArray.join("");
   });
-  const allCss = new CleanCSS(options.minifyCSS).minify(result).styles;
+  const allCss = new CleanCSS(options.minifyCss).minify(result).styles;
   const allCssSize = Buffer.byteLength(allCss, "utf8");
 
   let cssStrategy, cssSize;
@@ -348,8 +351,8 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
 const saveAsHtml = async ({ page, filePath, options, route }) => {
   const content = await page.content();
   const title = await page.title();
-  const minifiedContent = options.minifyHTML
-    ? minify(content, options.minifyHTML)
+  const minifiedContent = options.minifyHtml
+    ? minify(content, options.minifyHtml)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
   if (route === options.publicPath + "/404") {
