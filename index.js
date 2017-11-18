@@ -11,6 +11,8 @@ const minify = require("html-minifier").minify;
 const url = require("url");
 // @ts-ignore https://github.com/peterbe/minimalcss/pull/30
 const minimalcss = require("minimalcss");
+const CleanCSS = require("clean-css");
+const twentyKb = 20 * 1024;
 
 const defaultOptions = {
   port: 45678,
@@ -184,6 +186,7 @@ const removeBlobs = async opt => {
  */
 const inlineCss = async opt => {
   const { page, pageUrl, options, basePath, browser } = opt;
+
   const minimalcssResult = await minimalcss.minimize({
     urls: [pageUrl],
     skippable: request =>
@@ -191,42 +194,87 @@ const inlineCss = async opt => {
     browser: browser,
     userAgent: options.userAgent
   });
-  const cssText = minimalcssResult.finalCss;
-  // console.log("inline css", cssText.length);
-  return page.evaluate(
-    (cssText, preloadPolyfill) => {
+  const criticalCss = minimalcssResult.finalCss;
+  const criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
+
+  const result = await page.evaluate(async () => {
+    var stylesheets = Array.from(
+      document.querySelectorAll("link[rel=stylesheet]")
+    );
+    const cssArray = await Promise.all(
+      stylesheets.map(async link => {
+        const response = await fetch(link.href);
+        return response.text();
+      })
+    );
+    return cssArray.join("");
+  });
+  // TODO: improve CleanCSS options
+  const allCss = new CleanCSS({}).minify(result).styles;
+  const allCssSize = Buffer.byteLength(allCss, "utf8");
+
+  let cssStrategy, cssSize;
+  if (criticalCssSize * 2 >= allCssSize) {
+    cssStrategy = "inline";
+    cssSize = criticalCssSize;
+  } else {
+    cssStrategy = "critical";
+    cssSize = allCssSize;
+  }
+
+  if (cssSize > twentyKb) console.log("⚠️ inlining CSS more than 20kb");
+
+  if (cssStrategy === "critical") {
+    return page.evaluate(
+      (criticalCss, preloadPolyfill) => {
+        var head = document.head || document.getElementsByTagName("head")[0],
+          style = document.createElement("style");
+        style.type = "text/css";
+        style.appendChild(document.createTextNode(criticalCss));
+        head.appendChild(style);
+
+        var stylesheets = Array.from(
+          document.querySelectorAll("link[rel=stylesheet]")
+        );
+        stylesheets.forEach(link => {
+          // TODO: this doesn't work
+          // var wrap = document.createElement('div');
+          // wrap.appendChild(link.cloneNode(false));
+          // var noscriptTag = document.createElement('noscript');
+          // noscriptTag.innerHTML = wrap.innerHTML;
+          // document.head.appendChild(noscriptTag);
+          link.parentNode && link.parentNode.removeChild(link);
+          link.setAttribute("rel", "preload");
+          link.setAttribute("as", "style");
+          link.setAttribute("onload", "this.rel='stylesheet'");
+          document.head.appendChild(link);
+        });
+
+        var scriptTag = document.createElement("script");
+        scriptTag.type = "text/javascript";
+        scriptTag.text = preloadPolyfill;
+        // scriptTag.id = "preloadPolyfill";
+        document.body.appendChild(scriptTag);
+      },
+      criticalCss,
+      preloadPolyfill
+    );
+  } else {
+    return page.evaluate(allCss => {
       var head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
-      style.appendChild(document.createTextNode(cssText));
+      style.appendChild(document.createTextNode(allCss));
       head.appendChild(style);
 
       var stylesheets = Array.from(
         document.querySelectorAll("link[rel=stylesheet]")
       );
       stylesheets.forEach(link => {
-        // TODO: this doesn't work
-        // var wrap = document.createElement('div');
-        // wrap.appendChild(link.cloneNode(false));
-        // var noscriptTag = document.createElement('noscript');
-        // noscriptTag.innerHTML = wrap.innerHTML;
-        // document.head.appendChild(noscriptTag);
         link.parentNode && link.parentNode.removeChild(link);
-        link.setAttribute("rel", "preload");
-        link.setAttribute("as", "style");
-        link.setAttribute("onload", "this.rel='stylesheet'");
-        document.head.appendChild(link);
       });
-
-      var scriptTag = document.createElement("script");
-      scriptTag.type = "text/javascript";
-      scriptTag.text = preloadPolyfill;
-      // scriptTag.id = "preloadPolyfill";
-      document.body.appendChild(scriptTag);
-    },
-    cssText,
-    preloadPolyfill
-  );
+    }, allCss);
+  }
 };
 
 const asyncJs = ({ page }) => {
