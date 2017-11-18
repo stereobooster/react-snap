@@ -34,7 +34,11 @@ const defaultOptions = {
     sortAttributes: true,
     sortClassName: true
   },
-  viewport: false, // TODO: set to mobile viewport by default?
+  // mobile first approach
+  viewport: {
+    width: 480,
+    height: 850
+  },
   //# feature creeps to generate screenshots
   saveAs: "html",
   crawl: true,
