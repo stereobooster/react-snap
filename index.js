@@ -368,9 +368,8 @@ const run = async userOptions => {
           page,
           basePath
         });
-      } else if (options.asyncJs) {
-        await asyncJs({ page });
       }
+      if (options.asyncJs) await asyncJs({ page });
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
