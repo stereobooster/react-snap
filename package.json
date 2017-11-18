@@ -1,6 +1,6 @@
 {
   "name": "react-snap",
-  "version": "0.11.0",
+  "version": "1.0.0",
   "description": "Pre-renders web app into static HTML",
   "main": "index.js",
   "author": "stereobooster",
