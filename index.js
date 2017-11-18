@@ -239,7 +239,7 @@ const inlineCss = async opt => {
     cssSize = allCssSize;
   }
 
-  if (cssSize > twentyKb) console.log("⚠️ inlining CSS more than 20kb");
+  if (cssSize > twentyKb) console.log("⚠️  inlining CSS more than 20kb");
 
   if (cssStrategy === "critical") {
     return page.evaluate(
@@ -330,14 +330,18 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
   const content = await page.content();
+  const title = await page.title();
   const minifiedContent = options.minifyHTML
     ? minify(content, options.minifyHTML)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
   if (route === options.publicPath + "/404") {
+    if (!title.includes("404"))
+      console.log('⚠️  404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(`${filePath}.html`, minifiedContent);
   } else {
+    if (title.includes("404")) console.log(`⚠️  page not found ${route}`);
     mkdirp.sync(filePath);
     fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   }
