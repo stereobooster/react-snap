@@ -110,22 +110,22 @@ const preloadResources = opt => {
           document.body.appendChild(linkTag);
         }, route);
       } else if (cacheAjaxRequests && ct.indexOf("json") > -1) {
-        const text = await response.text();
+        const json = await response.json();
         await page.evaluate(
-          (route, text) => {
+          (route, json) => {
             var scriptTag = document.createElement("script");
             scriptTag.type = "text/javascript";
             scriptTag.text = [
               'window.snapStore = window.snapStore || {}; window.snapStore["',
               route,
               '"] = ',
-              text,
+              JSON.stringify(json),
               ";"
             ].join("");
             document.body.appendChild(scriptTag);
           },
           route,
-          text
+          json
         );
       }
       uniqueResources.add(responseUrl);
