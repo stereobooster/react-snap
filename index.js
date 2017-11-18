@@ -25,8 +25,8 @@ const defaultOptions = {
   headless: true,
   puppeteerArgs: [],
   publicPath: "/",
-  minifyCSS: {},
-  minifyHTML: {
+  minifyCSS: {}, // <------ inconsistent naming, should be minifyCss
+  minifyHTML: {  // <------ inconsistent naming, should be minifyHtml
     collapseBooleanAttributes: true,
     collapseWhitespace: true,
     decodeEntities: true,
@@ -58,7 +58,7 @@ const defaultOptions = {
   preloadImages: false,
   // add async true to scripts and move them to the header, to start download earlier
   // can use <link rel="preload"> instead
-  asyncJs: false,
+  asyncJs: false, // <------ inconsistent naming, should be asyncScriptTags
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
