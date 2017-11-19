@@ -12,7 +12,7 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 - Crawls all pages starting from the root, no need to list pages by hand, like in `prep`.
 - With prerendered HTML and inlined critical CSS you will get fast first paint, like with [critical](https://github.com/addyosmani/critical).
 - With `precacheAjax` feature you will get faster first interaction time if your page does do AJAX requests.
-- Works with webpack 2 code splitting feature, but with caveats. See below and [#46](https://github.com/stereobooster/react-snap/issues/46)
+- Works with webpack 2 code splitting feature, but with caveats. See below.
 - [Handles sourcemaps](https://github.com/stereobooster/react-snap/issues/4)
 - Supports non-root paths (e.g. for create-react-app relative paths)
 
@@ -111,6 +111,30 @@ It is not a problem to render async component with react-snap, tricky part happe
   visual progress  /
                   /
 0%  -------------/
+```
+
+~~I found only one working solution for this problem: [`loadable-components`](https://github.com/smooth-code/loadable-components/).~~ There is no solution for this so far. You will need to change your code a bit:
+
+`index.js`:
+```js
+import { loadComponents } from "loadable-components";
+
+if (rootElement.hasChildNodes()) {
+  window.bootReactSnapApp = () => {
+    loadComponents().then(() => {
+      hydrate(<App />, rootElement);
+    });
+  };
+} else {
+  render(<App />, rootElement);
+}
+```
+
+`package.json`:
+```json
+"reactSnap": {
+  "asyncComponentsTrick": true
+}
 ```
 
 ### Google Analytics, Mapbox, and other third-party requests
