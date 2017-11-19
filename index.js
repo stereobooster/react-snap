@@ -359,11 +359,11 @@ const saveAsHtml = async ({ page, filePath, options, route }) => {
     ? minify(content, options.minifyHtml)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
-  if (route === options.publicPath + "/404") {
-    if (!title.includes("404"))
+  if (route.endsWith(".html")) {
+    if (route.endsWith("/404.html") && !title.includes("404"))
       console.log('⚠️  404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
-    fs.writeFileSync(`${filePath}.html`, minifiedContent);
+    fs.writeFileSync(filePath, minifiedContent);
   } else {
     if (title.includes("404")) console.log(`⚠️  page not found ${route}`);
     mkdirp.sync(filePath);
@@ -374,7 +374,9 @@ const saveAsHtml = async ({ page, filePath, options, route }) => {
 const saveAsPng = ({ page, filePath, options, route }) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
-  if (route === "/") {
+  if (route.endsWith(".html")) {
+    screenshotPath = filePath.replace(/\.html$/, ".png");
+  } else if (route === "/") {
     screenshotPath = `${filePath}/index.png`;
   } else {
     screenshotPath = `${filePath.replace(/\/$/, "")}.png`;
