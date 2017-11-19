@@ -136,14 +136,13 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 
 ## TODO
 
+- Update [recipes](Recipes.md) based on the code of [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)
 - Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example: load in small screen - capture all assets, add with a media query for the small screen, load in big screen add the rest of the assets with a media query for the big screen.
 - Do not load assets, the same way as minimalcss does
-- Check deployments to [now](https://zeit.co/now#features)
-- Check deployments to [surge](https://surge.sh/help/getting-started-with-surge)
 - Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
 
 ## Alternatives
 
 - [Webcomponents SSR](https://youtu.be/yT-EsESAmgA)
-- https://github.com/prerender/prerender
+- [prerender/prerender](https://github.com/prerender/prerender)
 - [Simple express server for your Create React App projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
