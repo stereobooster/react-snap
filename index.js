@@ -11,41 +11,63 @@ const minify = require("html-minifier").minify;
 const url = require("url");
 // @ts-ignore https://github.com/peterbe/minimalcss/pull/30
 const minimalcss = require("minimalcss");
+const CleanCSS = require("clean-css");
+const twentyKb = 20 * 1024;
 
 const defaultOptions = {
+  //# stable configurations
   port: 45678,
   source: "build",
   destination: null,
   concurrency: 4,
-  viewport: false,
-  include: ["/", "/404"],
-  removeStyleTags: false,
-  removeBlobs: true,
-  inlineCss: false, // experimental
-  sourceMaps: false, // experimental
-  preloadResources: false,
+  include: ["/"],
+  userAgent: "ReactSnap",
   headless: true,
   puppeteerArgs: [],
-  userAgent: "ReactSnap",
-  saveAs: "html",
-  crawl: true,
-  waitFor: false,
-  externalServer: false,
-  // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
-  fixWebpackChunksIssue: true, // experimental
-  bundleName: "main",
-  skipThirdPartyRequests: false,
-  asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
   publicPath: "/",
-  minifyOptions: {
-    minifyCSS: true,
+  minifyCss: {},
+  minifyHtml: {
     collapseBooleanAttributes: true,
     collapseWhitespace: true,
     decodeEntities: true,
     keepClosingSlash: true,
     sortAttributes: true,
     sortClassName: true
-  }
+  },
+  // mobile first approach
+  viewport: {
+    width: 480,
+    height: 850
+  },
+  //# feature creeps to generate screenshots
+  saveAs: "html",
+  crawl: true,
+  waitFor: false,
+  externalServer: false,
+  //# workarounds
+  fixWebpackChunksIssue: true,
+  bundleName: "main",
+  removeBlobs: true,
+  skipThirdPartyRequests: false,
+  //# unstable configurations
+  preconnectThirdParty: true,
+  // Experimental. This config stands for two strategies inline and critical.
+  // TODO: inline strategy can contain errors, like, confuse relative urls
+  // TODO: critical strategy miss noscript fallback
+  inlineCss: false,
+  // Experimental. TODO: need to fix issues with sourcemaps
+  sourceMaps: false,
+  cacheAjaxRequests: false,
+  //# even more workarounds
+  removeStyleTags: false,
+  preloadImages: false,
+  // add async true to scripts and move them to the header, to start download earlier
+  // can use <link rel="preload"> instead
+  asyncScriptTags: false,
+  //# another feature creep
+  // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
+  // but this will also remove code which registers service worker
+  removeScriptTags: false
 };
 
 /**
@@ -61,8 +83,32 @@ const defaults = userOptions => {
   options.destination = options.destination || options.source;
   if (!options.include || !options.include.length)
     throw new Error("include should be an array");
-  options.include = options.include.map(include =>
-    path.normalize(options.publicPath + include)
+
+  if (options.preloadResources) {
+    console.log(
+      "preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
+    );
+    process.exit(1);
+  }
+  if (options.minifyOptions) {
+    console.log("minifyOptions option renamed to minifyHtml");
+    process.exit(1);
+  }
+  if (options.asyncJs) {
+    console.log("asyncJs option renamed to asyncScriptTags");
+    process.exit(1);
+  }
+  if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
+    options.minifyHtml.minifyCSS = options.minifyCss;
+  }
+
+  if (!options.publicPath.startsWith("/")) {
+    options.publicPath = `/${options.publicPath}`;
+  }
+  options.publicPath = options.publicPath.replace(/\/$/, "");
+
+  options.include = options.include.map(
+    include => options.publicPath + include
   );
   return options;
 };
@@ -72,17 +118,22 @@ const defaults = userOptions => {
  * @param {{page: Page, basePath: string}} opt
  */
 const preloadResources = opt => {
-  const { page, basePath } = opt;
-  const uniqueResources = {};
+  const {
+    page,
+    basePath,
+    preloadImages,
+    cacheAjaxRequests,
+    preconnectThirdParty
+  } = opt;
+  const uniqueResources = new Set();
   page.on("response", async response => {
-    // TODO: this can be improved
     const responseUrl = response.url;
     if (/^data:/i.test(responseUrl)) return;
     const ct = response.headers["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
     if (/^http:\/\/localhost/i.test(responseUrl)) {
-      if (uniqueResources[responseUrl]) return;
-      if (/\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
+      if (uniqueResources.has(responseUrl)) return;
+      if (preloadImages && /\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
         await page.evaluate(route => {
           var linkTag = document.createElement("link");
           linkTag.setAttribute("rel", "preload");
@@ -90,37 +141,37 @@ const preloadResources = opt => {
           linkTag.setAttribute("href", route);
           document.body.appendChild(linkTag);
         }, route);
-      } else if (ct.indexOf("json") > -1) {
-        const text = await response.text();
+      } else if (cacheAjaxRequests && ct.indexOf("json") > -1) {
+        const json = await response.json();
         await page.evaluate(
-          (route, text) => {
+          (route, json) => {
             var scriptTag = document.createElement("script");
             scriptTag.type = "text/javascript";
             scriptTag.text = [
               'window.snapStore = window.snapStore || {}; window.snapStore["',
               route,
               '"] = ',
-              text,
+              JSON.stringify(json),
               ";"
             ].join("");
             document.body.appendChild(scriptTag);
           },
           route,
-          text
+          json
         );
       }
-      uniqueResources[responseUrl] = true;
-    } else {
+      uniqueResources.add(responseUrl);
+    } else if (preconnectThirdParty) {
       const urlObj = url.parse(responseUrl);
       const domain = `${urlObj.protocol}//${urlObj.host}`;
-      if (uniqueResources[domain]) return;
+      if (uniqueResources.has(domain)) return;
       await page.evaluate(route => {
         var linkTag = document.createElement("link");
         linkTag.setAttribute("rel", "preconnect");
         linkTag.setAttribute("href", route);
         document.head.appendChild(linkTag);
       }, domain);
-      uniqueResources[domain] = true;
+      uniqueResources.add(domain);
     }
   });
 };
@@ -128,6 +179,15 @@ const preloadResources = opt => {
 const removeStyleTags = ({ page }) =>
   page.evaluate(() => {
     var x = Array.from(document.querySelectorAll("style"));
+    for (var i = x.length - 1; i >= 0; i--) {
+      const ell = x[i];
+      ell.parentElement && ell.parentElement.removeChild(ell);
+    }
+  });
+
+const removeScriptTags = ({ page }) =>
+  page.evaluate(() => {
+    var x = Array.from(document.querySelectorAll("script"));
     for (var i = x.length - 1; i >= 0; i--) {
       const ell = x[i];
       ell.parentElement && ell.parentElement.removeChild(ell);
@@ -164,6 +224,7 @@ const removeBlobs = async opt => {
  */
 const inlineCss = async opt => {
   const { page, pageUrl, options, basePath, browser } = opt;
+
   const minimalcssResult = await minimalcss.minimize({
     urls: [pageUrl],
     skippable: request =>
@@ -171,47 +232,91 @@ const inlineCss = async opt => {
     browser: browser,
     userAgent: options.userAgent
   });
-  const cssText = minimalcssResult.finalCss;
-  console.log("inline css", cssText.length);
-  return page.evaluate(
-    (cssText, preloadPolyfill) => {
-      let head = document.head || document.getElementsByTagName("head")[0];
-      let noscriptTags = document.getElementsByTagName('noscript');
-      let noscript;
-      if (noscriptTags.length === 0) {
-        noscript = document.createElement('noscript');
-        document.body.insertBefore(noscript, document.body.firstChild);
-      } else {
-        noscript = noscriptTags[0];
-      }
+  const criticalCss = minimalcssResult.finalCss;
+  const criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
 
-      let style = document.createElement("style");
+  const result = await page.evaluate(async () => {
+    var stylesheets = Array.from(
+      document.querySelectorAll("link[rel=stylesheet]")
+    );
+    const cssArray = await Promise.all(
+      stylesheets.map(async link => {
+        const response = await fetch(link.href);
+        return response.text();
+      })
+    );
+    return cssArray.join("");
+  });
+  const allCss = new CleanCSS(options.minifyCss).minify(result).styles;
+  const allCssSize = Buffer.byteLength(allCss, "utf8");
+
+  let cssStrategy, cssSize;
+  if (criticalCssSize * 2 >= allCssSize) {
+    cssStrategy = "inline";
+    cssSize = criticalCssSize;
+  } else {
+    cssStrategy = "critical";
+    cssSize = allCssSize;
+  }
+
+  if (cssSize > twentyKb) console.log("⚠️  inlining CSS more than 20kb");
+
+  if (cssStrategy === "critical") {
+    return page.evaluate(
+      (criticalCss, preloadPolyfill) => {
+        let head = document.head || document.getElementsByTagName("head")[0];
+        let style = document.createElement("style");
+        style.type = "text/css";
+        style.appendChild(document.createTextNode(criticalCss));
+        head.appendChild(style);
+
+        let noscriptTags = document.getElementsByTagName('noscript');
+        let noscript;
+        if (noscriptTags.length === 0) {
+          noscript = document.createElement('noscript');
+          document.body.insertBefore(noscript, document.body.firstChild);
+        } else {
+          noscript = noscriptTags[0];
+        }
+
+        var stylesheets = Array.from(
+          document.querySelectorAll("link[rel=stylesheet]")
+        );
+        stylesheets.forEach(link => {
+          noscript.appendChild(link.cloneNode(false));
+
+          link.parentNode && link.parentNode.removeChild(link);
+          link.setAttribute("rel", "preload");
+          link.setAttribute("as", "style");
+          link.setAttribute("react-snap-onload", "this.rel='stylesheet'");
+          document.head.appendChild(link);
+        });
+
+        var scriptTag = document.createElement("script");
+        scriptTag.type = "text/javascript";
+        scriptTag.text = preloadPolyfill;
+        // scriptTag.id = "preloadPolyfill";
+        document.body.appendChild(scriptTag);
+      },
+      criticalCss,
+      preloadPolyfill
+    );
+  } else {
+    return page.evaluate(allCss => {
+      var head = document.head || document.getElementsByTagName("head")[0],
+        style = document.createElement("style");
       style.type = "text/css";
-      style.appendChild(document.createTextNode(cssText));
+      style.appendChild(document.createTextNode(allCss));
       head.appendChild(style);
 
       let stylesheets = Array.from(
         document.querySelectorAll("link[rel=stylesheet]")
       );
       stylesheets.forEach(link => {
-        noscript.appendChild(link.cloneNode(false));
-
         link.parentNode && link.parentNode.removeChild(link);
-        link.setAttribute("rel", "preload");
-        link.setAttribute("as", "style");
-        link.setAttribute("data-onload", "this.rel='stylesheet'");
-        document.head.appendChild(link);
       });
-
-      let scriptTag = document.createElement("script");
-      scriptTag.type = "text/javascript";
-      scriptTag.text = preloadPolyfill;
-      // scriptTag.id = "preloadPolyfill";
-      document.body.appendChild(scriptTag);
-    },
-    cssText,
-    preloadPolyfill
-  );
+    }, allCss);
+  }
 };
 
 const asyncJs = ({ page }) => {
@@ -224,49 +329,55 @@ const asyncJs = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath, bundleName, asyncJs }) => {
-  return page.evaluate(
-    (basePath, bundleName, asyncJs) => {
-      const regexEscape = str => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-      const localScripts = Array.from(document.scripts).filter(
-        x => x.src && x.src.startsWith(basePath)
-      );
-      
-      const mainChunk = regexEscape(bundleName);
-      const mainRegexp = new RegExp(mainChunk + ".[\\w]{8}.js");
-      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
-      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
-      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
-      chunkSripts.forEach(x => {
-        if (x.parentElement && mainScript.parentNode) {
-          x.parentElement.removeChild(x);
-          if (asyncJs) {
-            x.setAttribute("async", "true");
-          }
-          mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
-        }
-      });
-    },
-    basePath,
-    bundleName,
-    asyncJs
-  );
+const fixWebpackChunksIssue = ({ page, basePath, bundleName }) => {
+  return page.evaluate(basePath => {
+    const regexEscape = str => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+    const localScripts = Array.from(document.scripts).filter(
+      x => x.src && x.src.startsWith(basePath)
+    );
+
+    const mainChunk = regexEscape(bundleName);
+    const mainRegexp = new RegExp(mainChunk + ".[\\w]{8}.js");
+    const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+    const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
+    const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+
+    const createLink = x => {
+      const linkTag = document.createElement("link");
+      linkTag.setAttribute("rel", "preload");
+      linkTag.setAttribute("as", "script");
+      linkTag.setAttribute("href", x.src.replace(basePath, ""));
+      mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+    };
+
+    for (let i = chunkSripts.length - 1; i >= 0; --i) {
+      const x = chunkSripts[i];
+      if (x.parentElement && mainScript.parentNode) {
+        x.parentElement.removeChild(x);
+        createLink(x);
+      }
+    }
+    createLink(mainScript);
+  }, basePath);
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
   let content = await page.content();
-  content = content.replace(/data\-onload/g, 'onload');
-
-  const minifiedContent = options.minifyOptions
-    ? minify(content, options.minifyOptions)
+  content = content.replace(/react\-snap\-onload/g, 'onload');
+  const title = await page.title();
+  const minifiedContent = options.minifyHtml
+    ? minify(content, options.minifyHtml)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
-  if (filePath.endsWith(path.sep)) {
-    mkdirp.sync(filePath);
-    fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
-  } else {
+  if (route === options.publicPath + "/404") {
+    if (!title.includes("404"))
+      console.log('⚠️  404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(`${filePath}.html`, minifiedContent);
+  } else {
+    if (title.includes("404")) console.log(`⚠️  page not found ${route}`);
+    mkdirp.sync(filePath);
+    fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   }
 };
 
@@ -297,6 +408,17 @@ const run = async userOptions => {
     return server;
   };
 
+  if (
+    destinationDir === sourceDir &&
+    options.saveAs === "html" &&
+    fs.existsSync(path.join(sourceDir, "200.html"))
+  ) {
+    console.log(
+      `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will brake the build`
+    );
+    process.exit(1);
+  }
+
   fs
     .createReadStream(path.join(sourceDir, "index.html"))
     .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
@@ -311,15 +433,31 @@ const run = async userOptions => {
   const server = options.externalServer ? null : startServer(options);
 
   const basePath = `http://localhost:${options.port}`;
+  const publicPath = options.publicPath;
+
   await crawl({
     options,
     basePath,
+    publicPath,
     beforeFetch: async ({ page }) => {
-      if (options.preloadResources) preloadResources({ page, basePath });
+      const {
+        preloadImages,
+        cacheAjaxRequests,
+        preconnectThirdParty
+      } = options;
+      if (preloadImages || cacheAjaxRequests || preconnectThirdParty)
+        preloadResources({
+          page,
+          basePath,
+          preloadImages,
+          cacheAjaxRequests,
+          preconnectThirdParty
+        });
     },
     afterFetch: async ({ page, route, browser }) => {
       const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
+      if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
       if (options.inlineCss)
         await inlineCss({
@@ -334,12 +472,9 @@ const run = async userOptions => {
           page,
           basePath,
           bundleName: options.bundleName,
-          asyncJs: options.asyncJs
         });
-      } else if (options.asyncJs) {
-        await asyncJs({ page });
       }
-      const publicPath = options.publicPath.replace(/\/$/, "");
+      if (options.asyncJs) await asyncJs({ page });
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
