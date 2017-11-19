@@ -1,7 +1,6 @@
 const puppeteer = require("puppeteer");
 const _ = require("highland");
 const url = require("url");
-const path = require("path");
 // @ts-ignore
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 
@@ -23,29 +22,29 @@ const skipThirdPartyRequests = async opt => {
 };
 
 /**
- * @param {{page: Page, options: {sourceMaps: boolean}, route: string, onError: ?function }} opt
+ * @param {{page: Page, options: {sourceMaps: boolean}, route: string}} opt
  * @return {void}
  */
 const enableLogging = opt => {
-  const { page, options, route, onError } = opt;
-  page.on("console", msg => console.log(`✏️  ${route} log:`, msg));
-  page.on("error", msg => console.log(`🔥  ${route} error:`, msg));
+  const { page, options, route } = opt;
+  page.on("console", msg => console.log(`${route} log:`, msg));
+  page.on("error", msg => console.log(`${route} error:`, msg));
   page.on("pageerror", e => {
     if (options.sourceMaps) {
       mapStackTrace(
         e.stack,
         result => {
           console.log(
-            `🔥  ${route} pageerror: ${e.stack.split("\n")[0] +
-              "\n"}${result.join("\n")}`
+            `${route} pageerror: ${e.stack.split("\n")[0] + "\n"}${result.join(
+              "\n"
+            )}`
           );
         },
         { isChromeOrEdge: true }
       );
     } else {
-      console.log(`🔥  ${route} pageerror:`, e);
+      console.log(`${route} pageerror:`, e);
     }
-    onError && onError();
   });
   // page.on("requestfailed", msg =>
   //   console.log(`${route} requestfailed:`, msg)
@@ -75,18 +74,17 @@ const getLinks = async opt => {
  * @return {Promise}
  */
 const crawl = async opt => {
-  const { options, basePath, beforeFetch, afterFetch, onEnd, publicPath } = opt;
+  const { options, basePath, beforeFetch, afterFetch, onEnd } = opt;
   let shuttingDown = false;
-  let streamClosed = false;
   // TODO: this doesn't work as expected
   // process.stdin.resume();
   process.on("SIGINT", () => {
     if (shuttingDown) {
-      process.exit(1);
+      process.exit();
     } else {
       shuttingDown = true;
       console.log(
-        "\nGracefully shutting down. To exit immediately, press ^C again"
+        "Gracefully shutting down. To exit immediately, press ^C again"
       );
     }
   });
@@ -95,29 +93,25 @@ const crawl = async opt => {
   let enqued = 0;
   let processed = 0;
   // use Set instead
-  const uniqueUrls = new Set();
+  const uniqueUrls = {};
 
   /**
    * @param {string} path
    * @returns {void}
    */
-  const addToQueue = newUrl => {
-    const { hostname, search, hash } = url.parse(newUrl);
-    newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
-    if (hostname === "localhost" && !uniqueUrls.has(newUrl) && !streamClosed) {
-      uniqueUrls.add(newUrl);
+  const addToQueue = path => {
+    const { hostname, search, hash } = url.parse(path);
+    path = path.replace(`${search || ""}${hash || ""}`, "");
+    if (hostname === "localhost" && !uniqueUrls[path]) {
+      uniqueUrls[path] = true;
       enqued++;
-      queue.write(newUrl);
-      if (enqued == 2 && options.crawl) {
-        addToQueue(`${basePath}${publicPath + "/404"}`);
-      }
+      queue.write(path);
     }
   };
 
   const browser = await puppeteer.launch({
     headless: options.headless,
-    args: options.puppeteerArgs,
-    handleSIGINT: false
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
   /**
@@ -127,42 +121,25 @@ const crawl = async opt => {
   const fetchPage = async pageUrl => {
     if (!shuttingDown) {
       const route = pageUrl.replace(basePath, "");
-      try {
-        const page = await browser.newPage();
-        if (options.viewport) await page.setViewport(options.viewport);
-        if (options.skipThirdPartyRequests)
-          await skipThirdPartyRequests({ page, options, basePath });
-        enableLogging({
-          page,
-          options,
-          route,
-          onError: () => {
-            shuttingDown = true;
-          }
-        });
-        beforeFetch && beforeFetch({ page, route });
-        await page.setUserAgent(options.userAgent);
-        await page.goto(pageUrl, { waitUntil: "networkidle" });
-        if (options.waitFor) await page.waitFor(options.waitFor);
-        if (options.crawl) {
-          const links = await getLinks({ page });
-          links.forEach(addToQueue);
-        }
-        afterFetch && (await afterFetch({ page, route, browser }));
-        await page.close();
-        console.log(`🕸  (${processed + 1}/${enqued}) ${route}`);
-      } catch (e) {
-        if (!shuttingDown) {
-          console.log(`🔥  ${route} ${e}`);
-        }
-        shuttingDown = true;
+      const page = await browser.newPage();
+      if (options.viewport) await page.setViewport(options.viewport);
+      if (options.skipThirdPartyRequests)
+        await skipThirdPartyRequests({ page, options, basePath });
+      enableLogging({ page, options, route });
+      beforeFetch && beforeFetch({ page, route });
+      await page.setUserAgent(options.userAgent);
+      await page.goto(pageUrl, { waitUntil: "networkidle" });
+      if (options.waitFor) await page.waitFor(options.waitFor);
+      if (options.crawl) {
+        const links = await getLinks({ page });
+        links.forEach(addToQueue);
       }
+      afterFetch && (await afterFetch({ page, route, browser }));
+      await page.close();
+      console.log(`Crawled ${processed + 1} out of ${enqued} (${route})`);
     }
     processed++;
-    if (enqued === processed) {
-      streamClosed = true;
-      queue.end();
-    }
+    if (enqued === processed) queue.end();
     return pageUrl;
   };
 
@@ -172,11 +149,10 @@ const crawl = async opt => {
 
   queue
     .map(x => _(fetchPage(x)))
-    .mergeWithLimit(options.concurrency)
+    .parallel(options.concurrency)
     .toArray(async function() {
       await browser.close();
       onEnd && onEnd();
-      if (shuttingDown) process.exit(1);
     });
 };
 

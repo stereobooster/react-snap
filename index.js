@@ -330,7 +330,7 @@ const asyncJs = ({ page }) => {
 };
 
 const fixWebpackChunksIssue = ({ page, basePath, bundleName }) => {
-  return page.evaluate(basePath => {
+  return page.evaluate((basePath, bundleName) => {
     const regexEscape = str => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
     const localScripts = Array.from(document.scripts).filter(
       x => x.src && x.src.startsWith(basePath)
@@ -358,7 +358,7 @@ const fixWebpackChunksIssue = ({ page, basePath, bundleName }) => {
       }
     }
     createLink(mainScript);
-  }, basePath);
+  }, basePath, bundleName);
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
