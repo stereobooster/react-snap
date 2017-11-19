@@ -134,7 +134,7 @@ const preloadResources = opt => {
       if (uniqueResources.has(responseUrl)) return;
       if (preloadImages && /\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
         await page.evaluate(route => {
-          var linkTag = document.createElement("link");
+          const linkTag = document.createElement("link");
           linkTag.setAttribute("rel", "preload");
           linkTag.setAttribute("as", "image");
           linkTag.setAttribute("href", route);
@@ -144,7 +144,7 @@ const preloadResources = opt => {
         const json = await response.json();
         await page.evaluate(
           (route, json) => {
-            var scriptTag = document.createElement("script");
+            const scriptTag = document.createElement("script");
             scriptTag.type = "text/javascript";
             scriptTag.text = [
               'window.snapStore = window.snapStore || {}; window.snapStore["',
@@ -165,7 +165,7 @@ const preloadResources = opt => {
       const domain = `${urlObj.protocol}//${urlObj.host}`;
       if (uniqueResources.has(domain)) return;
       await page.evaluate(route => {
-        var linkTag = document.createElement("link");
+        const linkTag = document.createElement("link");
         linkTag.setAttribute("rel", "preconnect");
         linkTag.setAttribute("href", route);
         document.head.appendChild(linkTag);
@@ -177,20 +177,16 @@ const preloadResources = opt => {
 
 const removeStyleTags = ({ page }) =>
   page.evaluate(() => {
-    var x = Array.from(document.querySelectorAll("style"));
-    for (var i = x.length - 1; i >= 0; i--) {
-      const ell = x[i];
+    Array.from(document.querySelectorAll("style")).forEach(ell => {
       ell.parentElement && ell.parentElement.removeChild(ell);
-    }
+    });
   });
 
 const removeScriptTags = ({ page }) =>
   page.evaluate(() => {
-    var x = Array.from(document.querySelectorAll("script"));
-    for (var i = x.length - 1; i >= 0; i--) {
-      const ell = x[i];
+    Array.from(document.querySelectorAll("script")).forEach(ell => {
       ell.parentElement && ell.parentElement.removeChild(ell);
-    }
+    });
   });
 
 const preloadPolyfill = fs.readFileSync(
@@ -206,7 +202,7 @@ const preloadPolyfill = fs.readFileSync(
 const removeBlobs = async opt => {
   const { page } = opt;
   return page.evaluate(() => {
-    var stylesheets = Array.from(
+    const stylesheets = Array.from(
       document.querySelectorAll("link[rel=stylesheet]")
     );
     stylesheets.forEach(link => {
@@ -235,7 +231,7 @@ const inlineCss = async opt => {
   const criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
 
   const result = await page.evaluate(async () => {
-    var stylesheets = Array.from(
+    const stylesheets = Array.from(
       document.querySelectorAll("link[rel=stylesheet]")
     );
     const cssArray = await Promise.all(
@@ -252,41 +248,37 @@ const inlineCss = async opt => {
   let cssStrategy, cssSize;
   if (criticalCssSize * 2 >= allCssSize) {
     cssStrategy = "inline";
-    cssSize = criticalCssSize;
+    cssSize = allCssSize;
   } else {
     cssStrategy = "critical";
-    cssSize = allCssSize;
+    cssSize = criticalCssSize;
   }
 
-  if (cssSize > twentyKb) console.log("⚠️  inlining CSS more than 20kb");
+  if (cssSize > twentyKb) console.log(`⚠️  inlining CSS more than 20kb (${cssSize/1024}kb, ${cssStrategy})`);
 
   if (cssStrategy === "critical") {
     return page.evaluate(
       (criticalCss, preloadPolyfill) => {
-        var head = document.head || document.getElementsByTagName("head")[0],
+        const head = document.head || document.getElementsByTagName("head")[0],
           style = document.createElement("style");
         style.type = "text/css";
         style.appendChild(document.createTextNode(criticalCss));
         head.appendChild(style);
+        const noscriptTag = document.createElement("noscript");
+        document.head.appendChild(noscriptTag);
 
-        var stylesheets = Array.from(
+        const stylesheets = Array.from(
           document.querySelectorAll("link[rel=stylesheet]")
         );
         stylesheets.forEach(link => {
-          // noscript fallback which doesn't work
-          // var wrap = document.createElement('div');
-          // wrap.appendChild(link.cloneNode(false));
-          // var noscriptTag = document.createElement('noscript');
-          // noscriptTag.innerHTML = wrap.innerHTML;
-          // document.head.appendChild(noscriptTag);
-          link.parentNode && link.parentNode.removeChild(link);
+          noscriptTag.appendChild(link.cloneNode(false));
           link.setAttribute("rel", "preload");
           link.setAttribute("as", "style");
-          link.setAttribute("onload", "this.rel='stylesheet'");
+          link.setAttribute("react-snap-onload", "this.rel='stylesheet'");
           document.head.appendChild(link);
         });
 
-        var scriptTag = document.createElement("script");
+        const scriptTag = document.createElement("script");
         scriptTag.type = "text/javascript";
         scriptTag.text = preloadPolyfill;
         // scriptTag.id = "preloadPolyfill";
@@ -297,13 +289,13 @@ const inlineCss = async opt => {
     );
   } else {
     return page.evaluate(allCss => {
-      var head = document.head || document.getElementsByTagName("head")[0],
+      const head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
       style.appendChild(document.createTextNode(allCss));
       head.appendChild(style);
 
-      var stylesheets = Array.from(
+      const stylesheets = Array.from(
         document.querySelectorAll("link[rel=stylesheet]")
       );
       stylesheets.forEach(link => {
@@ -353,7 +345,8 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
-  const content = await page.content();
+  let content = await page.content();
+  content = content.replace(/react-snap-onload/g, "onload");
   const title = await page.title();
   const minifiedContent = options.minifyHtml
     ? minify(content, options.minifyHtml)
