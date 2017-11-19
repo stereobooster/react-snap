@@ -111,7 +111,7 @@ const crawl = async opt => {
 
   const browser = await puppeteer.launch({
     headless: options.headless,
-    args: options.puppeteerArgs
+    args: ["--no-sandbox", "--disable-setuid-sandbox"]
   });
 
   /**
