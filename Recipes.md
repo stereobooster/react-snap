@@ -358,7 +358,7 @@ const production = process.env.NODE_ENV === 'production';
 if (production && snap) { ReactGA.initialize('XX-XXXXXXXX-X') }
 ```
 
-Tip: see [The Google Analytics Setup I Use on Every Site I Build](https://philipwalton.com/articles/the-google-analytics-setup-i-use-on-every-site-i-build/)
+Tip: see [The Google Analytics Setup I Use on Every Site I Build](https://philipwalton.com/articles/the-google-analytics-setup-i-use-on-every-site-i-build/), [ganalytics](https://github.com/lukeed/ganalytics)
 
 ### Use to render screenshots
 

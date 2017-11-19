@@ -41,7 +41,6 @@ const defaultOptions = {
     minifyCSS: true,
     collapseBooleanAttributes: true,
     collapseWhitespace: true,
-    collapseInlineTagWhitespace: true,
     decodeEntities: true,
     keepClosingSlash: true,
     sortAttributes: true,
