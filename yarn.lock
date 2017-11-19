@@ -806,9 +806,9 @@ puppeteer@^0.10.2:
     rimraf "^2.6.1"
     ws "^3.0.0"
 
-puppeteer@^0.13.0:
-  version "0.13.0"
-  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-0.13.0.tgz#2e6956205f2c640964c2107f620ae1eef8bde8fd"
+puppeteer@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/puppeteer/-/puppeteer-0.11.0.tgz#0a2b856f3c2745a5884c6dde9fb44f96663988ed"
   dependencies:
     debug "^2.6.8"
     extract-zip "^1.6.5"
