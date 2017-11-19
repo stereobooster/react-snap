@@ -109,7 +109,7 @@ const crawl = async opt => {
       enqued++;
       queue.write(newUrl);
       if (enqued == 2 && options.crawl) {
-        addToQueue(`${basePath}${publicPath + "/404"}`);
+        addToQueue(`${basePath}${publicPath}/404.html`);
       }
     }
   };
