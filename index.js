@@ -255,7 +255,7 @@ const fixWebpackChunksIssue = ({ page, basePath, bundleName, asyncJs }) => {
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
   let content = await page.content();
-  content = content.replace('data-onload', 'onload');
+  content = content.replace(/data\-onload/g, 'onload');
 
   const minifiedContent = options.minifyOptions
     ? minify(content, options.minifyOptions)
