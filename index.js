@@ -32,7 +32,8 @@ const defaultOptions = {
   waitFor: false,
   externalServer: false,
   // workaround for https://github.com/geelen/react-snapshot/issues/66#issuecomment-331718560
-  fixWebpackChunksIssue: false, // experimental
+  fixWebpackChunksIssue: true, // experimental
+  bundleName: "main",
   skipThirdPartyRequests: false,
   asyncJs: false, //add async true to scripts and move them to the header, to start download earlier
   publicPath: "/",
@@ -175,30 +176,35 @@ const inlineCss = async opt => {
   console.log("inline css", cssText.length);
   return page.evaluate(
     (cssText, preloadPolyfill) => {
-      var head = document.head || document.getElementsByTagName("head")[0],
-        style = document.createElement("style");
+      let head = document.head || document.getElementsByTagName("head")[0];
+      let noscriptTags = document.getElementsByTagName('noscript');
+      let noscript;
+      if (noscriptTags.length === 0) {
+        noscript = document.createElement('noscript');
+        document.body.insertBefore(noscript, document.body.firstChild);
+      } else {
+        noscript = noscriptTags[0];
+      }
+
+      let style = document.createElement("style");
       style.type = "text/css";
       style.appendChild(document.createTextNode(cssText));
       head.appendChild(style);
 
-      var stylesheets = Array.from(
+      let stylesheets = Array.from(
         document.querySelectorAll("link[rel=stylesheet]")
       );
       stylesheets.forEach(link => {
-        // TODO: this doesn't work
-        // var wrap = document.createElement('div');
-        // wrap.appendChild(link.cloneNode(false));
-        // var noscriptTag = document.createElement('noscript');
-        // noscriptTag.innerHTML = wrap.innerHTML;
-        // document.head.appendChild(noscriptTag);
+        noscript.appendChild(link.cloneNode(false));
+
         link.parentNode && link.parentNode.removeChild(link);
         link.setAttribute("rel", "preload");
         link.setAttribute("as", "style");
-        link.setAttribute("onload", "this.rel='stylesheet'");
+        link.setAttribute("data-onload", "this.rel='stylesheet'");
         document.head.appendChild(link);
       });
 
-      var scriptTag = document.createElement("script");
+      let scriptTag = document.createElement("script");
       scriptTag.type = "text/javascript";
       scriptTag.text = preloadPolyfill;
       // scriptTag.id = "preloadPolyfill";
@@ -219,13 +225,16 @@ const asyncJs = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
+const fixWebpackChunksIssue = ({ page, basePath, bundleName, asyncJs }) => {
   return page.evaluate(
-    (basePath, asyncJs) => {
+    (basePath, bundleName, asyncJs) => {
+      const regexEscape = str => str.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
       );
-      const mainRegexp = /main\.[\w]{8}.js/;
+      
+      const mainChunk = regexEscape(bundleName);
+      const mainRegexp = new RegExp(mainChunk + ".[\\w]{8}.js");
       const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
       const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
       const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
@@ -240,12 +249,15 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncJs }) => {
       });
     },
     basePath,
+    bundleName,
     asyncJs
   );
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
-  const content = await page.content();
+  let content = await page.content();
+  content = content.replace('data-onload', 'onload');
+
   const minifiedContent = options.minifyOptions
     ? minify(content, options.minifyOptions)
     : content;
@@ -322,6 +334,7 @@ const run = async userOptions => {
         await fixWebpackChunksIssue({
           page,
           basePath,
+          bundleName: options.bundleName,
           asyncJs: options.asyncJs
         });
       } else if (options.asyncJs) {
