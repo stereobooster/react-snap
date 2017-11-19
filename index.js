@@ -62,11 +62,12 @@ const defaultOptions = {
   preloadImages: false,
   // add async true to scripts and move them to the header, to start download earlier
   // can use <link rel="preload"> instead
-  asyncScriptTags: false,
+  asyncScriptTags: false, //this will break reactLoadableTrick
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
-  removeScriptTags: false
+  removeScriptTags: false,
+  reactLoadableTrick: false
 };
 
 /**
@@ -313,7 +314,7 @@ const inlineCss = async opt => {
   }
 };
 
-const asyncJs = ({ page }) => {
+const asyncScriptTags = ({ page }) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("script[src]")).forEach(x => {
       x.parentNode && x.parentNode.removeChild(x);
@@ -333,22 +334,19 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
     const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
     const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
 
-    const createLink = x => {
-      const linkTag = document.createElement("link");
-      linkTag.setAttribute("rel", "preload");
-      linkTag.setAttribute("as", "script");
-      linkTag.setAttribute("href", x.src.replace(basePath, ""));
-      mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
-    };
-
+    // if (reactLoadableTrick) {
+    const scriptTag = document.createElement("script");
+    scriptTag.type = "text/javascript";
+    scriptTag.text = "window.bootReactSnapApp && window.bootReactSnapApp();";
+    // }
+    mainScript.parentNode.insertBefore(scriptTag, mainScript.nextSibling);
     for (let i = chunkSripts.length - 1; i >= 0; --i) {
       const x = chunkSripts[i];
       if (x.parentElement && mainScript.parentNode) {
         x.parentElement.removeChild(x);
-        createLink(x);
+        mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
       }
     }
-    createLink(mainScript);
   }, basePath);
 };
 
@@ -465,7 +463,7 @@ const run = async userOptions => {
           basePath
         });
       }
-      if (options.asyncJs) await asyncJs({ page });
+      if (options.asyncScriptTags) await asyncScriptTags({ page });
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
