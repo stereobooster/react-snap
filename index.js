@@ -144,7 +144,7 @@ const preloadResources = opt => {
       } else if (cacheAjaxRequests && ct.indexOf("json") > -1) {
         const json = await response.json();
         await page.evaluate(
-          (route, json) => {
+          (route, json, basePath) => {
             var scriptTag = document.createElement("script");
             scriptTag.type = "text/javascript";
             scriptTag.text = [
@@ -154,10 +154,21 @@ const preloadResources = opt => {
               JSON.stringify(json),
               ";"
             ].join("");
-            document.body.appendChild(scriptTag);
+
+            const localScripts = Array.from(document.scripts).filter(
+              x => x.src && x.src.startsWith(basePath)
+            );
+            const mainRegexp = /main\.[\w]{8}.js/;
+            const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+            if (mainScript) {
+              mainScript.parentNode.insertBefore(scriptTag, mainScript);
+            } else {
+              document.body.appendChild(scriptTag);
+            }
           },
           route,
-          json
+          json,
+          basePath
         );
       }
       uniqueResources.add(responseUrl);
