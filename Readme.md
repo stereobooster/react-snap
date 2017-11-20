@@ -11,12 +11,12 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 - Uses real browser behind the scene, so no issue with unsupported HTML5 features, like WebGL or Blobs.
 - Crawls all pages starting from the root, no need to list pages by hand, like in `prep`.
 - With prerendered HTML and inlined critical CSS you will get fast first paint, like with [critical](https://github.com/addyosmani/critical).
-- With `Preload resources` feature you will get faster first interaction time if your page does do AJAX requests.
-- Works with webpack 2 code splitting feature. With one small caveat - small flash is possible. See [#46](https://github.com/stereobooster/react-snap/issues/46).
+- With `precacheAjax` feature you will get faster first interaction time if your page does do AJAX requests.
+- Works with webpack 2 code splitting feature. With one small caveat - small flash is possible. See [#46](https://
 - [Handles sourcemaps](https://github.com/stereobooster/react-snap/issues/4)
-- Supports non-root paths (eg for create-react-app relative paths)
+- Supports non-root paths (e.g. for create-react-app relative paths)
 
-Please note: some features are experimental, but basic prerendering is considered stable enough. API is subject to change before freeze in version `1.0`.
+Please note: some features are experimental, but prerendering is considered stable enough.
 
 ## Basic usage with create-react-app
 
@@ -61,7 +61,7 @@ If you need to pass some options for `react-snap`, you can do this in the `packa
 
 All options are not documented yet, but you can check `defaultOptions` in `index.js`.
 
-### Inline css
+### inlineCss
 
 Experimental feature - requires improvements.
 
@@ -69,30 +69,28 @@ Experimental feature - requires improvements.
 
 Use `inlineCss: true` to enable this feature.
 
-TODO: as soon as the feature will be stable it should be enabled by default. As of now `<noscript>` fallback not implemented.
+TODO: as soon as the feature will be stable it should be enabled by default.
 
-### Preload resources
+### precacheAjax
 
 Experimental feature - requires improvements.
 
-`react-snap` can capture all required resources on the page and modify HTML, to instruct a browser to preload those resources.
-- It will use `<link rel="preload" as="image">` for images.
-- it will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request
+`react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
 
-Use `preloadResources: true` to enable this feature.
+Use `precacheAjax: true` to enable this feature.
 
-## Recipes
+## ✨ Recipes
 
 See [recipes](Recipes.md) for more examples.
 
-## Caveats
+## ⚠️ Caveats
 
 ### Google Analytics, Mapbox, and other third-party requests
 
 You can block all third-party requests with the following config
 
 ```
-"skipThirdPartyRequests": false
+"skipThirdPartyRequests": true
 ```
 
 ### WebGL
@@ -113,16 +111,6 @@ you may use
 ```
 
 Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
-
-### Webpack 2+ and dynamic import
-
-If you get following error `Uncaught ReferenceError: webpackJsonp is not defined`, you can use the following hack
-
-```
-"fixWebpackChunksIssue": true
-```
-
-TODO: as soon as the feature will be stable it should be enabled by default.
 
 ### Error stack trace in production build
 
