@@ -12,7 +12,7 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 - Crawls all pages starting from the root, no need to list pages by hand, like in `prep`.
 - With prerendered HTML and inlined critical CSS you will get fast first paint, like with [critical](https://github.com/addyosmani/critical).
 - With `precacheAjax` feature you will get faster first interaction time if your page does do AJAX requests.
-- Works with webpack 2 code splitting feature. With one small caveat - small flash is possible. See [#46](https://
+- Works with webpack 2 code splitting feature. With one small caveat - small flash is possible. See [#46](https://github.com/stereobooster/react-snap/issues/46)
 - [Handles sourcemaps](https://github.com/stereobooster/react-snap/issues/4)
 - Supports non-root paths (e.g. for create-react-app relative paths)
 
