@@ -1,6 +1,7 @@
 const puppeteer = require("puppeteer");
 const _ = require("highland");
 const url = require("url");
+const glob = require("glob-to-regexp");
 // @ts-ignore
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 
@@ -75,6 +76,7 @@ const getLinks = async opt => {
  */
 const crawl = async opt => {
   const { options, basePath, beforeFetch, afterFetch, onEnd } = opt;
+  const exclude = options.exclude.map((g) => glob(g, { extended: true, globstar: true}));
   let shuttingDown = false;
   // TODO: this doesn't work as expected
   // process.stdin.resume();
@@ -100,8 +102,11 @@ const crawl = async opt => {
    * @returns {void}
    */
   const addToQueue = path => {
-    const { hostname, search, hash } = url.parse(path);
+    const { hostname, search, hash, pathname } = url.parse(path);
     path = path.replace(`${search || ""}${hash || ""}`, "");
+    if (exclude.filter((regex) => regex.test(pathname)).length > 0) {
+     return;
+    }
     if (hostname === "localhost" && !uniqueUrls[path]) {
       uniqueUrls[path] = true;
       enqued++;
