@@ -404,7 +404,7 @@ const run = async userOptions => {
     fs.existsSync(path.join(sourceDir, "200.html"))
   ) {
     console.log(
-      `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will brake the build`
+      `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`
     );
     process.exit(1);
   }

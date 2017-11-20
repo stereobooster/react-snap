@@ -79,11 +79,11 @@ Experimental feature - requires improvements.
 
 Use `precacheAjax: true` to enable this feature.
 
-## Recipes
+## ✨ Recipes
 
 See [recipes](Recipes.md) for more examples.
 
-## Caveats
+## ⚠️ Caveats
 
 ### Google Analytics, Mapbox, and other third-party requests
 
