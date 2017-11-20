@@ -83,20 +83,22 @@ const defaults = userOptions => {
   if (!options.include || !options.include.length)
     throw new Error("include should be an array");
 
+  let exit = false;
   if (options.preloadResources) {
     console.log(
-      "preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
+      "⚠️  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
     );
-    process.exit(1);
+    exit = true;
   }
   if (options.minifyOptions) {
-    console.log("minifyOptions option renamed to minifyHtml");
-    process.exit(1);
+    console.log("⚠️  minifyOptions option renamed to minifyHtml");
+    options.minifyHtml = options.minifyOptions;
   }
   if (options.asyncJs) {
-    console.log("asyncJs option renamed to asyncScriptTags");
-    process.exit(1);
+    console.log("⚠️  asyncJs option renamed to asyncScriptTags");
+    options.asyncScriptTags = options.asyncJs
   }
+  if (exit) process.exit(1);
   if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
     options.minifyHtml.minifyCSS = options.minifyCss;
   }
@@ -254,7 +256,10 @@ const inlineCss = async opt => {
     cssSize = criticalCssSize;
   }
 
-  if (cssSize > twentyKb) console.log(`⚠️  inlining CSS more than 20kb (${cssSize/1024}kb, ${cssStrategy})`);
+  if (cssSize > twentyKb)
+    console.log(
+      `⚠️  inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
+    );
 
   if (cssStrategy === "critical") {
     return page.evaluate(
@@ -305,7 +310,7 @@ const inlineCss = async opt => {
   }
 };
 
-const asyncJs = ({ page }) => {
+const asyncScriptTags = ({ page }) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("script[src]")).forEach(x => {
       x.parentNode && x.parentNode.removeChild(x);
@@ -458,7 +463,7 @@ const run = async userOptions => {
           basePath
         });
       }
-      if (options.asyncJs) await asyncJs({ page });
+      if (options.asyncScriptTags) await asyncScriptTags({ page });
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {

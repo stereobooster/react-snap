@@ -69,7 +69,7 @@ Experimental feature - requires improvements.
 
 Use `inlineCss: true` to enable this feature.
 
-TODO: as soon as the feature will be stable it should be enabled by default. As of now `<noscript>` fallback not implemented.
+TODO: as soon as the feature will be stable it should be enabled by default.
 
 ### precacheAjax
 
