@@ -142,7 +142,7 @@ const preloadResources = opt => {
           linkTag.setAttribute("href", route);
           document.body.appendChild(linkTag);
         }, route);
-      } else if (cacheAjaxRequests && ct.indexOf("json") > -1) {
+      } else if (cacheAjaxRequests && ct.includes("json")) {
         const json = await response.json();
         await page.evaluate(
           (route, json) => {
