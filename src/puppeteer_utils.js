@@ -125,8 +125,8 @@ const crawl = async opt => {
    * @returns {Promise<string>}
    */
   const fetchPage = async pageUrl => {
+    const route = pageUrl.replace(basePath, "");
     if (!shuttingDown) {
-      const route = pageUrl.replace(basePath, "");
       try {
         const page = await browser.newPage();
         if (options.viewport) await page.setViewport(options.viewport);
