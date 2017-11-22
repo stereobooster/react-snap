@@ -130,6 +130,7 @@ const preloadResources = opt => {
     cacheAjaxRequests,
     preconnectThirdParty
   } = opt;
+  const ajaxCache = {};
   const uniqueResources = new Set();
   page.on("response", async response => {
     const responseUrl = response.url;
@@ -148,22 +149,7 @@ const preloadResources = opt => {
         }, route);
       } else if (cacheAjaxRequests && ct.includes("json")) {
         const json = await response.json();
-        await page.evaluate(
-          (route, json) => {
-            const scriptTag = document.createElement("script");
-            scriptTag.type = "text/javascript";
-            scriptTag.text = [
-              'window.snapStore = window.snapStore || {}; window.snapStore["',
-              route,
-              '"] = ',
-              JSON.stringify(json),
-              ";"
-            ].join("");
-            document.body.appendChild(scriptTag);
-          },
-          route,
-          json
-        );
+        ajaxCache[route] = json;
       }
       uniqueResources.add(responseUrl);
     } else if (preconnectThirdParty) {
@@ -179,6 +165,7 @@ const preloadResources = opt => {
       uniqueResources.add(domain);
     }
   });
+  return ajaxCache;
 };
 
 const removeStyleTags = ({ page }) =>
@@ -428,6 +415,7 @@ const run = async userOptions => {
 
   const basePath = `http://localhost:${options.port}`;
   const publicPath = options.publicPath;
+  let ajaxCache = {};
 
   await crawl({
     options,
@@ -440,7 +428,7 @@ const run = async userOptions => {
         preconnectThirdParty
       } = options;
       if (preloadImages || cacheAjaxRequests || preconnectThirdParty)
-        preloadResources({
+        ajaxCache = preloadResources({
           page,
           basePath,
           preloadImages,
@@ -466,6 +454,15 @@ const run = async userOptions => {
           page,
           basePath
         });
+      }
+      if (Object.keys(ajaxCache).length > 0) {
+        await page.evaluate(ajaxCache => {
+          const scriptTag = document.createElement("script");
+          scriptTag.type = "text/javascript";
+          scriptTag.text = `window.snapStore = ${JSON.stringify(ajaxCache)};`;
+          const firstScript = Array.from(document.scripts)[0];
+          firstScript.parentNode.insertBefore(scriptTag, firstScript);
+        }, ajaxCache);
       }
       if (options.asyncScriptTags) await asyncScriptTags({ page });
       const routePath = route.replace(publicPath, "");
