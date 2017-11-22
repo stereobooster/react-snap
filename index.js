@@ -98,6 +98,10 @@ const defaults = userOptions => {
     console.log("⚠️  asyncJs option renamed to asyncScriptTags");
     options.asyncScriptTags = options.asyncJs
   }
+  if (options.saveAs !== "html" && options.saveAs !== "png") {
+    console.log("⚠️  saveAs supported values are html png");
+    exit = true;
+  }
   if (exit) process.exit(1);
   if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
     options.minifyHtml.minifyCSS = options.minifyCss;
@@ -470,8 +474,6 @@ const run = async userOptions => {
         await saveAsHtml({ page, filePath, options, route });
       } else if (options.saveAs === "png") {
         await saveAsPng({ page, filePath, options, route });
-      } else {
-        throw new Error(`Unexpected value for saveAs: ${options.saveAs}`);
       }
     },
     onEnd: () => {
