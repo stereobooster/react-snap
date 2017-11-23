@@ -88,7 +88,8 @@ See [recipes](Recipes.md) for more examples.
 ### Code splitting, dynamic import, React async components etc.
 
 > Webpack has a feature to split your codebase into “chunks” which are loaded on demand. Some other bundlers call them “layers”, “rollups”, or “fragments”. This feature is called “code splitting”.
->  -- [Code splitting](https://webpack.github.io/docs/code-splitting.html)
+>
+> — [Code splitting](https://webpack.github.io/docs/code-splitting.html)
 
 [Dynamic import](https://github.com/tc39/proposal-dynamic-import) is the the TC39 proposal.
 
