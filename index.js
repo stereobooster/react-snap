@@ -367,17 +367,9 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncComponentsTrick }) => {
         if (x.parentElement && mainScript.parentNode) {
           x.parentElement.removeChild(x);
           if (asyncComponentsTrick) {
-            x.removeAttribute("async");
+            // x.removeAttribute("async");
             mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
-            const [_, chunkId] = x.src.match(chunkRegexp);
-            if (!chunkId)
-              throw new Error("asyncComponentsTrick: can not detect chunk id");
-            const chunkIdInt = parseInt(chunkId, 10);
-            if (isNaN(chunkIdInt)) {
-              loadableComponentIds.push(chunkId);
-            } else {
-              loadableComponentIds.push(chunkIdInt);
-            }
+            loadableComponentIds.unshift(i)
           } else {
             createLink(x);
           }
