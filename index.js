@@ -329,7 +329,7 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncComponentsTrick }) => {
       );
       const mainRegexp = /main\.[\w]{8}.js/;
       const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
-      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
+      const chunkRegexp = /([\w]+)?\.[\w]{8}\.chunk\.js/;
       const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
 
       if (!mainScript && chunkSripts.length > 0) {
@@ -352,6 +352,8 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncComponentsTrick }) => {
         mainScript.parentNode.insertBefore(scriptTag, mainScript.nextSibling);
       }
 
+      const loadableComponentIds = [];
+
       const createLink = x => {
         const linkTag = document.createElement("link");
         linkTag.setAttribute("rel", "preload");
@@ -366,12 +368,25 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncComponentsTrick }) => {
           x.parentElement.removeChild(x);
           if (asyncComponentsTrick) {
             mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
+            const [_, chunkId] = x.src.match(chunkRegexp);
+            if (!chunkId)
+              throw new Error("asyncComponentsTrick: can not detect chunk id");
+            loadableComponentIds.push(chunkId);
           } else {
             createLink(x);
           }
         }
       }
-      if (!asyncComponentsTrick) {
+      if (asyncComponentsTrick) {
+        if (loadableComponentIds.length > 0) {
+          const scriptTag = document.createElement("script");
+          scriptTag.type = "text/javascript";
+          scriptTag.text = `window.__LOADABLE_COMPONENT_IDS__ = ${JSON.stringify(
+            loadableComponentIds
+          )};`;
+          mainScript.parentNode.insertBefore(scriptTag, mainScript);
+        }
+      } else {
         createLink(mainScript);
       }
     },
