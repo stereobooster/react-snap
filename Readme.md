@@ -12,7 +12,7 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 - Crawls all pages starting from the root, no need to list pages by hand, like in `prep`.
 - With prerendered HTML and inlined critical CSS you will get fast first paint, like with [critical](https://github.com/addyosmani/critical).
 - With `precacheAjax` feature you will get faster first interaction time if your page does do AJAX requests.
-- Works with webpack 2 code splitting feature. With one small caveat - small flash is possible. See [#46](https://github.com/stereobooster/react-snap/issues/46)
+- Works with webpack 2 code splitting feature, but with caveats. See below and [#46](https://github.com/stereobooster/react-snap/issues/46)
 - [Handles sourcemaps](https://github.com/stereobooster/react-snap/issues/4)
 - Supports non-root paths (e.g. for create-react-app relative paths)
 
@@ -84,6 +84,33 @@ Use `precacheAjax: true` to enable this feature.
 See [recipes](Recipes.md) for more examples.
 
 ## ⚠️ Caveats
+
+### Code splitting, dynamic import, React async components etc.
+
+> Webpack has a feature to split your codebase into “chunks” which are loaded on demand. Some other bundlers call them “layers”, “rollups”, or “fragments”. This feature is called “code splitting”.
+>  -- [Code splitting](https://webpack.github.io/docs/code-splitting.html)
+
+[Dynamic import](https://github.com/tc39/proposal-dynamic-import) is the the TC39 proposal.
+
+React async component is a technique (typically a higher order component) for loading components with dynamic imports. There are a lot of solutions in this field here are some examples:
+
+- [`loadable-components`](https://github.com/smooth-code/loadable-components)
+- [`react-async-component`](https://github.com/ctrlplusb/react-async-component)
+- [`react-loadable`](https://github.com/thejameskyle/react-loadable)
+- [`react-code-splitting`](https://github.com/didierfranc/react-code-splitting)
+
+It is not a problem to render async component with react-snap, tricky part happens when prerendered React application boots and async components are not loaded yet, so React draws loading state of component, later when component loaded react draws actual component. As the result user sees flash.
+
+```
+100%                    /----|    |----
+                       /     |    |
+                      /      |    |
+                     /       |    |
+                    /        |____|
+  visual progress  /
+                  /
+0%  -------------/
+```
 
 ### Google Analytics, Mapbox, and other third-party requests
 
