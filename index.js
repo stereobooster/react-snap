@@ -415,20 +415,20 @@ const run = async userOptions => {
 
   const basePath = `http://localhost:${options.port}`;
   const publicPath = options.publicPath;
-  let ajaxCache = {};
+  const ajaxCache = {};
 
   await crawl({
     options,
     basePath,
     publicPath,
-    beforeFetch: async ({ page }) => {
+    beforeFetch: async ({ page, route }) => {
       const {
         preloadImages,
         cacheAjaxRequests,
         preconnectThirdParty
       } = options;
       if (preloadImages || cacheAjaxRequests || preconnectThirdParty)
-        ajaxCache = preloadResources({
+        ajaxCache[route] = preloadResources({
           page,
           basePath,
           preloadImages,
@@ -455,14 +455,15 @@ const run = async userOptions => {
           basePath
         });
       }
-      if (Object.keys(ajaxCache).length > 0) {
+      if (ajaxCache[route] && Object.keys(ajaxCache[route]).length > 0) {
         await page.evaluate(ajaxCache => {
           const scriptTag = document.createElement("script");
           scriptTag.type = "text/javascript";
           scriptTag.text = `window.snapStore = ${JSON.stringify(ajaxCache)};`;
           const firstScript = Array.from(document.scripts)[0];
           firstScript.parentNode.insertBefore(scriptTag, firstScript);
-        }, ajaxCache);
+        }, ajaxCache[route]);
+        delete ajaxCache[route];
       }
       if (options.asyncScriptTags) await asyncScriptTags({ page });
       const routePath = route.replace(publicPath, "");
