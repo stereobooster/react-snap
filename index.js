@@ -48,6 +48,7 @@ const defaultOptions = {
   fixWebpackChunksIssue: true,
   removeBlobs: true,
   skipThirdPartyRequests: false,
+  asyncComponentsTrick: false,
   //# unstable configurations
   preconnectThirdParty: true,
   // Experimental. This config stands for two strategies inline and critical.
@@ -96,7 +97,16 @@ const defaults = userOptions => {
   }
   if (options.asyncJs) {
     console.log("⚠️  asyncJs option renamed to asyncScriptTags");
-    options.asyncScriptTags = options.asyncJs
+    options.asyncScriptTags = options.asyncJs;
+  }
+  if (
+    options.asyncComponentsTrick &&
+    (options.asyncScriptTags || !options.fixWebpackChunksIssue)
+  ) {
+    console.log(
+      "⚠️  asyncComponentsTrick requires asyncScriptTags=false and fixWebpackChunksIssue=true"
+    );
+    exit = true;
   }
   if (options.saveAs !== "html" && options.saveAs !== "png") {
     console.log("⚠️  saveAs supported values are html png");
@@ -311,33 +321,60 @@ const asyncScriptTags = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath }) => {
-  return page.evaluate(basePath => {
-    const localScripts = Array.from(document.scripts).filter(
-      x => x.src && x.src.startsWith(basePath)
-    );
-    const mainRegexp = /main\.[\w]{8}.js/;
-    const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
-    const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
-    const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+const fixWebpackChunksIssue = ({ page, basePath, asyncComponentsTrick }) => {
+  return page.evaluate(
+    async (basePath, asyncComponentsTrick) => {
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
+      const mainRegexp = /main\.[\w]{8}.js/;
+      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+      const chunkRegexp = /([\w]+)?\.[\w]{8}\.chunk\.js/;
+      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
 
-    const createLink = x => {
-      const linkTag = document.createElement("link");
-      linkTag.setAttribute("rel", "preload");
-      linkTag.setAttribute("as", "script");
-      linkTag.setAttribute("href", x.src.replace(basePath, ""));
-      mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
-    };
-
-    for (let i = chunkSripts.length - 1; i >= 0; --i) {
-      const x = chunkSripts[i];
-      if (x.parentElement && mainScript.parentNode) {
-        x.parentElement.removeChild(x);
-        createLink(x);
+      if (!mainScript && chunkSripts.length > 0) {
+        throw new Error("There are chunks but cannot detect main bundle");
       }
-    }
-    createLink(mainScript);
-  }, basePath);
+
+      if (asyncComponentsTrick) {
+        if (!mainScript)
+          throw new Error("asyncComponentsTrick: cannot detect main bundle");
+        const mainScriptSource = await (await fetch(mainScript.src)).text();
+        if (!mainScriptSource.includes("window.snapGetComponentIds")) {
+          throw new Error(
+            "asyncComponentsTrick: you forgot to add window.snapGetComponentIds"
+          );
+        }
+      }
+
+      const createLink = x => {
+        const linkTag = document.createElement("link");
+        linkTag.setAttribute("rel", "preload");
+        linkTag.setAttribute("as", "script");
+        linkTag.setAttribute("href", x.src.replace(basePath, ""));
+        mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+      };
+
+      for (let i = chunkSripts.length - 1; i >= 0; --i) {
+        const x = chunkSripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          x.parentElement.removeChild(x);
+          createLink(x);
+        }
+      }
+      if (asyncComponentsTrick) {
+        const scriptTag = document.createElement("script");
+        scriptTag.type = "text/javascript";
+        scriptTag.text = `window.__LOADABLE_COMPONENT_IDS__ = ${JSON.stringify(
+          window.snapGetComponentIds()
+        )};`;
+        mainScript.parentNode.insertBefore(scriptTag, mainScript);
+      }
+      createLink(mainScript);
+    },
+    basePath,
+    asyncComponentsTrick
+  );
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
@@ -452,7 +489,8 @@ const run = async userOptions => {
       if (options.fixWebpackChunksIssue) {
         await fixWebpackChunksIssue({
           page,
-          basePath
+          basePath,
+          asyncComponentsTrick: options.asyncComponentsTrick
         });
       }
       if (ajaxCache[route] && Object.keys(ajaxCache[route]).length > 0) {
