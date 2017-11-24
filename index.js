@@ -340,19 +340,12 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncComponentsTrick }) => {
         if (!mainScript)
           throw new Error("asyncComponentsTrick: cannot detect main bundle");
         const mainScriptSource = await (await fetch(mainScript.src)).text();
-        if (!mainScriptSource.includes("window.bootReactSnapApp")) {
+        if (!mainScriptSource.includes("window.snapGetComponentIds")) {
           throw new Error(
-            "asyncComponentsTrick: you forgot to add window.bootReactSnapApp"
+            "asyncComponentsTrick: you forgot to add window.snapGetComponentIds"
           );
         }
-        const scriptTag = document.createElement("script");
-        scriptTag.type = "text/javascript";
-        scriptTag.text =
-          "window.bootReactSnapApp && window.bootReactSnapApp();";
-        mainScript.parentNode.insertBefore(scriptTag, mainScript.nextSibling);
       }
-
-      const loadableComponentIds = [];
 
       const createLink = x => {
         const linkTag = document.createElement("link");
@@ -366,27 +359,18 @@ const fixWebpackChunksIssue = ({ page, basePath, asyncComponentsTrick }) => {
         const x = chunkSripts[i];
         if (x.parentElement && mainScript.parentNode) {
           x.parentElement.removeChild(x);
-          if (asyncComponentsTrick) {
-            // x.removeAttribute("async");
-            mainScript.parentNode.insertBefore(x, mainScript.nextSibling);
-            loadableComponentIds.unshift(i)
-          } else {
-            createLink(x);
-          }
+          createLink(x);
         }
       }
       if (asyncComponentsTrick) {
-        if (loadableComponentIds.length > 0) {
-          const scriptTag = document.createElement("script");
-          scriptTag.type = "text/javascript";
-          scriptTag.text = `window.__LOADABLE_COMPONENT_IDS__ = ${JSON.stringify(
-            loadableComponentIds
-          )};`;
-          mainScript.parentNode.insertBefore(scriptTag, mainScript);
-        }
-      } else {
-        createLink(mainScript);
+        const scriptTag = document.createElement("script");
+        scriptTag.type = "text/javascript";
+        scriptTag.text = `window.__LOADABLE_COMPONENT_IDS__ = ${JSON.stringify(
+          window.snapGetComponentIds()
+        )};`;
+        mainScript.parentNode.insertBefore(scriptTag, mainScript);
       }
+      createLink(mainScript);
     },
     basePath,
     asyncComponentsTrick
