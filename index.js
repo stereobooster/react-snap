@@ -326,9 +326,10 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
       linkTag.setAttribute("rel", "preload");
       linkTag.setAttribute("as", "script");
       linkTag.setAttribute("href", x.src.replace(basePath, ""));
-      mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+      document.head.appendChild(linkTag);
     };
 
+    createLink(mainScript);
     for (let i = chunkSripts.length - 1; i >= 0; --i) {
       const x = chunkSripts[i];
       if (x.parentElement && mainScript.parentNode) {
@@ -336,7 +337,6 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
         createLink(x);
       }
     }
-    createLink(mainScript);
   }, basePath);
 };
 
