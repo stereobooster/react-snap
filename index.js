@@ -96,7 +96,7 @@ const defaults = userOptions => {
   }
   if (options.asyncJs) {
     console.log("⚠️  asyncJs option renamed to asyncScriptTags");
-    options.asyncScriptTags = options.asyncJs
+    options.asyncScriptTags = options.asyncJs;
   }
   if (options.saveAs !== "html" && options.saveAs !== "png") {
     console.log("⚠️  saveAs supported values are html png");
@@ -465,6 +465,18 @@ const run = async userOptions => {
         }, ajaxCache[route]);
         delete ajaxCache[route];
       }
+      await page.evaluate(() => {
+        if (!window.snapSaveState) return;
+        const state = window.snapSaveState();
+        if (Object.keys(state).length === 0) return;
+        const scriptTag = document.createElement("script");
+        scriptTag.type = "text/javascript";
+        scriptTag.text = Object.keys(state)
+          .map(key => `window["${key}"] = ${JSON.stringify(state[key])};`)
+          .join("\n");
+        const firstScript = Array.from(document.scripts)[0];
+        firstScript.parentNode.insertBefore(scriptTag, firstScript);
+      });
       if (options.asyncScriptTags) await asyncScriptTags({ page });
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
