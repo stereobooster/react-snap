@@ -96,7 +96,7 @@ const defaults = userOptions => {
   }
   if (options.asyncJs) {
     console.log("⚠️  asyncJs option renamed to asyncScriptTags");
-    options.asyncScriptTags = options.asyncJs
+    options.asyncScriptTags = options.asyncJs;
   }
   if (options.saveAs !== "html" && options.saveAs !== "png") {
     console.log("⚠️  saveAs supported values are html png");
@@ -318,6 +318,9 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
     );
     const mainRegexp = /main\.[\w]{8}.js/;
     const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+
+    if (!mainScript) return;
+
     const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
     const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
 
@@ -326,9 +329,10 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
       linkTag.setAttribute("rel", "preload");
       linkTag.setAttribute("as", "script");
       linkTag.setAttribute("href", x.src.replace(basePath, ""));
-      mainScript.parentNode.insertBefore(linkTag, mainScript.nextSibling);
+      document.head.appendChild(linkTag);
     };
 
+    createLink(mainScript);
     for (let i = chunkSripts.length - 1; i >= 0; --i) {
       const x = chunkSripts[i];
       if (x.parentElement && mainScript.parentNode) {
@@ -336,7 +340,6 @@ const fixWebpackChunksIssue = ({ page, basePath }) => {
         createLink(x);
       }
     }
-    createLink(mainScript);
   }, basePath);
 };
 
@@ -455,16 +458,51 @@ const run = async userOptions => {
           basePath
         });
       }
+      await page.evaluate(() => {
+        window.snapEscape = (() => {
+          const UNSAFE_CHARS_REGEXP = /[<>\/\u2028\u2029]/g;
+          // Mapping of unsafe HTML and invalid JavaScript line terminator chars to their
+          // Unicode char counterparts which are safe to use in JavaScript strings.
+          const ESCAPED_CHARS = {
+            "<": "\\u003C",
+            ">": "\\u003E",
+            "/": "\\u002F",
+            "\u2028": "\\u2028",
+            "\u2029": "\\u2029"
+          };
+          const escapeUnsafeChars = unsafeChar => ESCAPED_CHARS[unsafeChar];
+          return str =>
+            str.replace(UNSAFE_CHARS_REGEXP, escapeUnsafeChars);
+        })();
+        // TODO: as of now it only prevents XSS attack,
+        // but can stringify only basic data types
+        // e.g. Date, Set, Map, NaN won't be handled right
+        window.snapStringify = obj => window.snapEscape(JSON.stringify(obj));
+      });
       if (ajaxCache[route] && Object.keys(ajaxCache[route]).length > 0) {
         await page.evaluate(ajaxCache => {
           const scriptTag = document.createElement("script");
           scriptTag.type = "text/javascript";
-          scriptTag.text = `window.snapStore = ${JSON.stringify(ajaxCache)};`;
+          scriptTag.text = `window.snapStore = ${window.snapEscape(
+            JSON.stringify(ajaxCache)
+          )};`;
           const firstScript = Array.from(document.scripts)[0];
           firstScript.parentNode.insertBefore(scriptTag, firstScript);
         }, ajaxCache[route]);
         delete ajaxCache[route];
       }
+      await page.evaluate(() => {
+        if (!window.snapSaveState) return;
+        const state = window.snapSaveState();
+        if (Object.keys(state).length === 0) return;
+        const scriptTag = document.createElement("script");
+        scriptTag.type = "text/javascript";
+        scriptTag.text = Object.keys(state)
+          .map(key => `window["${key}"] = ${window.snapStringify(state[key])};`)
+          .join("\n");
+        const firstScript = Array.from(document.scripts)[0];
+        firstScript.parentNode.insertBefore(scriptTag, firstScript);
+      });
       if (options.asyncScriptTags) await asyncScriptTags({ page });
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);

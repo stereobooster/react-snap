@@ -46,7 +46,8 @@
     "react-snap": "./run.js"
   },
   "reactSnap": {
-    "destination": "test",
-    "inlineCss": true
+    "destination": "tmp",
+    "inlineCss": true,
+    "cacheAjaxRequests": true
   }
 }
