@@ -331,36 +331,40 @@ const asyncScriptTags = ({ page }) => {
 };
 
 const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
-  return page.evaluate(basePath => {
-    const localScripts = Array.from(document.scripts).filter(
-      x => x.src && x.src.startsWith(basePath)
-    );
-    const mainRegexp = /main\.[\w]{8}.js/;
-    const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+  return page.evaluate(
+    (basePath, http2PushManifest) => {
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
+      const mainRegexp = /main\.[\w]{8}.js/;
+      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
 
-    if (!mainScript) return;
+      if (!mainScript) return;
 
-    const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
-    const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
+      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
 
-    const createLink = x => {
-      if (http2PushManifest) return;
-      const linkTag = document.createElement("link");
-      linkTag.setAttribute("rel", "preload");
-      linkTag.setAttribute("as", "script");
-      linkTag.setAttribute("href", x.src.replace(basePath, ""));
-      document.head.appendChild(linkTag);
-    };
+      const createLink = x => {
+        if (http2PushManifest) return;
+        const linkTag = document.createElement("link");
+        linkTag.setAttribute("rel", "preload");
+        linkTag.setAttribute("as", "script");
+        linkTag.setAttribute("href", x.src.replace(basePath, ""));
+        document.head.appendChild(linkTag);
+      };
 
-    createLink(mainScript);
-    for (let i = chunkSripts.length - 1; i >= 0; --i) {
-      const x = chunkSripts[i];
-      if (x.parentElement && mainScript.parentNode) {
-        x.parentElement.removeChild(x);
-        createLink(x);
+      createLink(mainScript);
+      for (let i = chunkSripts.length - 1; i >= 0; --i) {
+        const x = chunkSripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          x.parentElement.removeChild(x);
+          createLink(x);
+        }
       }
-    }
-  }, basePath);
+    },
+    basePath,
+    http2PushManifest
+  );
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
