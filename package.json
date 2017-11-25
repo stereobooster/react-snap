@@ -47,6 +47,7 @@
   },
   "reactSnap": {
     "destination": "tmp",
-    "inlineCss": true
+    "inlineCss": true,
+    "cacheAjaxRequests": true
   }
 }
