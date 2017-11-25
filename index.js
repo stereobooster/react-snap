@@ -581,10 +581,12 @@ const run = async userOptions => {
           if (http2PushManifestItems[key].length !== 0)
             accumulator.push({
               source: key,
-              headers: http2PushManifestItems[key].map(x => ({
+              headers: {
                 key: "Link",
-                value: `${x.link}; rel=preload; as=${x.as}`
-              }))
+                value: http2PushManifestItems[key]
+                  .map(x => `${x.link};rel=preload;as=${x.as}`)
+                  .join(",")
+              }
             });
           return accumulator;
         }, []);
