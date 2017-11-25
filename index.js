@@ -580,7 +580,7 @@ const run = async userOptions => {
         ).reduce((accumulator, key) => {
           if (http2PushManifestItems[key].length !== 0)
             accumulator.push({
-              source: key,
+              source: key.replace(/\/$/, "/index.html").replace(/^\//, ""),
               headers: {
                 key: "Link",
                 value: http2PushManifestItems[key]
