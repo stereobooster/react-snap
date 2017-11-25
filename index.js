@@ -252,16 +252,18 @@ const inlineCss = async opt => {
         return response.text();
       })
     );
-    return cssArray.join("");
+    return {
+      cssFiles: stylesheets.map(link => link.href),
+      allCss: cssArray.join("")
+    };
   });
-  const allCss = new CleanCSS(options.minifyCss).minify(result).styles;
+  const allCss = new CleanCSS(options.minifyCss).minify(result.allCss).styles;
   const allCssSize = Buffer.byteLength(allCss, "utf8");
 
   let cssStrategy, cssSize;
   if (criticalCssSize * 2 >= allCssSize) {
     cssStrategy = "inline";
     cssSize = allCssSize;
-    // TODO if strategy is inline than we do not need it in http2PushManifest
   } else {
     cssStrategy = "critical";
     cssSize = criticalCssSize;
@@ -273,7 +275,7 @@ const inlineCss = async opt => {
     );
 
   if (cssStrategy === "critical") {
-    return page.evaluate(
+    await page.evaluate(
       (criticalCss, preloadPolyfill) => {
         const head = document.head || document.getElementsByTagName("head")[0],
           style = document.createElement("style");
@@ -304,7 +306,7 @@ const inlineCss = async opt => {
       preloadPolyfill
     );
   } else {
-    return page.evaluate(allCss => {
+    await page.evaluate(allCss => {
       const head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
@@ -319,6 +321,9 @@ const inlineCss = async opt => {
       });
     }, allCss);
   }
+  return {
+    cssFiles: cssStrategy === "inline" ? result.cssFiles : []
+  };
 };
 
 const asyncScriptTags = ({ page }) => {
@@ -483,14 +488,30 @@ const run = async userOptions => {
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
-      if (options.inlineCss)
-        await inlineCss({
+      if (options.inlineCss) {
+        const { cssFiles } = await inlineCss({
           page,
           pageUrl,
           options,
           basePath,
           browser
         });
+
+        if (http2PushManifest) {
+          const filesToRemove = cssFiles
+            .filter(file => file.startsWith(basePath))
+            .map(file => file.replace(basePath, ""));
+
+          for (let i = http2PushManifestItems[route].length - 1; i >= 0; i--) {
+            const x = http2PushManifestItems[route][i];
+            filesToRemove.forEach(fileToRemove => {
+              if (x.link.startsWith(filesToRemove)) {
+                http2PushManifestItems[route].splice(i, 1);
+              }
+            });
+          }
+        }
+      }
       if (options.fixWebpackChunksIssue) {
         await fixWebpackChunksIssue({
           page,
