@@ -261,6 +261,7 @@ const inlineCss = async opt => {
   if (criticalCssSize * 2 >= allCssSize) {
     cssStrategy = "inline";
     cssSize = allCssSize;
+    // TODO if strategy is inline than we do not need it in http2PushManifest
   } else {
     cssStrategy = "critical";
     cssSize = criticalCssSize;
