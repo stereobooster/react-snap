@@ -113,6 +113,26 @@ It is not a problem to render async component with react-snap, tricky part happe
 0%  -------------/
 ```
 
+### Redux
+
+See: [Redux Srever Rendering Section](https://redux.js.org/docs/recipes/ServerRendering.html#the-client-side)
+
+```js
+// Grab the state from a global variable injected into the server-generated HTML
+const preloadedState = window.__PRELOADED_STATE__
+
+// Allow the passed state to be garbage-collected
+delete window.__PRELOADED_STATE__
+
+// Create Redux store with initial state
+const store = createStore(counterApp, preloadedState || initialState)
+
+// Tell react-snap how to save Redux state
+window.snapSaveState = () => ({
+  "__PRELOADED_STATE__": store.getState()
+});
+```
+
 ### Google Analytics, Mapbox, and other third-party requests
 
 You can block all third-party requests with the following config
