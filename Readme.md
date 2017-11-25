@@ -135,7 +135,7 @@ window.snapSaveState = () => ({
 
 **Important**: as of now only basic "JSON" data types are supported e.g. Date, Set, Map, NaN won't be handled right.
 
-TODO: use proper JS serializer. See [this gist](https://gist.github.com/stereobooster/b2c9c543e794f3b927f82271b344ec72/edit) for full list of alternatives.
+TODO: use proper JS serializer ([#54](https://github.com/stereobooster/react-snap/issues/54)). See [this gist](https://gist.github.com/stereobooster/b2c9c543e794f3b927f82271b344ec72) for full list of alternatives.
 
 ### Google Analytics, Mapbox, and other third-party requests
 
