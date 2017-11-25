@@ -48,6 +48,7 @@
   "reactSnap": {
     "destination": "tmp",
     "inlineCss": true,
-    "cacheAjaxRequests": true
+    "cacheAjaxRequests": true,
+    "http2PushManifest": true
   }
 }
