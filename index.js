@@ -458,6 +458,7 @@ const run = async userOptions => {
           basePath
         });
       }
+      if (options.asyncScriptTags) await asyncScriptTags({ page });
       await page.evaluate(() => {
         window.snapEscape = (() => {
           const UNSAFE_CHARS_REGEXP = /[<>\/\u2028\u2029]/g;
@@ -503,7 +504,6 @@ const run = async userOptions => {
         const firstScript = Array.from(document.scripts)[0];
         firstScript.parentNode.insertBefore(scriptTag, firstScript);
       });
-      if (options.asyncScriptTags) await asyncScriptTags({ page });
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
