@@ -329,9 +329,7 @@ const inlineCss = async opt => {
 const asyncScriptTags = ({ page }) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("script[src]")).forEach(x => {
-      x.parentNode && x.parentNode.removeChild(x);
       x.setAttribute("async", "true");
-      document.head.appendChild(x);
     });
   });
 };
@@ -584,12 +582,14 @@ const run = async userOptions => {
           if (http2PushManifestItems[key].length !== 0)
             accumulator.push({
               source: key.replace(/^\//, ""),
-              headers: [{
-                key: "Link",
-                value: http2PushManifestItems[key]
-                  .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
-                  .join(",")
-              }]
+              headers: [
+                {
+                  key: "Link",
+                  value: http2PushManifestItems[key]
+                    .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
+                    .join(",")
+                }
+              ]
             });
           return accumulator;
         }, []);
