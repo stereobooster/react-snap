@@ -100,7 +100,7 @@ React async component is a technique (typically a higher order component) for lo
 - [`react-loadable`](https://github.com/thejameskyle/react-loadable)
 - [`react-code-splitting`](https://github.com/didierfranc/react-code-splitting)
 
-It is not a problem to render async component with react-snap, tricky part happens when prerendered React application boots and async components are not loaded yet, so React draws loading state of component, later when component loaded react draws actual component. As the result user sees flash.
+It is not a problem to render async component with react-snap, tricky part happens when prerendered React application boots and async components are not loaded yet, so React draws loading state of a component, later when component loaded react draws actual component. As the result - user sees a flash.
 
 ```
 100%                    /----|    |----
@@ -113,15 +113,16 @@ It is not a problem to render async component with react-snap, tricky part happe
 0%  -------------/
 ```
 
-This is wel known problem. `react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for "snapshot" setup:
+This is a well-known problem. `react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for "snapshot" setup:
 
-```diff
-+ import { loadComponents } from "loadable-components";
-+ import { getState } from "loadable-components/snap";
-+ window.snapSaveState = () => getState();
-+  loadComponents().then(() => {
-    hydrate(AppWithRouter, rootElement);
-+  });
+```js
+import { loadComponents } from "loadable-components";
+import { getState } from "loadable-components/snap";
+window.snapSaveState = () => getState();
+
+loadComponents().then(() => {
+  hydrate(AppWithRouter, rootElement);
+});
 ```
 
 ### Redux
