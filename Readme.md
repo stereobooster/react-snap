@@ -113,6 +113,17 @@ It is not a problem to render async component with react-snap, tricky part happe
 0%  -------------/
 ```
 
+This is wel known problem. `react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for "snapshot" setup:
+
+```diff
++ import { loadComponents } from "loadable-components";
++ import { getState } from "loadable-components/snap";
++ window.snapSaveState = () => getState();
++  loadComponents().then(() => {
+    hydrate(AppWithRouter, rootElement);
++  });
+```
+
 ### Redux
 
 See: [Redux Srever Rendering Section](https://redux.js.org/docs/recipes/ServerRendering.html#the-client-side)
