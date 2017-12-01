@@ -198,3 +198,4 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 - [Webcomponents SSR](https://youtu.be/yT-EsESAmgA)
 - [prerender/prerender](https://github.com/prerender/prerender)
 - [Simple express server for your Create React App projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
+- https://github.com/LasaleFamine/pupperender
