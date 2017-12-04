@@ -104,19 +104,15 @@ const processSourceMaps = (row, sourcemap, opts) => {
 const config = opts => {
   const expected_fields = 4;
   let regex;
-  let skip_lines;
   if (opts.isChromeOrEdge || opts.isIE11Plus) {
     regex = /^ +at.+\((.*):([0-9]+):([0-9]+)/;
-    // (skip first line containing exception message)
-    skip_lines = 1;
   } else if (opts.isFirefox || opts.isSafari) {
     regex = /@(.*):([0-9]+):([0-9]+)/;
-    skip_lines = 0;
   } else {
     throw new Error("unknown browser :(");
   }
 
-  return { expected_fields, regex, skip_lines };
+  return { expected_fields, regex };
 };
 
 const processLineFactory = opts => {
@@ -139,15 +135,7 @@ const processLineFactory = opts => {
 };
 
 const mapStackTrace = (stack, opts) => {
-  const { skip_lines } = config(opts);
-  const processLine = processLineFactory(opts);
-
-  return Promise.all(
-    stack
-      .split("\n")
-      .slice(skip_lines)
-      .map(processLine)
-  );
+  return Promise.all(stack.split("\n").map(processLineFactory(opts)));
 };
 
 exports.default = mapStackTrace;

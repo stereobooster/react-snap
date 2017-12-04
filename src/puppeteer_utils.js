@@ -36,17 +36,13 @@ const enableLogging = opt => {
   page.on("pageerror", e => {
     if (options.sourceMaps) {
       const stackRows = e.stack.split("\n");
-      const errorMessage = stackRows[0];
       const puppeteerLine =
         stackRows.findIndex(x => x.includes("puppeteer")) ||
         stackRows.length - 1;
-      const cleanStack = stackRows.slice(0, puppeteerLine).join("\n");
-      mapStackTrace(cleanStack, {
+      mapStackTrace(stackRows.slice(0, puppeteerLine).join("\n"), {
         isChromeOrEdge: true
       }).then(result => {
-        console.log(
-          `🔥  ${route} pageerror: ${errorMessage}\n${result.join("\n")}`
-        );
+        console.log(`🔥  ${route} pageerror: \n${result.join("\n")}`);
       });
     } else {
       console.log(`🔥  ${route} pageerror:`, e);
