@@ -3,7 +3,7 @@ const _ = require("highland");
 const url = require("url");
 const path = require("path");
 // @ts-ignore
-const mapStackTrace = require("sourcemapped-stacktrace-node").default;
+const mapStackTrace = require("./stack_tracer").default;
 
 /**
  * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
@@ -35,16 +35,19 @@ const enableLogging = opt => {
   });
   page.on("pageerror", e => {
     if (options.sourceMaps) {
-      mapStackTrace(
-        e.stack,
-        result => {
-          console.log(
-            `🔥  ${route} pageerror: ${e.stack.split("\n")[0] +
-              "\n"}${result.join("\n")}`
-          );
-        },
-        { isChromeOrEdge: true }
-      );
+      const stackRows = e.stack.split("\n");
+      const errorMessage = stackRows[0];
+      const puppeteerLine =
+        stackRows.findIndex(x => x.includes("puppeteer")) ||
+        stackRows.length - 1;
+      const cleanStack = stackRows.slice(0, puppeteerLine).join("\n");
+      mapStackTrace(cleanStack, {
+        isChromeOrEdge: true
+      }).then(result => {
+        console.log(
+          `🔥  ${route} pageerror: ${errorMessage}\n${result.join("\n")}`
+        );
+      });
     } else {
       console.log(`🔥  ${route} pageerror:`, e);
     }

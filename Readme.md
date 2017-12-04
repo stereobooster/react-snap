@@ -176,16 +176,6 @@ you may use
 
 Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
 
-### Error stack trace in production build
-
-If you get an error in a production build, you can use sourcemaps to decode stack trace:
-
-```
-"sourceMaps": true
-```
-
-TODO: as soon as the feature will be stable it should be enabled by default.
-
 ## TODO
 
 - Update [recipes](Recipes.md) based on the code of [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)

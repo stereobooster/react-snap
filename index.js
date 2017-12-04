@@ -54,8 +54,7 @@ const defaultOptions = {
   // TODO: inline strategy can contain errors, like, confuse relative urls
   // TODO: critical strategy miss noscript fallback
   inlineCss: false,
-  // Experimental. TODO: need to fix issues with sourcemaps
-  sourceMaps: false,
+  sourceMaps: true,
   cacheAjaxRequests: false,
   //# even more workarounds
   removeStyleTags: false,
@@ -472,8 +471,7 @@ const run = async userOptions => {
             "\u2029": "\\u2029"
           };
           const escapeUnsafeChars = unsafeChar => ESCAPED_CHARS[unsafeChar];
-          return str =>
-            str.replace(UNSAFE_CHARS_REGEXP, escapeUnsafeChars);
+          return str => str.replace(UNSAFE_CHARS_REGEXP, escapeUnsafeChars);
         })();
         // TODO: as of now it only prevents XSS attack,
         // but can stringify only basic data types
