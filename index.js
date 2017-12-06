@@ -584,7 +584,7 @@ const run = async userOptions => {
               headers: [{
                 key: "Link",
                 value: http2PushManifestItems[key]
-                  .map(x => `${x.link};rel=preload;as=${x.as}`)
+                  .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
                   .join(",")
               }]
             });
