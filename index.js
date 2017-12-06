@@ -581,12 +581,12 @@ const run = async userOptions => {
           if (http2PushManifestItems[key].length !== 0)
             accumulator.push({
               source: key.replace(/\/$/, "/index.html").replace(/^\//, ""),
-              headers: {
+              headers: [{
                 key: "Link",
                 value: http2PushManifestItems[key]
                   .map(x => `${x.link};rel=preload;as=${x.as}`)
                   .join(",")
-              }
+              }]
             });
           return accumulator;
         }, []);
