@@ -85,19 +85,21 @@ See [recipes](Recipes.md) for more examples.
 
 ## ⚠️ Caveats
 
-### Code splitting, dynamic import, React async components etc.
+### Async components
+
+Also known as code splitting, dynamic import
 
 > Webpack has a feature to split your codebase into “chunks” which are loaded on demand. Some other bundlers call them “layers”, “rollups”, or “fragments”. This feature is called “code splitting”.
 >
 > — [Code splitting](https://webpack.github.io/docs/code-splitting.html)
 
-[Dynamic import](https://github.com/tc39/proposal-dynamic-import) is the the TC39 proposal.
+[Dynamic import](https://github.com/tc39/proposal-dynamic-import) is the TC39 proposal.
 
-React async component is a technique (typically a higher order component) for loading components with dynamic imports. There are a lot of solutions in this field here are some examples:
+Async component is a technique (typically implemented as a higher order component) for loading components with dynamic `import`. There are a lot of solutions in this field here are some examples:
 
 - [`loadable-components`](https://github.com/smooth-code/loadable-components)
-- [`react-async-component`](https://github.com/ctrlplusb/react-async-component)
 - [`react-loadable`](https://github.com/thejameskyle/react-loadable)
+- [`react-async-component`](https://github.com/ctrlplusb/react-async-component)
 - [`react-code-splitting`](https://github.com/didierfranc/react-code-splitting)
 
 It is not a problem to render async component with react-snap, tricky part happens when prerendered React application boots and async components are not loaded yet, so React draws loading state of a component, later when component loaded react draws actual component. As the result - user sees a flash.
