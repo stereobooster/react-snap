@@ -39,6 +39,7 @@ const defaultOptions = {
     width: 480,
     height: 850
   },
+  http2PushManifest: false,
   //# feature creeps to generate screenshots
   saveAs: "html",
   crawl: true,
@@ -52,7 +53,6 @@ const defaultOptions = {
   preconnectThirdParty: true,
   // Experimental. This config stands for two strategies inline and critical.
   // TODO: inline strategy can contain errors, like, confuse relative urls
-  // TODO: critical strategy miss noscript fallback
   inlineCss: false,
   // Experimental. TODO: need to fix issues with sourcemaps
   sourceMaps: false,
@@ -128,9 +128,11 @@ const preloadResources = opt => {
     basePath,
     preloadImages,
     cacheAjaxRequests,
-    preconnectThirdParty
+    preconnectThirdParty,
+    http2PushManifest
   } = opt;
   const ajaxCache = {};
+  const http2PushManifestItems = [];
   const uniqueResources = new Set();
   page.on("response", async response => {
     const responseUrl = response.url;
@@ -140,16 +142,33 @@ const preloadResources = opt => {
     if (/^http:\/\/localhost/i.test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
       if (preloadImages && /\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
-        await page.evaluate(route => {
-          const linkTag = document.createElement("link");
-          linkTag.setAttribute("rel", "preload");
-          linkTag.setAttribute("as", "image");
-          linkTag.setAttribute("href", route);
-          document.body.appendChild(linkTag);
-        }, route);
+        if (http2PushManifest) {
+          http2PushManifestItems.push({
+            link: route,
+            as: "image"
+          });
+        } else {
+          await page.evaluate(route => {
+            const linkTag = document.createElement("link");
+            linkTag.setAttribute("rel", "preload");
+            linkTag.setAttribute("as", "image");
+            linkTag.setAttribute("href", route);
+            document.body.appendChild(linkTag);
+          }, route);
+        }
       } else if (cacheAjaxRequests && ct.includes("json")) {
         const json = await response.json();
         ajaxCache[route] = json;
+      } else if (http2PushManifest && /\.(js)$/.test(responseUrl)) {
+        http2PushManifestItems.push({
+          link: route,
+          as: "script"
+        });
+      } else if (http2PushManifest && /\.(css)$/.test(responseUrl)) {
+        http2PushManifestItems.push({
+          link: route,
+          as: "style"
+        });
       }
       uniqueResources.add(responseUrl);
     } else if (preconnectThirdParty) {
@@ -165,7 +184,7 @@ const preloadResources = opt => {
       uniqueResources.add(domain);
     }
   });
-  return ajaxCache;
+  return { ajaxCache, http2PushManifestItems };
 };
 
 const removeStyleTags = ({ page }) =>
@@ -233,9 +252,12 @@ const inlineCss = async opt => {
         return response.text();
       })
     );
-    return cssArray.join("");
+    return {
+      cssFiles: stylesheets.map(link => link.href),
+      allCss: cssArray.join("")
+    };
   });
-  const allCss = new CleanCSS(options.minifyCss).minify(result).styles;
+  const allCss = new CleanCSS(options.minifyCss).minify(result.allCss).styles;
   const allCssSize = Buffer.byteLength(allCss, "utf8");
 
   let cssStrategy, cssSize;
@@ -253,7 +275,7 @@ const inlineCss = async opt => {
     );
 
   if (cssStrategy === "critical") {
-    return page.evaluate(
+    await page.evaluate(
       (criticalCss, preloadPolyfill) => {
         const head = document.head || document.getElementsByTagName("head")[0],
           style = document.createElement("style");
@@ -284,7 +306,7 @@ const inlineCss = async opt => {
       preloadPolyfill
     );
   } else {
-    return page.evaluate(allCss => {
+    await page.evaluate(allCss => {
       const head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
@@ -299,6 +321,9 @@ const inlineCss = async opt => {
       });
     }, allCss);
   }
+  return {
+    cssFiles: cssStrategy === "inline" ? result.cssFiles : []
+  };
 };
 
 const asyncScriptTags = ({ page }) => {
@@ -311,36 +336,41 @@ const asyncScriptTags = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath }) => {
-  return page.evaluate(basePath => {
-    const localScripts = Array.from(document.scripts).filter(
-      x => x.src && x.src.startsWith(basePath)
-    );
-    const mainRegexp = /main\.[\w]{8}.js/;
-    const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
+  return page.evaluate(
+    (basePath, http2PushManifest) => {
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
+      const mainRegexp = /main\.[\w]{8}.js/;
+      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
 
-    if (!mainScript) return;
+      if (!mainScript) return;
 
-    const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
-    const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
+      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
 
-    const createLink = x => {
-      const linkTag = document.createElement("link");
-      linkTag.setAttribute("rel", "preload");
-      linkTag.setAttribute("as", "script");
-      linkTag.setAttribute("href", x.src.replace(basePath, ""));
-      document.head.appendChild(linkTag);
-    };
+      const createLink = x => {
+        if (http2PushManifest) return;
+        const linkTag = document.createElement("link");
+        linkTag.setAttribute("rel", "preload");
+        linkTag.setAttribute("as", "script");
+        linkTag.setAttribute("href", x.src.replace(basePath, ""));
+        document.head.appendChild(linkTag);
+      };
 
-    createLink(mainScript);
-    for (let i = chunkSripts.length - 1; i >= 0; --i) {
-      const x = chunkSripts[i];
-      if (x.parentElement && mainScript.parentNode) {
-        x.parentElement.removeChild(x);
-        createLink(x);
+      createLink(mainScript);
+      for (let i = chunkSripts.length - 1; i >= 0; --i) {
+        const x = chunkSripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          x.parentElement.removeChild(x);
+          createLink(x);
+        }
       }
-    }
-  }, basePath);
+    },
+    basePath,
+    http2PushManifest
+  );
 };
 
 const saveAsHtml = async ({ page, filePath, options, route }) => {
@@ -419,6 +449,8 @@ const run = async userOptions => {
   const basePath = `http://localhost:${options.port}`;
   const publicPath = options.publicPath;
   const ajaxCache = {};
+  const { http2PushManifest } = options;
+  const http2PushManifestItems = {};
 
   await crawl({
     options,
@@ -430,32 +462,61 @@ const run = async userOptions => {
         cacheAjaxRequests,
         preconnectThirdParty
       } = options;
-      if (preloadImages || cacheAjaxRequests || preconnectThirdParty)
-        ajaxCache[route] = preloadResources({
+      if (
+        preloadImages ||
+        cacheAjaxRequests ||
+        preconnectThirdParty ||
+        http2PushManifest
+      ) {
+        const {
+          ajaxCache: ac,
+          http2PushManifestItems: hpm
+        } = preloadResources({
           page,
           basePath,
           preloadImages,
           cacheAjaxRequests,
-          preconnectThirdParty
+          preconnectThirdParty,
+          http2PushManifest
         });
+        ajaxCache[route] = ac;
+        http2PushManifestItems[route] = hpm;
+      }
     },
     afterFetch: async ({ page, route, browser }) => {
       const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
-      if (options.inlineCss)
-        await inlineCss({
+      if (options.inlineCss) {
+        const { cssFiles } = await inlineCss({
           page,
           pageUrl,
           options,
           basePath,
           browser
         });
+
+        if (http2PushManifest) {
+          const filesToRemove = cssFiles
+            .filter(file => file.startsWith(basePath))
+            .map(file => file.replace(basePath, ""));
+
+          for (let i = http2PushManifestItems[route].length - 1; i >= 0; i--) {
+            const x = http2PushManifestItems[route][i];
+            filesToRemove.forEach(fileToRemove => {
+              if (x.link.startsWith(filesToRemove)) {
+                http2PushManifestItems[route].splice(i, 1);
+              }
+            });
+          }
+        }
+      }
       if (options.fixWebpackChunksIssue) {
         await fixWebpackChunksIssue({
           page,
-          basePath
+          basePath,
+          http2PushManifest
         });
       }
       if (options.asyncScriptTags) await asyncScriptTags({ page });
@@ -472,8 +533,7 @@ const run = async userOptions => {
             "\u2029": "\\u2029"
           };
           const escapeUnsafeChars = unsafeChar => ESCAPED_CHARS[unsafeChar];
-          return str =>
-            str.replace(UNSAFE_CHARS_REGEXP, escapeUnsafeChars);
+          return str => str.replace(UNSAFE_CHARS_REGEXP, escapeUnsafeChars);
         })();
         // TODO: as of now it only prevents XSS attack,
         // but can stringify only basic data types
@@ -514,6 +574,27 @@ const run = async userOptions => {
     },
     onEnd: () => {
       if (server) server.close();
+      if (http2PushManifest) {
+        const manifest = Object.keys(
+          http2PushManifestItems
+        ).reduce((accumulator, key) => {
+          if (http2PushManifestItems[key].length !== 0)
+            accumulator.push({
+              source: key.replace(/^\//, ""),
+              headers: [{
+                key: "Link",
+                value: http2PushManifestItems[key]
+                  .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
+                  .join(",")
+              }]
+            });
+          return accumulator;
+        }, []);
+        fs.writeFileSync(
+          `${destinationDir}/http2-push-manifest.json`,
+          JSON.stringify(manifest)
+        );
+      }
     }
   });
 };
