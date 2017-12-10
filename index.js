@@ -329,9 +329,7 @@ const inlineCss = async opt => {
 const asyncScriptTags = ({ page }) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("script[src]")).forEach(x => {
-      x.parentNode && x.parentNode.removeChild(x);
       x.setAttribute("async", "true");
-      document.head.appendChild(x);
     });
   });
 };
@@ -520,8 +518,9 @@ const run = async userOptions => {
         });
       }
       if (options.asyncScriptTags) await asyncScriptTags({ page });
-      await page.evaluate(() => {
-        window.snapEscape = (() => {
+
+      await page.evaluate(ajaxCache => {
+        const snapEscape = (() => {
           const UNSAFE_CHARS_REGEXP = /[<>\/\u2028\u2029]/g;
           // Mapping of unsafe HTML and invalid JavaScript line terminator chars to their
           // Unicode char counterparts which are safe to use in JavaScript strings.
@@ -538,32 +537,34 @@ const run = async userOptions => {
         // TODO: as of now it only prevents XSS attack,
         // but can stringify only basic data types
         // e.g. Date, Set, Map, NaN won't be handled right
-        window.snapStringify = obj => window.snapEscape(JSON.stringify(obj));
-      });
-      if (ajaxCache[route] && Object.keys(ajaxCache[route]).length > 0) {
-        await page.evaluate(ajaxCache => {
-          const scriptTag = document.createElement("script");
-          scriptTag.type = "text/javascript";
-          scriptTag.text = `window.snapStore = ${window.snapEscape(
+        const snapStringify = obj => snapEscape(JSON.stringify(obj));
+
+        let scriptTagText = "";
+        if (ajaxCache && Object.keys(ajaxCache).length > 0) {
+          scriptTagText += `window.snapStore=${snapEscape(
             JSON.stringify(ajaxCache)
           )};`;
+        }
+        let state;
+        if (
+          window.snapSaveState &&
+          (state = window.snapSaveState()) &&
+          Object.keys(state).length !== 0
+        ) {
+          scriptTagText += Object.keys(state)
+            .map(key => `window["${key}"]=${snapStringify(state[key])};`)
+            .join("");
+        }
+        if (scriptTagText !== "") {
+          const scriptTag = document.createElement("script");
+          scriptTag.type = "text/javascript";
+          scriptTag.text = scriptTagText;
           const firstScript = Array.from(document.scripts)[0];
           firstScript.parentNode.insertBefore(scriptTag, firstScript);
-        }, ajaxCache[route]);
-        delete ajaxCache[route];
-      }
-      await page.evaluate(() => {
-        if (!window.snapSaveState) return;
-        const state = window.snapSaveState();
-        if (Object.keys(state).length === 0) return;
-        const scriptTag = document.createElement("script");
-        scriptTag.type = "text/javascript";
-        scriptTag.text = Object.keys(state)
-          .map(key => `window["${key}"] = ${window.snapStringify(state[key])};`)
-          .join("\n");
-        const firstScript = Array.from(document.scripts)[0];
-        firstScript.parentNode.insertBefore(scriptTag, firstScript);
-      });
+        }
+      }, ajaxCache[route]);
+      delete ajaxCache[route];
+
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
@@ -581,12 +582,14 @@ const run = async userOptions => {
           if (http2PushManifestItems[key].length !== 0)
             accumulator.push({
               source: key.replace(/^\//, ""),
-              headers: [{
-                key: "Link",
-                value: http2PushManifestItems[key]
-                  .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
-                  .join(",")
-              }]
+              headers: [
+                {
+                  key: "Link",
+                  value: http2PushManifestItems[key]
+                    .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
+                    .join(",")
+                }
+              ]
             });
           return accumulator;
         }, []);
