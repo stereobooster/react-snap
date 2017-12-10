@@ -505,7 +505,7 @@ const run = async userOptions => {
           for (let i = http2PushManifestItems[route].length - 1; i >= 0; i--) {
             const x = http2PushManifestItems[route][i];
             filesToRemove.forEach(fileToRemove => {
-              if (x.link.startsWith(filesToRemove)) {
+              if (x.link.startsWith(fileToRemove)) {
                 http2PushManifestItems[route].splice(i, 1);
               }
             });
