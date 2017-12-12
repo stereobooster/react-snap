@@ -1,6 +1,6 @@
 # react-snap [![npm](https://img.shields.io/npm/v/react-snap.svg)](https://www.npmjs.com/package/react-snap) ![npm](https://img.shields.io/npm/dt/react-snap.svg)
 
-Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get best loading performance.
+Pre-renders web app into static HTML. Uses headless chrome to crawl all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get best loading performance.
 
 **Does not depend on React**. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with `create-react-app`. Actually, it works with any technology. Considering to change the name.
 
@@ -11,10 +11,6 @@ Pre-renders web app into static HTML. Uses headless chrome to pre-render. Crawls
 - Uses real browser behind the scene, so no issue with unsupported HTML5 features, like WebGL or Blobs.
 - Crawls all pages starting from the root, no need to list pages by hand, like in `prep`.
 - With prerendered HTML and inlined critical CSS you will get fast first paint, like with [critical](https://github.com/addyosmani/critical).
-- With `precacheAjax` feature you will get faster first interaction time if your page does do AJAX requests.
-- Works with webpack 2 code splitting feature, but with caveats. See below and [#46](https://github.com/stereobooster/react-snap/issues/46)
-- [Handles sourcemaps](https://github.com/stereobooster/react-snap/issues/4)
-- Supports non-root paths (e.g. for create-react-app relative paths)
 
 Please note: some features are experimental, but prerendering is considered stable enough.
 
@@ -73,15 +69,15 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 
 ### precacheAjax
 
-Experimental feature - requires improvements.
-
 `react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
 
 Use `precacheAjax: true` to enable this feature.
 
-## ✨ Recipes
+## ✨ Examples
 
-See [recipes](Recipes.md) for more examples.
+- [Load performance optimization](doc/an-almost-static-stack-optimization.md)
+- [recipes](Recipes.md)
+- [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)
 
 ## ⚠️ Caveats
 
@@ -147,9 +143,7 @@ window.snapSaveState = () => ({
 });
 ```
 
-**Important**: as of now only basic "JSON" data types are supported e.g. Date, Set, Map, NaN won't be handled right.
-
-TODO: use proper JS serializer ([#54](https://github.com/stereobooster/react-snap/issues/54)). See [this gist](https://gist.github.com/stereobooster/b2c9c543e794f3b927f82271b344ec72) for full list of alternatives.
+**Caution**: as of now only basic "JSON" data types are supported e.g. Date, Set, Map, NaN **won't** be handled right. ([#54](https://github.com/stereobooster/react-snap/issues/54)).
 
 ### Google Analytics, Mapbox, and other third-party requests
 
@@ -186,11 +180,10 @@ If you get an error in a production build, you can use sourcemaps to decode stac
 "sourceMaps": true
 ```
 
-TODO: as soon as the feature will be stable it should be enabled by default.
+See [#61](https://github.com/stereobooster/react-snap/pull/61)
 
-## TODO
+## Possible improvements
 
-- Update [recipes](Recipes.md) based on the code of [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)
 - Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example: load in small screen - capture all assets, add with a media query for the small screen, load in big screen add the rest of the assets with a media query for the big screen.
 - Do not load assets, the same way as minimalcss does
 - Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
@@ -200,4 +193,4 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 - [Webcomponents SSR](https://youtu.be/yT-EsESAmgA)
 - [prerender/prerender](https://github.com/prerender/prerender)
 - [Simple express server for your Create React App projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
-- https://github.com/LasaleFamine/pupperender
+- [pupperender](https://github.com/LasaleFamine/pupperender)
