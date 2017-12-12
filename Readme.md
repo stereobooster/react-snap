@@ -45,7 +45,13 @@ if (rootElement.hasChildNodes()) {
 
 That's it!
 
-### Customization
+## ✨ Examples
+
+- [Load performance optimization](doc/an-almost-static-stack-optimization.md)
+- [recipes](Recipes.md)
+- [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)
+
+## ⚙️ Customization
 
 If you need to pass some options for `react-snap`, you can do this in the `package.json`, like this:
 
@@ -72,12 +78,6 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 `react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
 
 Use `precacheAjax: true` to enable this feature.
-
-## ✨ Examples
-
-- [Load performance optimization](doc/an-almost-static-stack-optimization.md)
-- [recipes](Recipes.md)
-- [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)
 
 ## ⚠️ Caveats
 
