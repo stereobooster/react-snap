@@ -54,8 +54,7 @@ const defaultOptions = {
   // Experimental. This config stands for two strategies inline and critical.
   // TODO: inline strategy can contain errors, like, confuse relative urls
   inlineCss: false,
-  // Experimental. TODO: need to fix issues with sourcemaps
-  sourceMaps: false,
+  sourceMaps: true,
   cacheAjaxRequests: false,
   //# even more workarounds
   removeStyleTags: false,
