@@ -83,22 +83,16 @@ Use `precacheAjax: true` to enable this feature.
 
 ### Async components
 
-Also known as code splitting, dynamic import
+Also known as [code splitting](https://webpack.github.io/docs/code-splitting.html), [dynamic import](https://github.com/tc39/proposal-dynamic-import) (TC39 proposal), "chunks" (which are loaded on demand), "layers", "rollups", or "fragments".
 
-> Webpack has a feature to split your codebase into “chunks” which are loaded on demand. Some other bundlers call them “layers”, “rollups”, or “fragments”. This feature is called “code splitting”.
->
-> — [Code splitting](https://webpack.github.io/docs/code-splitting.html)
-
-[Dynamic import](https://github.com/tc39/proposal-dynamic-import) is the TC39 proposal.
-
-Async component is a technique (typically implemented as a higher order component) for loading components with dynamic `import`. There are a lot of solutions in this field here are some examples:
+Async component (in React) is a technique (typically implemented as a Higher Order Component) for loading components with dynamic `import`. There are a lot of solutions in this field. Here are some examples:
 
 - [`loadable-components`](https://github.com/smooth-code/loadable-components)
 - [`react-loadable`](https://github.com/thejameskyle/react-loadable)
 - [`react-async-component`](https://github.com/ctrlplusb/react-async-component)
 - [`react-code-splitting`](https://github.com/didierfranc/react-code-splitting)
 
-It is not a problem to render async component with react-snap, tricky part happens when prerendered React application boots and async components are not loaded yet, so React draws loading state of a component, later when component loaded react draws actual component. As the result - user sees a flash.
+It is not a problem to render async component with react-snap, tricky part happens when prerendered React application boots and async components are not loaded yet, so React draws "loading" state of a component, later when component loaded react draws actual component. As the result - user sees a flash.
 
 ```
 100%                    /----|    |----
@@ -111,7 +105,7 @@ It is not a problem to render async component with react-snap, tricky part happe
 0%  -------------/
 ```
 
-This is a well-known problem. `react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for "snapshot" setup:
+`react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for "snapshot" setup:
 
 ```js
 import { loadComponents } from "loadable-components";
