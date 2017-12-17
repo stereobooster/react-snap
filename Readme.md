@@ -73,12 +73,6 @@ Use `inlineCss: true` to enable this feature.
 
 TODO: as soon as the feature will be stable it should be enabled by default.
 
-### precacheAjax
-
-`react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
-
-Use `precacheAjax: true` to enable this feature.
-
 ## ⚠️ Caveats
 
 ### Async components
@@ -137,7 +131,7 @@ window.snapSaveState = () => ({
 });
 ```
 
-**Caution**: as of now only basic "JSON" data types are supported e.g. Date, Set, Map, NaN **won't** be handled right. ([#54](https://github.com/stereobooster/react-snap/issues/54)).
+**Caution**: as of now only basic "JSON" data types are supported e.g. Date, Set, Map, NaN **won't** be handled right ([#54](https://github.com/stereobooster/react-snap/issues/54)).
 
 ### Google Analytics, Mapbox, and other third-party requests
 
@@ -146,6 +140,12 @@ You can block all third-party requests with the following config
 ```
 "skipThirdPartyRequests": true
 ```
+
+### AJAX
+
+`react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
+
+Use `precacheAjax: true` to enable this feature.
 
 ### WebGL
 
@@ -166,14 +166,6 @@ you may use
 
 Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
 
-### Error stack trace in production build
-
-If you get an error in a production build, you can use sourcemaps to decode stack trace:
-
-```
-"sourceMaps": true
-```
-
 See [#61](https://github.com/stereobooster/react-snap/pull/61)
 
 ### Semantic UI
@@ -186,11 +178,21 @@ use the following configuration:
 "minifyHtml": { "sortClassName": false }
 ```
 
+### Error stack trace in production build
+
+If you get an error in a production build, you can use sourcemaps to decode stack trace:
+
+```
+"sourceMaps": true
+```
+
 ## Possible improvements
 
 - Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example: load in small screen - capture all assets, add with a media query for the small screen, load in big screen add the rest of the assets with a media query for the big screen.
 - Do not load assets, the same way as minimalcss does
 - Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
+- Check if there is a way to improve font loading. See: [1](https://www.zachleat.com/web/comprehensive-webfonts/),
+[2](https://github.com/malchata/unicode-ranger/tree/v2)
 
 ## Alternatives
 
