@@ -59,8 +59,7 @@ const defaultOptions = {
   //# even more workarounds
   removeStyleTags: false,
   preloadImages: false,
-  // add async true to scripts and move them to the header, to start download earlier
-  // can use <link rel="preload"> instead
+  // add async true to script tags
   asyncScriptTags: false,
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
