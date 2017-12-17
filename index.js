@@ -40,6 +40,7 @@ const defaultOptions = {
     height: 850
   },
   http2PushManifest: false,
+  sourceMaps: true,
   //# feature creeps to generate screenshots
   saveAs: "html",
   crawl: true,
@@ -54,8 +55,6 @@ const defaultOptions = {
   // Experimental. This config stands for two strategies inline and critical.
   // TODO: inline strategy can contain errors, like, confuse relative urls
   inlineCss: false,
-  // Experimental. TODO: need to fix issues with sourcemaps
-  sourceMaps: false,
   cacheAjaxRequests: false,
   //# even more workarounds
   removeStyleTags: false,
