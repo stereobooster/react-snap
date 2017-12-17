@@ -27,7 +27,7 @@ const skipThirdPartyRequests = async opt => {
  * @return {void}
  */
 const enableLogging = opt => {
-  const { page, options, route, onError } = opt;
+  const { page, options, route, onError, sourcemapStore } = opt;
   page.on("console", msg => console.log(`✏️  ${route} log:`, msg));
   page.on("error", msg => {
     console.log(`🔥  ${route} error:`, msg);
@@ -35,16 +35,21 @@ const enableLogging = opt => {
   });
   page.on("pageerror", e => {
     if (options.sourceMaps) {
-      mapStackTrace(
-        e.stack,
-        result => {
-          console.log(
-            `🔥  ${route} pageerror: ${e.stack.split("\n")[0] +
-              "\n"}${result.join("\n")}`
-          );
-        },
-        { isChromeOrEdge: true }
-      );
+      mapStackTrace(e.stack, {
+        isChromeOrEdge: true,
+        store: sourcemapStore || {}
+      }).then(result => {
+        // TODO: refactor mapStackTrace: return array not a string, return first row too
+        const stackRows = result.split("\n");
+        const puppeteerLine =
+          stackRows.findIndex(x => x.includes("puppeteer")) ||
+          stackRows.length - 1;
+
+        console.log(
+          `🔥  ${route} pageerror: ${e.stack.split("\n")[0] +
+            "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
+        );
+      });
     } else {
       console.log(`🔥  ${route} pageerror:`, e);
     }
@@ -99,6 +104,7 @@ const crawl = async opt => {
   let processed = 0;
   // use Set instead
   const uniqueUrls = new Set();
+  const sourcemapStore = {};
 
   /**
    * @param {string} path
@@ -141,7 +147,8 @@ const crawl = async opt => {
           route,
           onError: () => {
             shuttingDown = true;
-          }
+          },
+          sourcemapStore
         });
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);

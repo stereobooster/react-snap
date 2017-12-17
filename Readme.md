@@ -178,14 +178,6 @@ use the following configuration:
 "minifyHtml": { "sortClassName": false }
 ```
 
-### Error stack trace in production build
-
-If you get an error in a production build, you can use sourcemaps to decode stack trace:
-
-```
-"sourceMaps": true
-```
-
 ## Possible improvements
 
 - Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example: load in small screen - capture all assets, add with a media query for the small screen, load in big screen add the rest of the assets with a media query for the big screen.
