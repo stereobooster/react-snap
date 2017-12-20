@@ -166,8 +166,6 @@ you may use
 
 Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
 
-See [#61](https://github.com/stereobooster/react-snap/pull/61)
-
 ### Semantic UI
 
 [Semantic UI](https://semantic-ui.com/) is defined over class substrings that contain spaces
