@@ -8,7 +8,7 @@ exports.render = undefined;
 var _reactDom = require('react-dom');
 
 var render = exports.render = function render(rootComponent, domElement) {
-  if (navigator.userAgent === 'reactSnapRender' && window && window.reactSnapshotRender) {
+  if (navigator.userAgent === 'ReactSnap' && window && window.reactSnapRender) {
     domElement.innerHTML = window.reactSnapRender(rootComponent);
   } else {
     if (domElement.hasChildNodes()) {

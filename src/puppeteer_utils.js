@@ -60,36 +60,31 @@ const enableLogging = opt => {
   // });
 };
 
+Array.prototype.flatMap = function(lambda) {
+    return Array.prototype.concat.apply([], this.map(lambda));
+};
+
 /**
  * @param {{page: Page}} opt
  * @return {Promise<Array<string>>}
  */
 const getLinks = opt => {
-  const { page, currentPath } = opt;
-  const document = page.document;
+  const { page, pageUrl } = opt;
+  const { document } = page;
   const tagAttributeMap = {
     a: "href",
     iframe: "src"
   };
 
-  return Object.keys(tagAttributeMap).forEach(tagName => {
+  return Object.keys(tagAttributeMap).flatMap(tagName => {
     const urlAttribute = tagAttributeMap[tagName];
-    Array.from(
+    return Array.from(
       document.querySelectorAll(`${tagName}[${urlAttribute}]`)
-    ).forEach(element => {
-      if (element.getAttribute("target") === "_blank") return;
+    ).map(element => {
       const href = url.parse(element.getAttribute(urlAttribute));
-      if (href.protocol || href.host || href.path === null) return;
-      const relativePath = url.resolve(currentPath, href.path);
-      if (
-        path.extname(relativePath) !== ".html" &&
-        path.extname(relativePath) !== ""
-      )
-        return;
-      if (this.processed[relativePath]) return;
-      if (this.exclude.filter(regex => regex.test(relativePath)).length > 0)
-        return;
-      this.paths.push(relativePath);
+      // if (href.protocol || href.host || href.path === null) return;
+      const relativePath = url.resolve(pageUrl, href.path);
+      return relativePath;
     });
   });
 };
@@ -151,7 +146,6 @@ const crawl = async opt => {
       try {
         const page = await new Promise((resolve, reject) => {
           let reactSnapshotRenderCalled = false;
-          console.log(pageUrl);
           jsdom.env({
             url: pageUrl,
             headers: {
@@ -160,11 +154,12 @@ const crawl = async opt => {
             },
             userAgent: options.userAgent,
             resourceLoader(resource, callback) {
-              if (resource.url.host === host) {
-                resource.defaultFetch(callback);
-              } else {
-                callback();
-              }
+              resource.defaultFetch(callback);
+              // if (resource.url.host === host) {
+              //   resource.defaultFetch(callback);
+              // } else {
+              //   callback();
+              // }
             },
             features: {
               FetchExternalResources: ["script"],
@@ -180,11 +175,11 @@ const crawl = async opt => {
                 path = url.resolve(window.location.toString(), path);
                 return fetch(path, options);
               };
-              window.reactSnapshotRender = rootComponent => {
+              window.reactSnapRender = rootComponent => {
                 reactSnapshotRenderCalled = true;
                 setTimeout(() => {
                   resolve(window);
-                }, delay);
+                }, 500 /*delay*/);
                 return renderToString(rootComponent);
               };
             },
@@ -202,7 +197,7 @@ const crawl = async opt => {
         //   await skipThirdPartyRequests({ page, options, basePath });
         // beforeFetch && beforeFetch({ page, route });
         if (options.crawl) {
-          const links = getLinks({ page });
+          const links = getLinks({ page, pageUrl });
           links.forEach(addToQueue);
         }
         // afterFetch && (await afterFetch({ page, route }));
