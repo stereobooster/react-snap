@@ -29,18 +29,15 @@
     "@types/node": "^8.0.46",
     "@types/puppeteer": "^0.12.0",
     "@types/serve-static": "^1.13.0",
-    "jsdoc": "^3.5.5",
     "markdown-toc": "^1.2.0",
     "prettier": "1.7.3",
-    "tsd-jsdoc": "^2.0.0-beta.3",
     "typescript": "^2.7.0-dev.20171026"
   },
   "scripts": {
     "toc": "yarn run markdown-toc -i Recipes.md",
     "test": "echo \"Error: no test specified\" && exit 1",
     "precommit": "prettier --write {*,src/*}.{js,json,css}",
-    "tsc": "tsc -p .",
-    "ts-definitions": "jsdoc -t node_modules/tsd-jsdoc -r src"
+    "tsc": "tsc -p ."
   },
   "bin": {
     "react-snap": "./run.js"
