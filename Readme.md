@@ -111,6 +111,8 @@ loadComponents().then(() => {
 });
 ```
 
+**Caution**: there seems to be [an issue in `loadable-components`](https://github.com/smooth-code/loadable-components/issues/25). Be carefull.
+
 ### Redux
 
 See: [Redux Srever Rendering Section](https://redux.js.org/docs/recipes/ServerRendering.html#the-client-side)
@@ -146,6 +148,16 @@ You can block all third-party requests with the following config
 `react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
 
 Use `precacheAjax: true` to enable this feature.
+
+### Service Workers
+
+By default `create-react-app` uses `index.html` as fallback:
+
+```js
+navigateFallback: publicUrl + '/index.html',
+```
+
+you need to change this to an unprerendered version of `index.html` - `200.html`, otherwise you will see a flash of `index.html` on other pages (if you have any).
 
 ### WebGL
 
@@ -188,6 +200,7 @@ use the following configuration:
 
 - [Webcomponents SSR](https://youtu.be/yT-EsESAmgA)
 - [prerender/prerender](https://github.com/prerender/prerender)
-- [Simple express server for your Create React App projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
+- [Simple express server for your `create-react-app` projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
 - [pupperender](https://github.com/LasaleFamine/pupperender)
 - [snapshotify](https://github.com/errorception/snapshotify)
+- [react-static](https://github.com/nozzle/react-static)
