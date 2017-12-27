@@ -198,7 +198,7 @@ use the following configuration:
 
 ## Alternatives
 
-- [Webcomponents SSR](https://youtu.be/yT-EsESAmgA)
+- [Webcomponents SSR](https://youtu.be/yT-EsESAmgA), [skatejs/ssr](https://github.com/skatejs/ssr)
 - [prerender/prerender](https://github.com/prerender/prerender)
 - [Simple express server for your `create-react-app` projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
 - [pupperender](https://github.com/LasaleFamine/pupperender)
