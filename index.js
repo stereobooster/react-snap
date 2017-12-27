@@ -579,7 +579,7 @@ const run = async userOptions => {
         ).reduce((accumulator, key) => {
           if (http2PushManifestItems[key].length !== 0)
             accumulator.push({
-              source: key.replace(/^\//, ""),
+              source: key,
               headers: [
                 {
                   key: "Link",
