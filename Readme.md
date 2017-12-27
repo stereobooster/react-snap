@@ -135,7 +135,7 @@ window.snapSaveState = () => ({
 
 **Caution**: as of now only basic "JSON" data types are supported e.g. Date, Set, Map, NaN **won't** be handled right ([#54](https://github.com/stereobooster/react-snap/issues/54)).
 
-### Google Analytics, Mapbox, and other third-party requests
+### Third-party requests: Google Analytics, Mapbox etc.
 
 You can block all third-party requests with the following config
 
@@ -157,7 +157,7 @@ By default `create-react-app` uses `index.html` as fallback:
 navigateFallback: publicUrl + '/index.html',
 ```
 
-you need to change this to an unprerendered version of `index.html` - `200.html`, otherwise you will see a flash of `index.html` on other pages (if you have any).
+you need to change this to an unprerendered version of `index.html` - `200.html`, otherwise you will see a flash of `index.html` on other pages (if you have any). See [Configure sw-precache without ejecting](https://github.com/stereobooster/react-snap/blob/master/Recipes.md#configure-sw-precache-without-ejecting) for more information.
 
 ### WebGL
 
