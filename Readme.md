@@ -190,3 +190,4 @@ use the following configuration:
 - [prerender/prerender](https://github.com/prerender/prerender)
 - [Simple express server for your Create React App projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
 - [pupperender](https://github.com/LasaleFamine/pupperender)
+- [snapshotify](https://github.com/errorception/snapshotify)
