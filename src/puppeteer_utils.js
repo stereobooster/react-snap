@@ -2,7 +2,7 @@ const _ = require("highland");
 const url = require("url");
 const path = require("path");
 const jsdom = require("jsdom");
-const { JSDOM } = jsdom;
+const { createVirtualConsole } = jsdom;
 const { renderToString } = require("react-dom/server");
 const fetch = require("node-fetch");
 // @ts-ignore
@@ -166,7 +166,7 @@ const crawl = async opt => {
               ProcessExternalResources: ["script"],
               SkipExternalResources: false
             },
-            virtualConsole: jsdom.createVirtualConsole().sendTo(console),
+            virtualConsole: createVirtualConsole().sendTo(console),
             created: (err, window) => {
               if (err) return reject(err);
               if (!window) return reject(`Looks like no page exists at ${url}`);
@@ -200,7 +200,7 @@ const crawl = async opt => {
           const links = getLinks({ page, pageUrl });
           links.forEach(addToQueue);
         }
-        // afterFetch && (await afterFetch({ page, route }));
+        afterFetch && (await afterFetch({ page, route }));
         console.log(`🕸  (${processed + 1}/${enqued}) ${route}`);
       } catch (e) {
         if (!shuttingDown) {

@@ -14,6 +14,9 @@ const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
 const twentyKb = 20 * 1024;
 
+const { serializeDocument } = require("jsdom");
+
+
 const defaultOptions = {
   //# stable configurations
   port: 45678,
@@ -369,8 +372,9 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
   );
 };
 
-const saveAsHtml = async ({ page, filePath, options, route }) => {
-  let content = page.serialize();
+const saveAsHtml = ({ page, filePath, options, route }) => {
+  let content = serializeDocument(page.document);
+
   content = content.replace(/react-snap-onload/g, "onload");
   const title = page.document.title;
   const minifiedContent = options.minifyHtml
@@ -553,10 +557,11 @@ const run = async userOptions => {
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
-        await saveAsHtml({ page, filePath, options, route });
+        saveAsHtml({ page, filePath, options, route });
       } else if (options.saveAs === "png") {
         throw "png not supported";
       }
+      return Promise.resolve();
     },
     onEnd: () => {
       if (server) server.close();
