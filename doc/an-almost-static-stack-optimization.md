@@ -138,7 +138,9 @@ Next optimisation is pretty trivial and does not require code modification, but 
 
 **First Interactive (beta)** reduced by 0.6s
 
-**Caution**: Link headers contain `service-worker.js`, which won't be used by all browsers. I will need to fix this issue. On the other side, all main browsers have this feature in technical preview, so it will be resolved soon.
+~~**Caution**: there is a bug in firebase-cli which prevents setting header for root path. So I tested `/about` page.~~. Fixed in `v1.4.1`.
+
+**Caution 2**: Link headers contain `service-worker.js`, which won't be used by all browsers. I will need to fix this issue. On the other side, all main browsers have this feature in technical preview, so it will be resolved soon.
 
 ![round-4-firebase.png](images/round-4-firebase.png)
 
