@@ -147,7 +147,7 @@ You can block all third-party requests with the following config
 
 `react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
 
-Use `precacheAjax: true` to enable this feature.
+Use `cacheAjaxRequests: true` to enable this feature.
 
 ### Service Workers
 
