@@ -39,7 +39,6 @@ const defaultOptions = {
     width: 480,
     height: 850
   },
-  http2PushManifest: false,
   sourceMaps: true,
   //# workarounds
   fixWebpackChunksIssue: true,
@@ -47,6 +46,10 @@ const defaultOptions = {
   fixInsertRule: true,
   skipThirdPartyRequests: false,
   cacheAjaxRequests: false,
+  http2PushManifest: false,
+  // may use some glob solution in the future, if required
+  // works when http2PushManifest: true
+  ignoreForPreload: ["service-worker.js"],
   //# unstable configurations
   preconnectThirdParty: true,
   // Experimental. This config stands for two strategies inline and critical.
@@ -128,7 +131,8 @@ const preloadResources = opt => {
     preloadImages,
     cacheAjaxRequests,
     preconnectThirdParty,
-    http2PushManifest
+    http2PushManifest,
+    ignoreForPreload
   } = opt;
   const ajaxCache = {};
   const http2PushManifestItems = [];
@@ -159,10 +163,13 @@ const preloadResources = opt => {
         const json = await response.json();
         ajaxCache[route] = json;
       } else if (http2PushManifest && /\.(js)$/.test(responseUrl)) {
-        http2PushManifestItems.push({
-          link: route,
-          as: "script"
-        });
+        const fileName = url.parse(responseUrl).pathname.split("/").pop();
+        if (!ignoreForPreload.includes(fileName)) {
+          http2PushManifestItems.push({
+            link: route,
+            as: "script"
+          });
+        }
       } else if (http2PushManifest && /\.(css)$/.test(responseUrl)) {
         http2PushManifestItems.push({
           link: route,
@@ -486,7 +493,8 @@ const run = async userOptions => {
           preloadImages,
           cacheAjaxRequests,
           preconnectThirdParty,
-          http2PushManifest
+          http2PushManifest,
+          ignoreForPreload: options.ignoreForPreload
         });
         ajaxCache[route] = ac;
         http2PushManifestItems[route] = hpm;
