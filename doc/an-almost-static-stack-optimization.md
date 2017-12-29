@@ -138,7 +138,7 @@ Next optimisation is pretty trivial and does not require code modification, but 
 
 ~~**Caution**: there is a bug in firebase-cli which prevents setting header for root path. So I tested `/about` page.~~. Fixed in `v1.4.1`.
 
-**Caution 2**: Link headers contain `service-worker.js`, which won't be used by all browsers. I will need to fix this issue. On the other side, all main browsers have this feature in technical preview, so it will be resolved soon.
+~~**Caution 2**: Link headers contain `service-worker.js`, which won't be used by all browsers. I will need to fix this issue. On the other side, all main browsers have this feature in technical preview, so it will be resolved soon.~~ Fixed in `v1.6.0`.
 
 ![round-4-firebase.png](images/round-4-firebase.png)
 
