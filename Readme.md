@@ -2,17 +2,16 @@
 
 Pre-renders web app into static HTML. Uses headless chrome to crawl all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get best loading performance.
 
-**Does not depend on React**. The name is inspired by `react-snapshot` and because the initial goal was to enable seamless integration with `create-react-app`. Actually, it works with any technology. Considering to change the name.
-
 ## Features
 
-- Enables SEO (google, duckduckgo...) and SMO (twitter, facebook...) for SPA.
-- Works out-of-the-box with [create-react-app](https://github.com/facebookincubator/create-react-app) - no code-changes required.
-- Uses real browser behind the scene, so no issue with unsupported HTML5 features, like WebGL or Blobs.
-- Crawls all pages starting from the root, no need to list pages by hand, like in `prep`.
-- With prerendered HTML and inlined critical CSS you will get fast first paint, like with [critical](https://github.com/addyosmani/critical).
+- Enables **SEO** (google, duckduckgo...) and **SMO** (twitter, facebook...) for SPA.
+- **Works out-of-the-box** with [create-react-app](https://github.com/facebookincubator/create-react-app) - no code-changes required.
+- Uses **real browser** behind the scene, so no issue with unsupported HTML5 features, like WebGL or Blobs.
+- Does a lot of load **performance optimization**. [Here are details](doc/load-performance-optimizations.md), if you are curious.
+- **Does not depend on React**. The name is inspired by `react-snapshot`. Works with any technology.
+- npm package does not have compilation step, so **you can fork** it, change what you need and install it with GitHub URL.
 
-Please note: some features are experimental, but prerendering is considered stable enough.
+**Zero configuration** is the main feature. You do not need to worry how does it work or how to configure it. But if you are curious [here are details](doc/behind-the-scenes.md).
 
 ## Basic usage with create-react-app
 
@@ -48,7 +47,7 @@ That's it!
 ## ✨ Examples
 
 - [Load performance optimization](doc/an-almost-static-stack-optimization.md)
-- [recipes](Recipes.md)
+- [recipes](doc/recipes.md)
 - [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)
 
 ## ⚙️ Customization

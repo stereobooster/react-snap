@@ -34,7 +34,7 @@
     "typescript": "^2.7.0-dev.20171026"
   },
   "scripts": {
-    "toc": "yarn run markdown-toc -i Recipes.md",
+    "toc": "yarn run markdown-toc -i doc/recipes.md",
     "test": "echo \"Error: no test specified\" && exit 1",
     "precommit": "prettier --write {*,src/*}.{js,json,css}",
     "tsc": "tsc -p ."

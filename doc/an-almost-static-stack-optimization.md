@@ -116,7 +116,7 @@ Next problem: Lighthouse complains about render-blocking stylesheets.
 
 ## Round 4: Link headers
 
-Next optimisation is pretty trivial and does not require code modification, but it requires the support of custom headers from your hosting. You will need to be able to set `Link` header.
+Next optimization is pretty trivial and does not require code modification, but it requires the support of custom headers from your hosting. You will need to be able to set `Link` header.
 
 `react-snap` can generate Link headers in [superstatic](https://github.com/firebase/superstatic) format, like this:
 
@@ -243,7 +243,7 @@ File sizes after gzip:
 
 ## Round 9: vanilla create-react-app
 
-This is for comparison - original create-react-app without any additional optimisations.
+This is for comparison - original create-react-app without any additional optimizations.
 
 🔖 [round-9](https://github.com/stereobooster/an-almost-static-stack/compare/round-8...stereobooster:round-9?expand=1)
 
