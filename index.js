@@ -41,21 +41,22 @@ const defaultOptions = {
   },
   http2PushManifest: false,
   sourceMaps: true,
-  //# feature creeps to generate screenshots
-  saveAs: "html",
-  crawl: true,
-  waitFor: false,
-  externalServer: false,
   //# workarounds
   fixWebpackChunksIssue: true,
   removeBlobs: true,
+  fixInsertRule: true,
   skipThirdPartyRequests: false,
+  cacheAjaxRequests: false,
   //# unstable configurations
   preconnectThirdParty: true,
   // Experimental. This config stands for two strategies inline and critical.
   // TODO: inline strategy can contain errors, like, confuse relative urls
   inlineCss: false,
-  cacheAjaxRequests: false,
+  //# feature creeps to generate screenshots
+  saveAs: "html",
+  crawl: true,
+  waitFor: false,
+  externalServer: false,
   //# even more workarounds
   removeStyleTags: false,
   preloadImages: false,
@@ -369,6 +370,18 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
   );
 };
 
+const fixInsertRule = ({ page }) => {
+  return page.evaluate(() => {
+    Array.from(document.querySelectorAll("style")).forEach(style => {
+      if (style.innerText === "") {
+        style.innerText = Array.from(style.sheet.rules)
+          .map(rule => rule.cssText)
+          .join("");
+      }
+    });
+  });
+};
+
 const saveAsHtml = async ({ page, filePath, options, route }) => {
   let content = await page.content();
   content = content.replace(/react-snap-onload/g, "onload");
@@ -562,6 +575,7 @@ const run = async userOptions => {
         }
       }, ajaxCache[route]);
       delete ajaxCache[route];
+      if (options.fixInsertRule) await fixInsertRule({ page });
 
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
