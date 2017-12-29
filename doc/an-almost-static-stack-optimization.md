@@ -45,8 +45,8 @@ First improvement woud be to choose better hosting or use CDN in front of it. So
 | Now + Cloudflare      | ± [2][2], [6][6]   | ± [3][3]       | +         | ± [2][2], [6][6] | ± [2][2], [6][6] |
 | S3 + Cloudflare       | +                  | ± 4            | +         | - [7][7]         | -                |
 | S3 + Cloudfront       | +                  | -              | -         | ± [8][8]         | -                |
-| Firebase              | +                  | +              | +         | + 9              | -                |
-| Firebase + Cloudflare | +                  | +              | +         | + 9              | + 9              |
+| Firebase              | +                  | +              | +         | +                | -                |
+| Firebase + Cloudflare | +                  | +              | +         | +                | +                |
 
 [1]: https://surge.sh/help/using-lucid-caching-automatically
 [2]: https://zeit.co/api
@@ -57,8 +57,6 @@ First improvement woud be to choose better hosting or use CDN in front of it. So
 [8]: https://medium.com/@tom.cook/edge-lambda-cloudfront-custom-headers-3d134a2c18a2
 
 4: There is AWS CLI, but to set headers you need to use a script
-
-9: Do not know how to set custom headers for the root
 
 **Solution**: I will use Firebase because this is the easiest option for me, but you can choose any option. Just make sure it has HTTP2 support and ability to set expiration headers.
 
