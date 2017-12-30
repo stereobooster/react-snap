@@ -32,7 +32,8 @@
 
 ## SEO-only server prerenderer
 
-- [prerender/prerender](https://github.com/prerender/prerender)
+- [rendertron](https://github.com/GoogleChrome/rendertron)
+- [prerender](https://github.com/prerender/prerender)
 - [pupperender](https://github.com/LasaleFamine/pupperender)
 - [spiderable-middleware](https://github.com/VeliovGroup/spiderable-middleware)
 
