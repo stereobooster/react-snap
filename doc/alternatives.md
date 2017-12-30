@@ -34,6 +34,7 @@
 
 - [prerender/prerender](https://github.com/prerender/prerender)
 - [pupperender](https://github.com/LasaleFamine/pupperender)
+- [spiderable-middleware](https://github.com/VeliovGroup/spiderable-middleware)
 
 ## Other
 

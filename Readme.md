@@ -25,7 +25,7 @@ Change `package.json`:
 
 ```json
 "scripts": {
-  "build": "react-scripts build && react-snap"
+  "postbuild": "react-snap"
 }
 ```
 
@@ -43,6 +43,30 @@ if (rootElement.hasChildNodes()) {
 ```
 
 That's it!
+
+## Basic usage with Vue.js
+
+
+Install:
+
+```sh
+yarn add --dev react-snap
+```
+
+Change `package.json`:
+
+```json
+"scripts": {
+  "postbuild": "react-snap"
+},
+"reactSnap": {
+  "source": "dist"
+}
+```
+
+`source` - output folder of webpack or any other bundler of your choice
+
+Example: [Switch from prerender-spa-plugin to react-snap](https://github.com/stereobooster/prerender-spa-plugin/commit/778594f55b5859cd3ca57dfd6e08b1d9008d2823)
 
 ## ✨ Examples
 
