@@ -46,6 +46,7 @@ That's it!
 
 ## ✨ Examples
 
+- [Emotion website load performance optimization](doc/emotion-site-optimization.md)
 - [Load performance optimization](doc/an-almost-static-stack-optimization.md)
 - [recipes](doc/recipes.md)
 - [stereobooster/an-almost-static-stack](https://github.com/stereobooster/an-almost-static-stack)
