@@ -30,17 +30,31 @@
 - `insertRule` - Works with CSS-in-JS solutions which use `CSSStyleSheet.insertRule`
 - **blob urls** - removes blob urls from generated HTML
 
-## SEO-only server prerenderer
+TODO: add [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin) to comparison.
+
+## SEO-only server prerenderers
 
 - [rendertron](https://github.com/GoogleChrome/rendertron)
 - [prerender](https://github.com/prerender/prerender)
+- [puppetron](https://github.com/cheeaun/puppetron)
 - [pupperender](https://github.com/LasaleFamine/pupperender)
 - [spiderable-middleware](https://github.com/VeliovGroup/spiderable-middleware)
+
+## React static site generators
+
+- [gatsby](https://github.com/gatsbyjs/gatsby)
+- [phenomic](https://github.com/phenomic/phenomic)
+- [react-static](https://github.com/nozzle/react-static)
+
+## WebComponents
+
+- [talk: WebComponents SSR](https://youtu.be/yT-EsESAmgA)
+- [skatejs/ssr](https://github.com/skatejs/ssr)
+- [rendertron#web-components](https://github.com/GoogleChrome/rendertron#web-components)
+- [shadydom](https://github.com/webcomponents/shadydom)
 
 ## Other
 
 - [usus](https://github.com/gajus/usus)
-- [puppetron](https://github.com/cheeaun/puppetron)
-- [Webcomponents SSR](https://youtu.be/yT-EsESAmgA), [skatejs/ssr](https://github.com/skatejs/ssr)
 - [Simple express server for your `create-react-app` projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
-- [react-static](https://github.com/nozzle/react-static)
+
