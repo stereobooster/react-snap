@@ -223,3 +223,19 @@ use the following configuration:
 ## Alternatives
 
 See [alternatives](doc/alternatives.md)
+
+## Contributing
+
+### Report a bug
+
+Please provide a reproducible demo of a bug and steps to reproduce it. Thanks
+
+### Share on the web
+
+Tweet it, like it, share it, star it. Thank you
+
+### Code
+
+It is hard to accept big PRs as of now because there are no tests yet. PRs for [`help wanted`](https://github.com/stereobooster/react-snap/issues?q=is:issue+is:open+label:%22help+wanted%22) tickets are very welcome.
+
+You also can contribute to [minimalcss](https://github.com/peterbe/minimalcss), which is a big part of `react-snap`. Also, give some stars.
