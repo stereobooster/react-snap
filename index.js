@@ -101,7 +101,7 @@ const defaults = userOptions => {
     options.asyncScriptTags = options.asyncJs;
   }
   if (options.saveAs !== "html" && options.saveAs !== "png") {
-    console.log("⚠️  saveAs supported values are html png");
+    console.log("⚠️  saveAs supported values are html and png");
     exit = true;
   }
   if (exit) process.exit(1);
@@ -401,7 +401,9 @@ const fixFormFields = ({ page }) => {
         element.removeAttribute("checked");
       }
     });
-    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(element => {
+    Array.from(
+      document.querySelectorAll("[type=checkbox]")
+    ).forEach(element => {
       if (element.checked) {
         element.setAttribute("checked", "checked");
       } else {
@@ -501,6 +503,7 @@ const run = async userOptions => {
     options,
     basePath,
     publicPath,
+    sourceDir,
     beforeFetch: async ({ page, route }) => {
       const {
         preloadImages,
