@@ -392,16 +392,27 @@ const fixInsertRule = ({ page }) => {
   });
 };
 
-const fixRadioCheckboxButtons = ({ page }) => {
+const fixFormFields = ({ page }) => {
   return page.evaluate(() => {
-    Array.from(document.querySelectorAll("[type=radio]")).forEach(radio => {
-      if (radio.checked) {
-        radio.setAttribute("checked", "checked");
+    Array.from(document.querySelectorAll("[type=radio]")).forEach(element => {
+      if (element.checked) {
+        element.setAttribute("checked", "checked");
+      } else {
+        element.removeAttribute("checked");
       }
     });
-    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(radio => {
-      if (radio.checked) {
-        radio.setAttribute("checked", "checked");
+    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(element => {
+      if (element.checked) {
+        element.setAttribute("checked", "checked");
+      } else {
+        element.removeAttribute("checked");
+      }
+    });
+    Array.from(document.querySelectorAll("option")).forEach(element => {
+      if (element.selected) {
+        element.setAttribute("selected", "selected");
+      } else {
+        element.removeAttribute("selected");
       }
     });
   });
@@ -602,7 +613,7 @@ const run = async userOptions => {
       }, ajaxCache[route]);
       delete ajaxCache[route];
       if (options.fixInsertRule) await fixInsertRule({ page });
-      await fixRadioCheckboxButtons({ page });
+      await fixFormFields({ page });
 
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
