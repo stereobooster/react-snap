@@ -163,7 +163,10 @@ const preloadResources = opt => {
         const json = await response.json();
         ajaxCache[route] = json;
       } else if (http2PushManifest && /\.(js)$/.test(responseUrl)) {
-        const fileName = url.parse(responseUrl).pathname.split("/").pop();
+        const fileName = url
+          .parse(responseUrl)
+          .pathname.split("/")
+          .pop();
         if (!ignoreForPreload.includes(fileName)) {
           http2PushManifestItems.push({
             link: route,
@@ -389,6 +392,16 @@ const fixInsertRule = ({ page }) => {
   });
 };
 
+const fixRadioButtons = ({ page }) => {
+  return page.evaluate(() => {
+    Array.from(document.querySelectorAll("[type=radio]")).forEach(radio => {
+      if (radio.checked) {
+        radio.setAttribute("checked", "checked");
+      }
+    });
+  });
+};
+
 const saveAsHtml = async ({ page, filePath, options, route }) => {
   let content = await page.content();
   content = content.replace(/react-snap-onload/g, "onload");
@@ -584,6 +597,7 @@ const run = async userOptions => {
       }, ajaxCache[route]);
       delete ajaxCache[route];
       if (options.fixInsertRule) await fixInsertRule({ page });
+      await fixRadioButtons({ page });
 
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
