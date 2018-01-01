@@ -392,9 +392,14 @@ const fixInsertRule = ({ page }) => {
   });
 };
 
-const fixRadioButtons = ({ page }) => {
+const fixRadioCheckboxButtons = ({ page }) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("[type=radio]")).forEach(radio => {
+      if (radio.checked) {
+        radio.setAttribute("checked", "checked");
+      }
+    });
+    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(radio => {
       if (radio.checked) {
         radio.setAttribute("checked", "checked");
       }
@@ -597,7 +602,7 @@ const run = async userOptions => {
       }, ajaxCache[route]);
       delete ajaxCache[route];
       if (options.fixInsertRule) await fixInsertRule({ page });
-      await fixRadioButtons({ page });
+      await fixRadioCheckboxButtons({ page });
 
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
