@@ -1,9 +1,10 @@
 const puppeteer = require("puppeteer");
 const _ = require("highland");
 const url = require("url");
-const path = require("path");
 // @ts-ignore
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
+const path = require("path");
+const fs = require("fs");
 
 /**
  * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
@@ -83,7 +84,15 @@ const getLinks = async opt => {
  * @return {Promise}
  */
 const crawl = async opt => {
-  const { options, basePath, beforeFetch, afterFetch, onEnd, publicPath } = opt;
+  const {
+    options,
+    basePath,
+    beforeFetch,
+    afterFetch,
+    onEnd,
+    publicPath,
+    sourceDir
+  } = opt;
   let shuttingDown = false;
   let streamClosed = false;
   // TODO: this doesn't work as expected
@@ -135,7 +144,16 @@ const crawl = async opt => {
    */
   const fetchPage = async pageUrl => {
     const route = pageUrl.replace(basePath, "");
-    if (!shuttingDown) {
+
+    let skipExistingFile = false;
+    const routePath = route.replace(/\//g, path.sep);
+    const { ext } = path.parse(routePath);
+    if (ext !== ".html" && ext !== "") {
+      const filePath = path.join(sourceDir, routePath);
+      skipExistingFile = fs.existsSync(filePath);
+    }
+
+    if (!shuttingDown && !skipExistingFile) {
       try {
         const page = await browser.newPage();
         if (options.viewport) await page.setViewport(options.viewport);
