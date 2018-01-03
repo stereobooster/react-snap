@@ -97,6 +97,12 @@ Use `inlineCss: true` to enable this feature.
 
 TODO: as soon as the feature will be stable it should be enabled by default.
 
+### puppeteerExecutablePath
+
+To run `react-snap` inside environment likes docker, you might want to use custom chromium executable.
+
+For example, use `puppeteerExecutablePath: "/usr/bin/chromium-browser"` you can set chromium executable path to `/usr/bin/chromium-browser`.
+
 ## ⚠️ Caveats
 
 ### Async components
