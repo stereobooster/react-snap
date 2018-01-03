@@ -202,6 +202,12 @@ you may use
 
 Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
 
+#### Docker
+
+To run `react-snap` inside docker (especially when using alpine), you might want to use custom chromium executable.
+
+For example, use `puppeteerExecutablePath: "/usr/bin/chromium-browser"` you can set chromium executable path to `/usr/bin/chromium-browser`.
+
 ### Semantic UI
 
 [Semantic UI](https://semantic-ui.com/) is defined over class substrings that contain spaces

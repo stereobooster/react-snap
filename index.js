@@ -24,6 +24,7 @@ const defaultOptions = {
   userAgent: "ReactSnap",
   headless: true,
   puppeteerArgs: [],
+  puppeteerExecutablePath: undefined,
   publicPath: "/",
   minifyCss: {},
   minifyHtml: {
