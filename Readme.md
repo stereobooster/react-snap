@@ -139,7 +139,7 @@ loadComponents().then(() => {
 
 ### Redux
 
-See: [Redux Srever Rendering Section](https://redux.js.org/docs/recipes/ServerRendering.html#the-client-side)
+See: [Redux Server Rendering Section](https://redux.js.org/docs/recipes/ServerRendering.html#the-client-side)
 
 ```js
 // Grab the state from a global variable injected into the server-generated HTML
