@@ -215,10 +215,9 @@ use the following configuration:
 ## Possible improvements
 
 - Improve [preconnect](http://caniuse.com/#feat=link-rel-preconnect), [dns-prefetch](http://caniuse.com/#feat=link-rel-dns-prefetch) functionality, maybe use [media queries](https://developer.mozilla.org/en-US/docs/Web/HTML/Preloading_content). Example: load in small screen - capture all assets, add with a media query for the small screen, load in big screen add the rest of the assets with a media query for the big screen.
-- Do not load assets, the same way as minimalcss does
-- Evaluate [penthouse](https://github.com/pocketjoso/penthouse) as alternative to [minimalcss](https://github.com/peterbe/minimalcss)
+- Do not load assets, the same way as `minimalcss` does
 - Check if there is a way to improve font loading. See: [1](https://www.zachleat.com/web/comprehensive-webfonts/),
-[2](https://github.com/malchata/unicode-ranger/tree/v2)
+[2](https://github.com/malchata/unicode-ranger/tree/v2), [3](https://github.com/Munter/subfont)
 
 ## Alternatives
 
