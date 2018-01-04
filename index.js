@@ -69,7 +69,8 @@ const defaultOptions = {
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
-  removeScriptTags: false
+  removeScriptTags: false,
+  base: ""
 };
 
 /**
@@ -344,9 +345,9 @@ const asyncScriptTags = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
+const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest, base }) => {
   return page.evaluate(
-    (basePath, http2PushManifest) => {
+    (basePath, http2PushManifest, base) => {
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
       );
@@ -363,7 +364,7 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
         const linkTag = document.createElement("link");
         linkTag.setAttribute("rel", "preload");
         linkTag.setAttribute("as", "script");
-        linkTag.setAttribute("href", x.src.replace(basePath, ""));
+        linkTag.setAttribute("href", x.src.replace(basePath, base));
         document.head.appendChild(linkTag);
       };
 
@@ -377,7 +378,8 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
       }
     },
     basePath,
-    http2PushManifest
+    http2PushManifest,
+    base
   );
 };
 
@@ -566,7 +568,8 @@ const run = async userOptions => {
         await fixWebpackChunksIssue({
           page,
           basePath,
-          http2PushManifest
+          http2PushManifest,
+          base: options.base
         });
       }
       if (options.asyncScriptTags) await asyncScriptTags({ page });
