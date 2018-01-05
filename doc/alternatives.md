@@ -77,6 +77,7 @@
 - [rendertron#web-components](https://github.com/GoogleChrome/rendertron#web-components)
 - [shadydom](https://github.com/webcomponents/shadydom)
 
-## Puppeteer vs chrome-launcher
+## Headless browsers
 
-- [WIP: use chrome-launcher for handling the browser](https://github.com/GoogleChrome/puppeteer/pull/23)
+- Puppeteer vs chrome-launcher - [WIP: use chrome-launcher for handling the browser](https://github.com/GoogleChrome/puppeteer/pull/23)
+- [HeadlessBrowsers](https://github.com/dhamaniasad/HeadlessBrowsers)
