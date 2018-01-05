@@ -42,6 +42,12 @@
   "bin": {
     "react-snap": "./run.js"
   },
+  "files": [
+    "index.js",
+    "run.js",
+    "src/",
+    "vendor/"
+  ],
   "reactSnap": {
     "destination": "tmp",
     "inlineCss": true,

@@ -204,9 +204,11 @@ Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/pup
 
 #### Docker
 
-To run `react-snap` inside docker (especially when using alpine), you might want to use custom chromium executable.
+To run `react-snap` inside `docker` (especially when using alpine), you might want to use custom chromium executable. See [#93](https://github.com/stereobooster/react-snap/issues/93#issuecomment-354994505).
 
-For example, use `puppeteerExecutablePath: "/usr/bin/chromium-browser"` you can set chromium executable path to `/usr/bin/chromium-browser`.
+```
+puppeteerExecutablePath: "/usr/bin/chromium-browser"
+```
 
 ### Semantic UI
 
@@ -217,6 +219,14 @@ use the following configuration:
 ```
 "minifyHtml": { "sortClassName": false }
 ```
+
+### JSS
+
+> Once JS on the client is loaded, components initialized and your JSS styles are regenerated, it's a good time to remove server-side generated style tag in order to avoid side-effects
+>
+> https://github.com/cssinjs/jss/blob/master/docs/ssr.md
+
+This is basically mean that JSS doesn't support `rehydration`. See [#99](https://github.com/stereobooster/react-snap/issues/99) for possible solutions.
 
 ## Possible improvements
 
