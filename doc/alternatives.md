@@ -66,14 +66,14 @@
 
 ## Unsorted
 
-- [prerenderer](https://github.com/tribex/prerenderer), experimental, jsdom, chrome-remote-interface
+- [prerenderer](https://github.com/tribex/prerenderer), experimental, jsdom, cheerio, chrome-remote-interface
 - [prerender-chrome-headless](https://github.com/en-japan-air/prerender-chrome-headless), puppeteer
 - [chrome-render](https://github.com/gwuhaolin/chrome-render), chrome-pool
 - [react-prerender](https://github.com/Robert-W/react-prerender), react, cheerio
 - [simple-react-prerender](https://github.com/beac0n/simple-react-prerender), react, jsdom, mock-browser, isomorphic-fetch
 - [vue-prerender](https://github.com/eldarc/vue-prerender), experimental, vue, puppeteer
-- [prerender-seo](https://github.com/posrix/prerender-seo), phantomjs-prebuil
-- [puppeteer-prerender](https://github.com/fenivana/puppeteer-prerender), puppeteer
+- [prerender-seo](https://github.com/posrix/prerender-seo), phantomjs-prebuilt
+- [puppeteer-prerender](https://github.com/fenivana/puppeteer-prerender), puppeteer, request
 - [puppeteer-prerenderer](https://github.com/GoodeUser/puppeteer-prerenderer), puppeteer
 - [pre-render](https://github.com/kriasoft/pre-render), chrome-remote-interface, chrome-launcher, lighthouse-logger
 - [bot-prerender](https://github.com/ocoboco/bot-prerender), no description
