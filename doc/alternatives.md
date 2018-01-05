@@ -34,7 +34,7 @@
 
 - [prerenderer](https://github.com/tribex/prerenderer), experimental, jsdom, cheerio, chrome-remote-interface
 - [prerender-chrome-headless](https://github.com/en-japan-air/prerender-chrome-headless), puppeteer
-- [chrome-render](https://github.com/gwuhaolin/chrome-render), chrome-pool
+- [chrome-render](https://github.com/gwuhaolin/chrome-render), chrome-pool (chrome-remote-interface, chrome-runner)
 - [react-prerender](https://github.com/Robert-W/react-prerender), react, cheerio
 - [simple-react-prerender](https://github.com/beac0n/simple-react-prerender), react, jsdom, mock-browser, isomorphic-fetch
 - [vue-prerender](https://github.com/eldarc/vue-prerender), experimental, vue, puppeteer
@@ -45,7 +45,7 @@
 
 ## SEO-only server prerenderers
 
-- [rendertron](https://github.com/GoogleChrome/rendertron), chrome-launcher, chrome-remote-interface
+- [rendertron](https://github.com/GoogleChrome/rendertron), chrome-remote-interface, chrome-launcher
 - [prerender](https://github.com/prerender/prerender), chrome-remote-interface
 - [puppetron](https://github.com/cheeaun/puppetron), puppeteer
 - [pupperender](https://github.com/LasaleFamine/pupperender), puppeteer
@@ -53,7 +53,7 @@
 
 ## Other
 
-- [usus](https://github.com/gajus/usus), chrome-launcher, chrome-remote-interface
+- [usus](https://github.com/gajus/usus), chrome-remote-interface, chrome-launcher
 - [hypernova](https://github.com/airbnb/hypernova)
 - [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin), webpack
 
