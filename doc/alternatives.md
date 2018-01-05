@@ -42,7 +42,6 @@
 - [puppeteer-prerender](https://github.com/fenivana/puppeteer-prerender), puppeteer, request
 - [puppeteer-prerenderer](https://github.com/GoodeUser/puppeteer-prerenderer), puppeteer
 - [pre-render](https://github.com/kriasoft/pre-render), chrome-remote-interface, chrome-launcher, lighthouse-logger
-- [bot-prerender](https://github.com/ocoboco/bot-prerender), no description
 
 ## SEO-only server prerenderers
 
@@ -66,10 +65,10 @@
 
 ## SSR
 
-- [razzle](https://github.com/jaredpalmer/razzle)
-- [next.js](https://github.com/zeit/next.js/)
-- [nuxtjs](https://nuxtjs.org/)
-- [Create React App Universal CLI](https://github.com/antonybudianto/cra-universal)
+- [razzle](https://github.com/jaredpalmer/razzle), react
+- [next.js](https://github.com/zeit/next.js/), react
+- [nuxtjs](https://nuxtjs.org/), vue
+- [Create React App Universal CLI](https://github.com/antonybudianto/cra-universal), react
 
 ## WebComponents
 
@@ -77,3 +76,7 @@
 - [skatejs/ssr](https://github.com/skatejs/ssr)
 - [rendertron#web-components](https://github.com/GoogleChrome/rendertron#web-components)
 - [shadydom](https://github.com/webcomponents/shadydom)
+
+## Puppeteer vs chrome-launcher
+
+- [WIP: use chrome-launcher for handling the browser](https://github.com/GoogleChrome/puppeteer/pull/23)
