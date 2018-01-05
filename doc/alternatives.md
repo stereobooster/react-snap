@@ -30,41 +30,7 @@
 - `insertRule` - Works with CSS-in-JS solutions which use `CSSStyleSheet.insertRule`
 - **blob urls** - removes blob urls from generated HTML
 
-## SEO-only server prerenderers
-
-- [rendertron](https://github.com/GoogleChrome/rendertron)
-- [prerender](https://github.com/prerender/prerender)
-- [puppetron](https://github.com/cheeaun/puppetron)
-- [pupperender](https://github.com/LasaleFamine/pupperender)
-- [spiderable-middleware](https://github.com/VeliovGroup/spiderable-middleware)
-
-## React static site generators
-
-- [gatsby](https://github.com/gatsbyjs/gatsby)
-- [phenomic](https://github.com/phenomic/phenomic)
-- [react-static](https://github.com/nozzle/react-static)
-
-## WebComponents
-
-- [talk: WebComponents SSR](https://youtu.be/yT-EsESAmgA)
-- [skatejs/ssr](https://github.com/skatejs/ssr)
-- [rendertron#web-components](https://github.com/GoogleChrome/rendertron#web-components)
-- [shadydom](https://github.com/webcomponents/shadydom)
-
-## Other
-
-- [usus](https://github.com/gajus/usus)
-- [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin)
-- [hypernova](https://github.com/airbnb/hypernova)
-
-## SSR
-
-- [razzle](https://github.com/jaredpalmer/razzle)
-- [next.js](https://github.com/zeit/next.js/)
-- [nuxtjs](https://nuxtjs.org/)
-- [Create React App Universal CLI](https://github.com/antonybudianto/cra-universal)
-
-## Unsorted
+### Less popular options
 
 - [prerenderer](https://github.com/tribex/prerenderer), experimental, jsdom, cheerio, chrome-remote-interface
 - [prerender-chrome-headless](https://github.com/en-japan-air/prerender-chrome-headless), puppeteer
@@ -77,3 +43,37 @@
 - [puppeteer-prerenderer](https://github.com/GoodeUser/puppeteer-prerenderer), puppeteer
 - [pre-render](https://github.com/kriasoft/pre-render), chrome-remote-interface, chrome-launcher, lighthouse-logger
 - [bot-prerender](https://github.com/ocoboco/bot-prerender), no description
+
+## SEO-only server prerenderers
+
+- [rendertron](https://github.com/GoogleChrome/rendertron), chrome-launcher, chrome-remote-interface
+- [prerender](https://github.com/prerender/prerender), chrome-remote-interface
+- [puppetron](https://github.com/cheeaun/puppetron), puppeteer
+- [pupperender](https://github.com/LasaleFamine/pupperender), puppeteer
+- [spiderable-middleware](https://github.com/VeliovGroup/spiderable-middleware), request
+
+## Other
+
+- [usus](https://github.com/gajus/usus), chrome-launcher, chrome-remote-interface
+- [hypernova](https://github.com/airbnb/hypernova)
+- [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin), webpack
+
+## React static site generators
+
+- [gatsby](https://github.com/gatsbyjs/gatsby)
+- [phenomic](https://github.com/phenomic/phenomic)
+- [react-static](https://github.com/nozzle/react-static)
+
+## SSR
+
+- [razzle](https://github.com/jaredpalmer/razzle)
+- [next.js](https://github.com/zeit/next.js/)
+- [nuxtjs](https://nuxtjs.org/)
+- [Create React App Universal CLI](https://github.com/antonybudianto/cra-universal)
+
+## WebComponents
+
+- [talk: WebComponents SSR](https://youtu.be/yT-EsESAmgA)
+- [skatejs/ssr](https://github.com/skatejs/ssr)
+- [rendertron#web-components](https://github.com/GoogleChrome/rendertron#web-components)
+- [shadydom](https://github.com/webcomponents/shadydom)
