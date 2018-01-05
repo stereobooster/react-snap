@@ -30,9 +30,6 @@
 - `insertRule` - Works with CSS-in-JS solutions which use `CSSStyleSheet.insertRule`
 - **blob urls** - removes blob urls from generated HTML
 
-TODO: add to comparison
-- [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin)
-
 ## SEO-only server prerenderers
 
 - [rendertron](https://github.com/GoogleChrome/rendertron)
@@ -57,19 +54,26 @@ TODO: add to comparison
 ## Other
 
 - [usus](https://github.com/gajus/usus)
-- [Simple express server for your `create-react-app` projects with Server-side rendering and Code-splitting](https://github.com/antonybudianto/cra-universal). It seems it is similar to [razzle](https://github.com/jaredpalmer/razzle) - two webpack configs.
+- [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin)
+- [hypernova](https://github.com/airbnb/hypernova)
+
+## SSR
+
+- [razzle](https://github.com/jaredpalmer/razzle)
+- [next.js](https://github.com/zeit/next.js/)
+- [nuxtjs](https://nuxtjs.org/)
+- [Create React App Universal CLI](https://github.com/antonybudianto/cra-universal)
 
 ## Unsorted
-- [nuxtjs](https://nuxtjs.org/)
-- [tribex/prerenderer](https://github.com/tribex/prerenderer)
-- [hypernova](https://github.com/airbnb/hypernova)
-- [prerender-chrome-headless](https://github.com/en-japan-air/prerender-chrome-headless)
-- [chrome-render](https://github.com/gwuhaolin/chrome-render)
-- https://github.com/Robert-W/react-prerender
-- https://github.com/ocoboco/bot-prerender
-- https://github.com/beac0n/simple-react-prerender
-- https://github.com/eldarc/vue-prerender
-- https://github.com/posrix/prerender-seo
-- https://github.com/fenivana/puppeteer-prerender
-- https://github.com/GoodeUser/puppeteer-prerenderer
-- https://github.com/kriasoft/pre-render
+
+- [prerenderer](https://github.com/tribex/prerenderer), experimental, jsdom, chrome-remote-interface
+- [prerender-chrome-headless](https://github.com/en-japan-air/prerender-chrome-headless), puppeteer
+- [chrome-render](https://github.com/gwuhaolin/chrome-render), chrome-pool
+- [react-prerender](https://github.com/Robert-W/react-prerender), react, cheerio
+- [simple-react-prerender](https://github.com/beac0n/simple-react-prerender), react, jsdom, mock-browser, isomorphic-fetch
+- [vue-prerender](https://github.com/eldarc/vue-prerender), experimental, vue, puppeteer
+- [prerender-seo](https://github.com/posrix/prerender-seo), phantomjs-prebuil
+- [puppeteer-prerender](https://github.com/fenivana/puppeteer-prerender), puppeteer
+- [puppeteer-prerenderer](https://github.com/GoodeUser/puppeteer-prerenderer), puppeteer
+- [pre-render](https://github.com/kriasoft/pre-render), chrome-remote-interface, chrome-launcher, lighthouse-logger
+- [bot-prerender](https://github.com/ocoboco/bot-prerender), no description
