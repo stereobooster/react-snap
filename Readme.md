@@ -70,8 +70,24 @@ Example: [Switch from prerender-spa-plugin to react-snap](https://github.com/ste
 
 ### Caveats
 
-- Only works with routing strategies using the HTML5 history API. No hash(bang) URLs.
-- **Vue 1.x**: Make sure to use [`replace: false`](http://vuejs.org/api/#replace) for root components
+Only works with routing strategies using the HTML5 history API. No hash(bang) URLs.
+
+Vue uses `data-server-rendered` attribute on the root element to mark SSR generated markup. When this attribute is present VDOM rehydrates instead of rendering all from scratch, which can result in a flash.
+
+This is the small hack to fix rehydration problem.
+
+```js
+window.snapSaveState = () => {
+  rootElement.setAttribute('data-server-rendered', 'true')
+  return {};
+};
+```
+
+`window.snapSaveState` is a callback to save a state of the application at the end of rendering. It can be used for Redux or async components. In this example it is repurposed to change DOM, this is why I call it "hack". Maybe in future versions of `react-snap` I will come up with better abstractions or automate this process.
+
+### Vue 1.x
+
+Make sure to use [`replace: false`](https://v1.vuejs.org/api/#replace) for root components
 
 ## ✨ Examples
 
