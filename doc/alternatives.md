@@ -42,6 +42,7 @@
 - [puppeteer-prerender](https://github.com/fenivana/puppeteer-prerender), puppeteer, request
 - [puppeteer-prerenderer](https://github.com/GoodeUser/puppeteer-prerenderer), puppeteer
 - [pre-render](https://github.com/kriasoft/pre-render), chrome-remote-interface, chrome-launcher, lighthouse-logger
+- [prerender-plugin](https://github.com/mubaidr/prerender-plugin), webpack, puppeteer
 
 ## SEO-only server prerenderers
 
@@ -81,3 +82,4 @@
 
 - Puppeteer vs chrome-launcher - [WIP: use chrome-launcher for handling the browser](https://github.com/GoogleChrome/puppeteer/pull/23)
 - [HeadlessBrowsers](https://github.com/dhamaniasad/HeadlessBrowsers)
+- [Puppeteer for Firefox](https://github.com/autonome/puppeteer-fx)
