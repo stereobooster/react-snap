@@ -68,6 +68,11 @@ Change `package.json`:
 
 Example: [Switch from prerender-spa-plugin to react-snap](https://github.com/stereobooster/prerender-spa-plugin/commit/778594f55b5859cd3ca57dfd6e08b1d9008d2823)
 
+### Caveats
+
+- Only works with routing strategies using the HTML5 history API. No hash(bang) URLs.
+- **Vue 1.x**: Make sure to use [`replace: false`](http://vuejs.org/api/#replace) for root components
+
 ## ✨ Examples
 
 - [Emotion website load performance optimization](doc/emotion-site-optimization.md)
