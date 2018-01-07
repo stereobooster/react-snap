@@ -57,6 +57,7 @@
 - [usus](https://github.com/gajus/usus), chrome-remote-interface, chrome-launcher
 - [hypernova](https://github.com/airbnb/hypernova)
 - [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin), webpack
+- [Sitepack: A toolkit for building lazymorphic applications](https://github.com/sitepack/sitepack)
 
 ## React static site generators
 
