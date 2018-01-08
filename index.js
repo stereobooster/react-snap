@@ -656,8 +656,7 @@ const run = async userOptions => {
       }
     });
   } catch (e) {
-    console.log('Exception occurred during crawling.', e);
-    process.exit(1);
+    return Promise.reject(new Error());
   }
 };
 
