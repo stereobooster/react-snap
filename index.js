@@ -656,7 +656,7 @@ const run = async userOptions => {
       }
     });
   } catch (e) {
-    return Promise.reject(new Error());
+    return Promise.reject(new Error(e));
   }
 };
 
