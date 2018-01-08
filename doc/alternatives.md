@@ -32,7 +32,7 @@
 
 ### Less popular options
 
-- [presite](https://github.com/egoist/presite), taki (chromy, jsdom)
+- [presite](https://github.com/egoist/presite), taki (jsdom, chromy (chrome-remote-interface, chrome-launcher))
 - [prerenderer](https://github.com/tribex/prerenderer), experimental, jsdom, cheerio, chrome-remote-interface
 - [prerender-chrome-headless](https://github.com/en-japan-air/prerender-chrome-headless), puppeteer
 - [chrome-render](https://github.com/gwuhaolin/chrome-render), chrome-pool (chrome-remote-interface, chrome-runner)
