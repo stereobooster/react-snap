@@ -145,7 +145,7 @@ const preloadResources = opt => {
     const route = responseUrl.replace(basePath, "");
     if (/^http:\/\/localhost/i.test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
-      if (preloadImages && /\.(png|jpg|jpeg|webp|gif)$/.test(responseUrl)) {
+      if (preloadImages && /\.(png|jpg|jpeg|webp|gif|svg)$/.test(responseUrl)) {
         if (http2PushManifest) {
           http2PushManifestItems.push({
             link: route,
