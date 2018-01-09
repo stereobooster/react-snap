@@ -59,6 +59,12 @@
 - [hypernova](https://github.com/airbnb/hypernova)
 - [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin), webpack
 - [Sitepack: A toolkit for building lazymorphic applications](https://github.com/sitepack/sitepack)
+- [chromeless](https://github.com/graphcool/chromeless), chrome-launcher, chrome-remote-interface
+
+## Software as a service
+
+- https://www.prerender.cloud/
+- https://www.roast.io/docs/config/ssr
 
 ## React static site generators
 
