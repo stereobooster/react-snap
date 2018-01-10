@@ -44,6 +44,7 @@
 - [puppeteer-prerenderer](https://github.com/GoodeUser/puppeteer-prerenderer), puppeteer
 - [pre-render](https://github.com/kriasoft/pre-render), chrome-remote-interface, chrome-launcher, lighthouse-logger
 - [prerender-plugin](https://github.com/mubaidr/prerender-plugin), webpack, puppeteer
+- [webpack-static-site-generator](https://github.com/esalter-va/webpack-static-site-generator), nightmare, xvfb
 
 ## SEO-only server prerenderers
 
