@@ -66,7 +66,7 @@ Change `package.json`:
 
 `source` - output folder of webpack or any other bundler of your choice
 
-Example: [Switch from prerender-spa-plugin to react-snap](https://github.com/stereobooster/prerender-spa-plugin/commit/778594f55b5859cd3ca57dfd6e08b1d9008d2823)
+Example: [Switch from prerender-spa-plugin to react-snap](https://github.com/stereobooster/prerender-spa-plugin/commit/ee73d39b862bc905b44a04c6eaa58e6730957819)
 
 ### Caveats
 
@@ -78,8 +78,7 @@ This is the small hack to fix rehydration problem.
 
 ```js
 window.snapSaveState = () => {
-  rootElement.setAttribute('data-server-rendered', 'true')
-  return {};
+  document.querySelector('#app').setAttribute('data-server-rendered', 'true')
 };
 ```
 
@@ -223,13 +222,25 @@ you may use
 
 Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
 
+`"inlineCss": true` sometimes cause problems in containers
+
 #### Docker
 
 To run `react-snap` inside `docker` (especially when using alpine), you might want to use custom chromium executable. See [#93](https://github.com/stereobooster/react-snap/issues/93#issuecomment-354994505).
 
 ```
-puppeteerExecutablePath: "/usr/bin/chromium-browser"
+"puppeteerExecutablePath": "/usr/bin/chromium-browser"
 ```
+
+#### Heroku
+
+```
+heroku buildpacks:add https://github.com/jontewks/puppeteer-heroku-buildpack.git
+heroku buildpacks:add heroku/nodejs
+heroku buildpacks:add https://github.com/heroku/heroku-buildpack-static.git
+```
+
+See this [PR](https://github.com/stereobooster/an-almost-static-stack/pull/7/files). At the moment of writing, Heroku doesn't support HTTP2.
 
 ### Semantic UI
 
