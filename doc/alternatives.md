@@ -90,5 +90,10 @@
 ## Headless browsers
 
 - Puppeteer vs chrome-launcher - [WIP: use chrome-launcher for handling the browser](https://github.com/GoogleChrome/puppeteer/pull/23)
-- [HeadlessBrowsers](https://github.com/dhamaniasad/HeadlessBrowsers)
+- [Chrome DevTools Protocol Viewer](https://chromedevtools.github.io/devtools-protocol/)
+- [chrome-remote-interface](https://github.com/cyrus-and/chrome-remote-interface)
+- [RemoteDebug Protocol Compatibility Tables](http://compatibility.remotedebug.org/)
 - [Puppeteer for Firefox](https://github.com/autonome/puppeteer-fx)
+- [Awesome chrome-devtools](https://github.com/ChromeDevTools/awesome-chrome-devtools)
+- [HeadlessBrowsers](https://github.com/dhamaniasad/HeadlessBrowsers)
+
