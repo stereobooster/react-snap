@@ -7,7 +7,7 @@
 | State                         | supported  | looking for maintainer                       | unsupported                      | unsupported  | experimental               |
 | DOM implementation            | puppeteer  | phantomjs-prebuilt                           | jsdom                            | nightmare    | puppeteer                  |
 | Doesn't depend on Webpack     | +          | -                                            | +                                | +            | +                          |
-| Doesn't depend on React       | +          | +                                            | -                                | +            | -                          |
+| Doesn't depend on React       | +          | +                                            | -                                | +            | +                          |
 | Load performance optimisation | +          | -                                            | -                                | -            | +                          |
 | Zero-configuration            | +          | -                                            | +                                | -            | +                          |
 | Redux                         | +          | -                                            | +                                | -            | -                          |
@@ -45,6 +45,7 @@
 - [pre-render](https://github.com/kriasoft/pre-render), chrome-remote-interface, chrome-launcher, lighthouse-logger
 - [prerender-plugin](https://github.com/mubaidr/prerender-plugin), webpack, puppeteer
 - [webpack-static-site-generator](https://github.com/esalter-va/webpack-static-site-generator), nightmare, xvfb
+- [junctions-static](https://github.com/jamesknelson/junctions/tree/master/packages/junctions-static), jsdom, react
 
 ## SEO-only server prerenderers
 
@@ -72,6 +73,7 @@
 - [gatsby](https://github.com/gatsbyjs/gatsby)
 - [phenomic](https://github.com/phenomic/phenomic)
 - [react-static](https://github.com/nozzle/react-static)
+- [nextein](https://github.com/elmasse/nextein)
 
 ## SSR
 
