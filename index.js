@@ -12,6 +12,7 @@ const url = require("url");
 // @ts-ignore https://github.com/peterbe/minimalcss/pull/30
 const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
+const css-tree = require("css-tree");
 const twentyKb = 20 * 1024;
 
 const defaultOptions = {
@@ -255,22 +256,14 @@ const inlineCss = async opt => {
   const criticalCss = minimalcssResult.finalCss;
   const criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
 
-  const result = await page.evaluate(async () => {
-    const stylesheets = Array.from(
-      document.querySelectorAll("link[rel=stylesheet]")
-    );
-    const cssArray = await Promise.all(
-      stylesheets.map(async link => {
-        const response = await fetch(link.href);
-        return response.text();
-      })
-    );
-    return {
-      cssFiles: stylesheets.map(link => link.href),
-      allCss: cssArray.join("")
-    };
-  });
-  const allCss = new CleanCSS(options.minifyCss).minify(result.allCss).styles;
+  const allCssMinified = Object.keys(minimalcssResult.stylesheetAstObjects)
+    .map(cssUrl => {
+      return csstree.translate(
+        csstree.fromPlainObject(minimalcssResult.stylesheetAstObjects[cssUrl])
+      );
+    })
+    .join("\n");
+  const allCss = new CleanCSS(options.minifyCss).minify(allCssMinified).styles;
   const allCssSize = Buffer.byteLength(allCss, "utf8");
 
   let cssStrategy, cssSize;
@@ -287,6 +280,7 @@ const inlineCss = async opt => {
       `⚠️  inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
     );
 
+  let cssFiles = [];
   if (cssStrategy === "critical") {
     await page.evaluate(
       (criticalCss, preloadPolyfill) => {
@@ -319,7 +313,7 @@ const inlineCss = async opt => {
       preloadPolyfill
     );
   } else {
-    await page.evaluate(allCss => {
+    cssFiles = await page.evaluate(allCss => {
       const head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
@@ -332,11 +326,11 @@ const inlineCss = async opt => {
       stylesheets.forEach(link => {
         link.parentNode && link.parentNode.removeChild(link);
       });
+      return stylesheets.map(link => link.href);
     }, allCss);
   }
-  return {
-    cssFiles: cssStrategy === "inline" ? result.cssFiles : []
-  };
+
+  return { cssFiles };
 };
 
 const asyncScriptTags = ({ page }) => {
