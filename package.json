@@ -1,8 +1,7 @@
 {
   "name": "react-snap",
   "version": "1.10.0",
-  "description":
-    "Zero-configuration framework-agnostic static prerendering for SPAs",
+  "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
   "author": "stereobooster",
   "license": "MIT",
@@ -16,34 +15,30 @@
     "express-history-api-fallback": "^2.2.1",
     "highland": "^2.11.1",
     "html-minifier": "^3.5.5",
-    "minimalcss": "^0.3.1",
+    "minimalcss": "^0.6.3",
     "mkdirp": "^0.5.1",
-    "puppeteer": "^0.11.0",
+    "puppeteer": "^1.0.0",
     "serve-static": "^1.13.1",
     "sourcemapped-stacktrace-node": "^2.1.6"
   },
   "devDependencies": {
-    "@types/express": "^4.0.38",
-    "@types/highland": "^2.10.5",
-    "@types/html-minifier": "^1.1.30",
-    "@types/mkdirp": "^0.5.1",
-    "@types/node": "^8.0.46",
-    "@types/puppeteer": "^0.12.0",
-    "@types/serve-static": "^1.13.0",
     "markdown-toc": "^1.2.0",
-    "prettier": "1.7.3",
-    "typescript": "^2.7.0-dev.20171026"
+    "prettier": "1.7.3"
   },
   "scripts": {
     "toc": "yarn run markdown-toc -i doc/recipes.md",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "precommit": "prettier --write {*,src/*}.{js,json,css}",
-    "tsc": "tsc -p ."
+    "precommit": "prettier --write {*,src/*}.{js,json,css}"
   },
   "bin": {
     "react-snap": "./run.js"
   },
-  "files": ["index.js", "run.js", "src/", "vendor/"],
+  "files": [
+    "index.js",
+    "run.js",
+    "src/",
+    "vendor/"
+  ],
   "reactSnap": {
     "destination": "tmp",
     "inlineCss": true,
