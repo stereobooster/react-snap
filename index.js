@@ -12,7 +12,6 @@ const url = require("url");
 // @ts-ignore https://github.com/peterbe/minimalcss/pull/30
 const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
-const twentyKb = 20 * 1024;
 
 const defaultOptions = {
   //# stable configurations
@@ -59,6 +58,7 @@ const defaultOptions = {
   // Experimental. This config stands for two strategies inline and critical.
   // TODO: inline strategy can contain errors, like, confuse relative urls
   inlineCss: false,
+  inlineCssThreshold: 1024 * 10,
   //# feature creeps to generate screenshots
   saveAs: "html",
   crawl: true,
@@ -274,7 +274,7 @@ const inlineCss = async opt => {
   const allCssSize = Buffer.byteLength(allCss, "utf8");
 
   let cssStrategy, cssSize;
-  if (criticalCssSize * 2 >= allCssSize) {
+  if (allCssSize < options.inlineCssThreshold) {
     cssStrategy = "inline";
     cssSize = allCssSize;
   } else {
@@ -282,9 +282,9 @@ const inlineCss = async opt => {
     cssSize = criticalCssSize;
   }
 
-  if (cssSize > twentyKb)
+  if (cssSize > options.inlineCssThreshold)
     console.log(
-      `⚠️  inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
+      `⚠️  inlining CSS more than threshold (${cssSize / 1024}kb, ${cssStrategy})`
     );
 
   if (cssStrategy === "critical") {
