@@ -13,9 +13,9 @@ const fs = require("fs");
 const skipThirdPartyRequests = async opt => {
   const { page, options, basePath } = opt;
   if (!options.skipThirdPartyRequests) return;
-  await page.setRequestInterceptionEnabled(true);
+  await page.setRequestInterception(true);
   page.on("request", request => {
-    if (request.url.startsWith(basePath)) {
+    if (request.url().startsWith(basePath)) {
       request.continue();
     } else {
       request.abort();
