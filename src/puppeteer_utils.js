@@ -29,7 +29,7 @@ const skipThirdPartyRequests = async opt => {
  */
 const enableLogging = opt => {
   const { page, options, route, onError, sourcemapStore } = opt;
-  page.on("console", msg => console.log(`✏️  ${route} log:`, msg));
+  page.on("console", msg => console.log(`✏️  ${route} log:`, msg.text()));
   page.on("error", msg => {
     console.log(`🔥  ${route} error:`, msg);
     onError && onError();
