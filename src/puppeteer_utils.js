@@ -56,6 +56,11 @@ const enableLogging = opt => {
     }
     onError && onError();
   });
+  page.on("response", response => {
+    if (response.status() >= 400) {
+      console.log(`⚠️   ${response.status()} error: ${response.url()}`);
+    }
+  });
   // page.on("requestfailed", msg =>
   //   console.log(`${route} requestfailed:`, msg)
   // );
