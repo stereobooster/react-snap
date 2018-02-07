@@ -17,7 +17,9 @@ const handleThirdPartyRequests = async opt => {
   page.on("request", request => {
     if (options.proxy) {
       for (proxyUrl in options.proxy) {
+        console.log('proxyUrl', proxyUrl);
         if (request.url().startsWith(proxyUrl)) {
+          console.log('proxy match!', request.url());
           const requestChanges = {};
           if (typeof options.proxy[proxyUrl] === 'string') {
             requestChanges.url = request.url().replace(proxyUrl, options.proxy[proxyUrl]);
@@ -28,8 +30,10 @@ const handleThirdPartyRequests = async opt => {
       }
     }
 
-    if (options.skipThirdPartyRequests && !request.url().startsWith(basePath))
+    if (options.skipThirdPartyRequests && !request.url().startsWith(basePath)) {
       request.abort();
+      return;
+    }
 
     request.continue();
   });
