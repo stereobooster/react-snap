@@ -7,19 +7,33 @@ const path = require("path");
 const fs = require("fs");
 
 /**
- * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
+ * @param {{page: Page, options: {skipThirdPartyRequests: true, proxy: {}}, basePath: string }} opt
  * @return {Promise<void>}
  */
-const skipThirdPartyRequests = async opt => {
+const handleThirdPartyRequests = async opt => {
   const { page, options, basePath } = opt;
-  if (!options.skipThirdPartyRequests) return;
+  if (!options.skipThirdPartyRequests || !options.proxy) return;
   await page.setRequestInterception(true);
   page.on("request", request => {
-    if (request.url().startsWith(basePath)) {
-      request.continue();
-    } else {
-      request.abort();
+    if (options.proxy) {
+      for (proxyUrl in options.proxy) {
+        if (request.url().startsWith(proxyUrl)) {
+          const requestChanges = {};
+          if (typeof options.proxy[proxyUrl] === 'string') {
+            requestChanges.url = request.url().replace(proxyUrl, options.proxy[proxyUrl]);
+          }
+          request.continue(requestChanges);
+          return;
+        }
+      }
     }
+
+    if (options.skipThirdPartyRequests && !request.url().startsWith(basePath)) {
+      request.abort();
+      return;
+    }
+
+    request.continue();
   });
 };
 
@@ -164,8 +178,8 @@ const crawl = async opt => {
       try {
         const page = await browser.newPage();
         if (options.viewport) await page.setViewport(options.viewport);
-        if (options.skipThirdPartyRequests)
-          await skipThirdPartyRequests({ page, options, basePath });
+        if (options.skipThirdPartyRequests || options.proxy)
+          await handleThirdPartyRequests({ page, options, basePath });
         enableLogging({
           page,
           options,
@@ -217,7 +231,7 @@ const crawl = async opt => {
     });
 };
 
-exports.skipThirdPartyRequests = skipThirdPartyRequests;
+exports.handleThirdPartyRequests = handleThirdPartyRequests;
 exports.enableLogging = enableLogging;
 exports.getLinks = getLinks;
 exports.crawl = crawl;
