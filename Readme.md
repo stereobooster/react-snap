@@ -121,7 +121,7 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 
 ### Async components
 
-Also known as [code splitting](https://webpack.github.io/docs/code-splitting.html), [dynamic import](https://github.com/tc39/proposal-dynamic-import) (TC39 proposal), "chunks" (which are loaded on demand), "layers", "rollups", or "fragments".
+Also known as [code splitting](https://webpack.js.org/guides/code-splitting/), [dynamic import](https://github.com/tc39/proposal-dynamic-import) (TC39 proposal), "chunks" (which are loaded on demand), "layers", "rollups", or "fragments". See: [Guide To JavaScript Async Components](https://github.com/stereobooster/guide-to-async-components)
 
 Async component (in React) is a technique (typically implemented as a Higher Order Component) for loading components with dynamic `import`. There are a lot of solutions in this field. Here are some examples:
 
@@ -154,8 +154,6 @@ loadComponents().then(() => {
   hydrate(AppWithRouter, rootElement);
 });
 ```
-
-**Caution**: there seems to be [an issue in `loadable-components`](https://github.com/smooth-code/loadable-components/issues/25). Be carefull.
 
 ### Redux
 
