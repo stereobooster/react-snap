@@ -26,7 +26,7 @@
 - Load performancs optimisation - something beyond rendering HTML, like critical CSS
 - Zero-configuration - provides sensible defaults
 - **Redux** - can save state at the end of redering
-- **assync components** - can save state of async componets to prevent flash on the client side
+- **async components** - can save state of async componets to prevent flash on the client side
 - `insertRule` - Works with CSS-in-JS solutions which use `CSSStyleSheet.insertRule`
 - **blob urls** - removes blob urls from generated HTML
 
