@@ -188,13 +188,13 @@ const preloadResources = opt => {
       const urlObj = url.parse(responseUrl);
       const domain = `${urlObj.protocol}//${urlObj.host}`;
       if (uniqueResources.has(domain)) return;
+      uniqueResources.add(domain);
       await page.evaluate(route => {
         const linkTag = document.createElement("link");
         linkTag.setAttribute("rel", "preconnect");
         linkTag.setAttribute("href", route);
         document.head.appendChild(linkTag);
       }, domain);
-      uniqueResources.add(domain);
     }
   });
   return { ajaxCache, http2PushManifestItems };
