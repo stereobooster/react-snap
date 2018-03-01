@@ -199,7 +199,7 @@ By default `create-react-app` uses `index.html` as fallback:
 navigateFallback: publicUrl + '/index.html',
 ```
 
-you need to change this to an unprerendered version of `index.html` - `200.html`, otherwise you will see a flash of `index.html` on other pages (if you have any). See [Configure sw-precache without ejecting](https://github.com/stereobooster/react-snap/blob/master/Recipes.md#configure-sw-precache-without-ejecting) for more information.
+you need to change this to an unprerendered version of `index.html` - `200.html`, otherwise you will see a flash of `index.html` on other pages (if you have any). See [Configure sw-precache without ejecting](https://github.com/stereobooster/react-snap/blob/master/doc/recipes.md#configure-sw-precache-without-ejecting) for more information.
 
 ### Containers and other restricted environments
 
