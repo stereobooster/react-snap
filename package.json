@@ -1,6 +1,6 @@
 {
   "name": "react-snap",
-  "version": "1.11.4",
+  "version": "1.11.5",
   "description":
     "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
@@ -16,7 +16,7 @@
     "express-history-api-fallback": "^2.2.1",
     "highland": "^2.11.1",
     "html-minifier": "^3.5.5",
-    "minimalcss": "^0.6.3",
+    "minimalcss": "^0.7.3",
     "mkdirp": "^0.5.1",
     "puppeteer": "^1.0.0",
     "serve-static": "^1.13.1",

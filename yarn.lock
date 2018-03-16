@@ -172,6 +172,13 @@ css-tree@1.0.0-alpha.27:
     mdn-data "^1.0.0"
     source-map "^0.5.3"
 
+css-tree@1.0.0-alpha.28:
+  version "1.0.0-alpha.28"
+  resolved "https://registry.yarnpkg.com/css-tree/-/css-tree-1.0.0-alpha.28.tgz#8e8968190d886c9477bc8d61e96f61af3f7ffa7f"
+  dependencies:
+    mdn-data "~1.1.0"
+    source-map "^0.5.3"
+
 css-what@2.1:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/css-what/-/css-what-2.1.0.tgz#9467d032c38cfaefb9f2d79501253062f87fa1bd"
@@ -603,7 +610,7 @@ markdown-toc@^1.2.0:
     repeat-string "^1.6.1"
     strip-color "^0.1.0"
 
-mdn-data@^1.0.0:
+mdn-data@^1.0.0, mdn-data@~1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/mdn-data/-/mdn-data-1.1.0.tgz#a7056319da95a2d0881267d7263075042eb061e2"
 
@@ -637,12 +644,12 @@ mime@^1.3.4:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/mime/-/mime-1.6.0.tgz#32cd9e5c64553bd58d19a568af452acff04981b1"
 
-minimalcss@^0.6.3:
-  version "0.6.3"
-  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.6.3.tgz#f1b8f508a9474cb69ae80f8b1e9ecf82749f8cc4"
+minimalcss@^0.7.3:
+  version "0.7.3"
+  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.7.3.tgz#f012cf041b855fc65e3a616e22a34250b751d991"
   dependencies:
     cheerio "1.0.0-rc.2"
-    css-tree "1.0.0-alpha.27"
+    css-tree "1.0.0-alpha.28"
     csso "~3.5.0"
     filesize "^3.5.11"
     minimist "^1.2.0"
