@@ -23,7 +23,7 @@
     "sourcemapped-stacktrace-node": "^2.1.6"
   },
   "devDependencies": {
-    "markdown-toc": "^1.2.0",
+    "markdown-toc": "1.2.0",
     "prettier": "1.7.5"
   },
   "scripts": {
