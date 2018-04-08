@@ -387,8 +387,8 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
 const fixInsertRule = ({ page }) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("style")).forEach(style => {
-      if (style.innerText === "") {
-        style.innerText = Array.from(style.sheet.rules)
+      if (style.innerHTML === "") {
+        style.innerHTML = Array.from(style.sheet.rules)
           .map(rule => rule.cssText)
           .join("");
       }
