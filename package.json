@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "markdown-toc": "1.2.0",
-    "prettier": "1.11.1"
+    "prettier": "1.12.0"
   },
   "scripts": {
     "toc": "yarn run markdown-toc -i doc/recipes.md",
