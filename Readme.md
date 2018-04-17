@@ -147,7 +147,7 @@ It is not a problem to render async component with react-snap, tricky part happe
 
 ```js
 import { loadComponents } from "loadable-components";
-import { getState } from "loadable-components/snap";
+import { getState } from "loadable-components";
 window.snapSaveState = () => getState();
 
 loadComponents().then(() => {
