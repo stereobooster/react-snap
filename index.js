@@ -21,6 +21,7 @@ const defaultOptions = {
   destination: null,
   concurrency: 4,
   include: ["/"],
+  exclude: [],
   userAgent: "ReactSnap",
   // 4 params below will be refactored to one: `puppeteer: {}`
   // https://github.com/stereobooster/react-snap/issues/120
