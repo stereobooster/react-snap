@@ -107,6 +107,19 @@ If you need to pass some options for `react-snap`, you can do this in the `packa
 
 All options are not documented yet, but you can check `defaultOptions` in `index.js`.
 
+### Sitemap
+
+If you want to generate a `sitemap.xml` for your static website you can do this in the `package.json`, like this:
+
+```json
+"homepage": "https://mycoolwebsite.com/",
+"reactSnap": {
+  "sitemap": true
+}
+```
+
+Without the `homepage` a sitemap can't be generated.
+
 ### inlineCss
 
 Experimental feature - requires improvements.
