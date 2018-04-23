@@ -1,8 +1,7 @@
 {
   "name": "react-snap",
   "version": "1.12.2",
-  "description":
-    "Zero-configuration framework-agnostic static prerendering for SPAs",
+  "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
   "author": "stereobooster",
   "license": "MIT",
@@ -14,6 +13,7 @@
     "clean-css": "^4.1.9",
     "express": "^4.16.1",
     "express-history-api-fallback": "^2.2.1",
+    "glob-to-regexp": "^0.4.0",
     "highland": "^2.11.1",
     "html-minifier": "^3.5.5",
     "minimalcss": "^0.7.5",
@@ -34,7 +34,12 @@
   "bin": {
     "react-snap": "./run.js"
   },
-  "files": ["index.js", "run.js", "src/", "vendor/"],
+  "files": [
+    "index.js",
+    "run.js",
+    "src/",
+    "vendor/"
+  ],
   "reactSnap": {
     "destination": "tmp",
     "inlineCss": true,
