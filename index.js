@@ -9,7 +9,6 @@ const fs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
 const url = require("url");
-const { homepage } = require(`${process.cwd()}/package.json`);
 // @ts-ignore https://github.com/peterbe/minimalcss/pull/30
 const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
@@ -459,7 +458,7 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   return page.screenshot({ path: screenshotPath });
 };
 
-const buildSitemap = routes => {
+const buildSitemap = (routes, homepage) => {
   const domain = homepage.replace(/\/$/, '')
   return `
     <?xml version="1.0" encoding="UTF-8"?>
@@ -534,7 +533,7 @@ const run = async userOptions => {
         preconnectThirdParty
       } = options;
 
-      if (!route.includes("/404.html")) sitemapItems.push(route)
+      if (!route.endsWith("/404.html")) sitemapItems.push(route)
 
       if (
         preloadImages ||
@@ -678,12 +677,12 @@ const run = async userOptions => {
         );
       }
       if (sitemap) {
-        if (!homepage) {
+        if (!options.homepage) {
           console.log('⚠️   To generate a sitemap.xml a domain is required, add homepage to package.json');
           return;
         }
 
-        const xml = buildSitemap(sitemapItems);
+        const xml = buildSitemap(sitemapItems, options.homepage);
 
         fs.writeFileSync(
           `${destinationDir}/sitemap.xml`,
