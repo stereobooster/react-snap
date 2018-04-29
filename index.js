@@ -349,6 +349,9 @@ const inlineCss = async opt => {
 const addScriptTagAttrs = ({ page }, attr) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("script[src]")).forEach(x => {
+      if (attr === "defer") {
+        x.setAttribute("async", "false");
+      }
       x.setAttribute(attr, "true");
     });
   });
