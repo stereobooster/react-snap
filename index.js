@@ -68,11 +68,14 @@ const defaultOptions = {
   removeStyleTags: false,
   preloadImages: false,
   // add async true to script tags
+  // Deprecated. Use scriptAttribute option.
   asyncScriptTags: false,
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
-  removeScriptTags: false
+  removeScriptTags: false,
+  // Add script attribute async|defer|none
+  scriptAttribute: "none",
 };
 
 /**
@@ -101,8 +104,12 @@ const defaults = userOptions => {
     options.minifyHtml = options.minifyOptions;
   }
   if (options.asyncJs) {
-    console.log("⚠️  asyncJs option renamed to asyncScriptTags");
-    options.asyncScriptTags = options.asyncJs;
+    console.log("⚠️  use scriptAttribute option instead of asyncJs");
+    options.scriptAttribute = "async";
+  }
+  if (options.asyncScriptTags) {
+    console.log("⚠️  use scriptAttribute option instead of asyncScriptTags");
+    options.scriptAttribute = "async";
   }
   if (options.saveAs !== "html" && options.saveAs !== "png") {
     console.log("⚠️  saveAs supported values are html and png");
@@ -339,10 +346,10 @@ const inlineCss = async opt => {
   };
 };
 
-const asyncScriptTags = ({ page }) => {
+const addScriptTagAttrs = ({ page }, attr) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("script[src]")).forEach(x => {
-      x.setAttribute("async", "true");
+      x.setAttribute(attr, "true");
     });
   });
 };
@@ -572,7 +579,9 @@ const run = async userOptions => {
           http2PushManifest
         });
       }
-      if (options.asyncScriptTags) await asyncScriptTags({ page });
+      if (options.scriptAttribute !== "none") {
+        await addScriptTagAttrs({ page }, options.scriptAttribute);
+      }
 
       await page.evaluate(ajaxCache => {
         const snapEscape = (() => {
