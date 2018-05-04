@@ -72,7 +72,12 @@ const defaultOptions = {
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
-  removeScriptTags: false
+  removeScriptTags: false,
+  // pre processing before any of the react-snap specific modifications happen
+  preProcess: null,
+  // post processing after all of the react-snap specific modifications are complete, 
+  // and the file is just about to be snapshotted (as html/png etc)
+  postProcess: null,
 };
 
 /**
@@ -121,6 +126,16 @@ const defaults = userOptions => {
   options.include = options.include.map(
     include => options.publicPath + include
   );
+  
+  if (options.preProcess && typeof options.preProcess !== "function") {
+    console.log("⚠️  preProcess has to be an async function that accepts opts");    
+    options.preProcess = null;
+  }
+  if (options.postProcess && typeof options.postProcess !== "function") {
+    console.log("⚠️  postProcess has to be an async function that accepts opts");    
+    options.postProcess = null;
+  }
+  
   return options;
 };
 
@@ -538,6 +553,7 @@ const run = async userOptions => {
     },
     afterFetch: async ({ page, route, browser }) => {
       const pageUrl = `${basePath}${route}`;
+      if (options.preProcess) await options.preProcess({ page, pageUrl, route, browser, options });
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
@@ -624,6 +640,7 @@ const run = async userOptions => {
 
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
+      if (options.postProcess) await options.postProcess({ page, pageUrl, route, browser, options });
       if (options.saveAs === "html") {
         await saveAsHtml({ page, filePath, options, route });
       } else if (options.saveAs === "png") {
