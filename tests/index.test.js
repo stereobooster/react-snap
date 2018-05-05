@@ -26,7 +26,8 @@ rewiremock.enable();
 test("one page test", async () => {
   await run(
     {
-      source: "tests/examples/one-page"
+      source: "tests/examples/one-page",
+      puppeteerArgs: ['--no-sandbox', '--disable-setuid-sandbox']
     },
     {
       fs
