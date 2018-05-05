@@ -33,6 +33,51 @@ describe("one page", async () => {
   });
 });
 
+describe("respects destination", async () => {
+  const source = "tests/examples/one-page";
+  const destination = "tests/examples/destination";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await run(
+      {
+        source,
+        destination,
+        puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"]
+      },
+      {
+        fs
+      }
+    );
+  });
+  test("crawls index.html", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+    expect(writeFileSyncMock.mock.calls[0][0]).toEqual(
+      `/${destination}/index.html`
+    );
+  });
+  test("copies (original) index.html to 200.html (to source folder)", () => {
+    expect(createReadStreamMock.mock.calls[0]).toEqual([
+      `/${source}/index.html`
+    ]);
+    expect(createWriteStreamMock.mock.calls[0]).toEqual([
+      `/${source}/200.html`
+    ]);
+  });
+  test("copies (original) index.html to 200.html (to destination folder)", () => {
+    expect(createReadStreamMock.mock.calls[1]).toEqual([
+      `/${source}/index.html`
+    ]);
+    expect(createWriteStreamMock.mock.calls[1]).toEqual([
+      `/${destination}/200.html`
+    ]);
+  });
+});
+
 describe("many pages", async () => {
   const source = "tests/examples/many-pages";
   const {
