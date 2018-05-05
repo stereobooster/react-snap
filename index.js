@@ -5,7 +5,7 @@ const serveStatic = require("serve-static");
 // @ts-ignore
 const fallback = require("express-history-api-fallback");
 const path = require("path");
-const fs = require("fs");
+const nativeFs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
 const url = require("url");
@@ -214,7 +214,7 @@ const removeScriptTags = ({ page }) =>
     });
   });
 
-const preloadPolyfill = fs.readFileSync(
+const preloadPolyfill = nativeFs.readFileSync(
   `${__dirname}/vendor/preload_polyfill.min.js`,
   "utf8"
 );
@@ -424,7 +424,7 @@ const fixFormFields = ({ page }) => {
   });
 };
 
-const saveAsHtml = async ({ page, filePath, options, route }) => {
+const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
   let content = await page.content();
   content = content.replace(/react-snap-onload/g, "onload");
   const title = await page.title();
@@ -457,7 +457,7 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   return page.screenshot({ path: screenshotPath });
 };
 
-const run = async userOptions => {
+const run = async (userOptions, {fs} = {fs: nativeFs}) => {
   const options = defaults(userOptions);
 
   const sourceDir = path.normalize(`${process.cwd()}/${options.source}`);
@@ -625,9 +625,9 @@ const run = async userOptions => {
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
-        await saveAsHtml({ page, filePath, options, route });
+        await saveAsHtml({ page, filePath, options, route, fs });
       } else if (options.saveAs === "png") {
-        await saveAsPng({ page, filePath, options, route });
+        await saveAsPng({ page, filePath, options, route, fs });
       }
     },
     onEnd: () => {

@@ -1,8 +1,7 @@
 {
   "name": "react-snap",
   "version": "1.12.2",
-  "description":
-    "Zero-configuration framework-agnostic static prerendering for SPAs",
+  "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
   "author": "stereobooster",
   "license": "MIT",
@@ -23,21 +22,24 @@
     "sourcemapped-stacktrace-node": "^2.1.6"
   },
   "devDependencies": {
+    "dev-null-stream": "^0.0.1",
+    "jest": "^22.4.3",
     "markdown-toc": "1.2.0",
-    "prettier": "1.12.1"
+    "prettier": "1.12.1",
+    "rewiremock": "^3.7.1"
   },
   "scripts": {
     "toc": "yarn run markdown-toc -i doc/recipes.md",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "precommit": "prettier --write {*,src/*}.{js,json,css}"
   },
   "bin": {
     "react-snap": "./run.js"
   },
-  "files": ["index.js", "run.js", "src/", "vendor/"],
-  "reactSnap": {
-    "destination": "tmp",
-    "inlineCss": true,
-    "cacheAjaxRequests": true
-  }
+  "files": [
+    "index.js",
+    "run.js",
+    "src/",
+    "vendor/"
+  ]
 }

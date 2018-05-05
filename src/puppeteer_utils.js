@@ -207,10 +207,11 @@ const crawl = async opt => {
     options.include.map(x => addToQueue(`${basePath}${x}`));
   }
 
-  queue
+  return queue
     .map(x => _(fetchPage(x)))
     .mergeWithLimit(options.concurrency)
-    .toArray(async function() {
+    .toPromise(Promise)
+    .then(async function() {
       await browser.close();
       onEnd && onEnd();
       if (shuttingDown) process.exit(1);
