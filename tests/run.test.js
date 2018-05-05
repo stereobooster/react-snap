@@ -133,3 +133,38 @@ describe("many pages", async () => {
     expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
   });
 });
+
+describe("possible to disable crawl option", async () => {
+  const source = "tests/examples/many-pages";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      crawl: false,
+      include: ["/1", "/2/", "/3#test", "/4?test"]
+    });
+  });
+  test("crawls all links and saves as index.html in separate folders", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(4);
+    // no / or /404.html
+    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
+      expect.arrayContaining([
+        `/${source}/1/index.html`, // without slash in the end
+        `/${source}/2/index.html`, // with slash in the end
+        `/${source}/3/index.html`, // ignores hash
+        `/${source}/4/index.html` // ignores query
+      ])
+    );
+  });
+  test("copies (original) index.html to 200.html", () => {
+    expect(createReadStreamMock.mock.calls).toEqual([
+      [`/${source}/index.html`]
+    ]);
+    expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
+  });
+});
