@@ -1,5 +1,33 @@
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
+const snapRun = (fs, options) => {
+  return run(
+    {
+      puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
+      ...options
+    },
+    {
+      fs
+    }
+  );
+};
+
+describe("validates options", () => {
+  test("include option should be an non-empty array", () =>
+    run({ include: "" })
+      .then(() => expect(true).toEqual(false))
+      .catch(e => expect(e).toEqual("")));
+
+  test("preloadResources option deprecated. Use preloadImages or cacheAjaxRequests", () =>
+    run({ preloadResources: true })
+      .then(() => expect(true).toEqual(false))
+      .catch(e => expect(e).toEqual("")));
+
+  test("saveAs supported values are html and png", () =>
+    run({ saveAs: "json" })
+      .then(() => expect(true).toEqual(false))
+      .catch(e => expect(e).toEqual("")));
+});
 
 describe("one page", async () => {
   const source = "tests/examples/one-page";
@@ -10,15 +38,9 @@ describe("one page", async () => {
     createWriteStreamMock
   } = mockFs();
   beforeAll(async () => {
-    await run(
-      {
-        source,
-        puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"]
-      },
-      {
-        fs
-      }
-    );
+    await snapRun(fs, {
+      source
+    });
   });
   test("crawls / and saves as index.html to the same folder", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
@@ -43,16 +65,10 @@ describe("respects destination", async () => {
     createWriteStreamMock
   } = mockFs();
   beforeAll(async () => {
-    await run(
-      {
-        source,
-        destination,
-        puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"]
-      },
-      {
-        fs
-      }
-    );
+    await snapRun(fs, {
+      source,
+      destination
+    });
   });
   test("crawls / and saves as index.html to destination folder", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
@@ -87,15 +103,9 @@ describe("many pages", async () => {
     createWriteStreamMock
   } = mockFs();
   beforeAll(async () => {
-    await run(
-      {
-        source,
-        puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"]
-      },
-      {
-        fs
-      }
-    );
+    await snapRun(fs, {
+      source
+    });
   });
   test("crawls all links and saves as index.html in separate folders", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(6);
@@ -104,7 +114,7 @@ describe("many pages", async () => {
         `/${source}/1/index.html`, // without slash in the end
         `/${source}/2/index.html`, // with slash in the end
         `/${source}/3/index.html`, // ignores hash
-        `/${source}/4/index.html`  // ignores query
+        `/${source}/4/index.html` // ignores query
       ])
     );
   });

@@ -86,10 +86,12 @@ const defaults = userOptions => {
     ...userOptions
   };
   options.destination = options.destination || options.source;
-  if (!options.include || !options.include.length)
-    throw new Error("include should be an array");
 
   let exit = false;
+  if (!options.include || !options.include.length) {
+    console.log("⚠️  include option should be an non-empty array");
+    exit = true;
+  }
   if (options.preloadResources) {
     console.log(
       "⚠️  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
@@ -108,7 +110,7 @@ const defaults = userOptions => {
     console.log("⚠️  saveAs supported values are html and png");
     exit = true;
   }
-  if (exit) process.exit(1);
+  if (exit) throw new Error();
   if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
     options.minifyHtml.minifyCSS = options.minifyCss;
   }
@@ -405,15 +407,15 @@ const fixFormFields = ({ page }) => {
         element.removeAttribute("checked");
       }
     });
-    Array.from(
-      document.querySelectorAll("[type=checkbox]")
-    ).forEach(element => {
-      if (element.checked) {
-        element.setAttribute("checked", "checked");
-      } else {
-        element.removeAttribute("checked");
+    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(
+      element => {
+        if (element.checked) {
+          element.setAttribute("checked", "checked");
+        } else {
+          element.removeAttribute("checked");
+        }
       }
-    });
+    );
     Array.from(document.querySelectorAll("option")).forEach(element => {
       if (element.selected) {
         element.setAttribute("selected", "selected");
@@ -457,8 +459,13 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   return page.screenshot({ path: screenshotPath });
 };
 
-const run = async (userOptions, {fs} = {fs: nativeFs}) => {
-  const options = defaults(userOptions);
+const run = async (userOptions, { fs } = { fs: nativeFs }) => {
+  let options;
+  try {
+    options = defaults(userOptions);
+  } catch (e) {
+    return Promise.reject(e.message);
+  }
 
   const sourceDir = path.normalize(`${process.cwd()}/${options.source}`);
   const destinationDir = path.normalize(
@@ -520,18 +527,17 @@ const run = async (userOptions, {fs} = {fs: nativeFs}) => {
         preconnectThirdParty ||
         http2PushManifest
       ) {
-        const {
-          ajaxCache: ac,
-          http2PushManifestItems: hpm
-        } = preloadResources({
-          page,
-          basePath,
-          preloadImages,
-          cacheAjaxRequests,
-          preconnectThirdParty,
-          http2PushManifest,
-          ignoreForPreload: options.ignoreForPreload
-        });
+        const { ajaxCache: ac, http2PushManifestItems: hpm } = preloadResources(
+          {
+            page,
+            basePath,
+            preloadImages,
+            cacheAjaxRequests,
+            preconnectThirdParty,
+            http2PushManifest,
+            ignoreForPreload: options.ignoreForPreload
+          }
+        );
         ajaxCache[route] = ac;
         http2PushManifestItems[route] = hpm;
       }
@@ -633,23 +639,24 @@ const run = async (userOptions, {fs} = {fs: nativeFs}) => {
     onEnd: () => {
       if (server) server.close();
       if (http2PushManifest) {
-        const manifest = Object.keys(
-          http2PushManifestItems
-        ).reduce((accumulator, key) => {
-          if (http2PushManifestItems[key].length !== 0)
-            accumulator.push({
-              source: key,
-              headers: [
-                {
-                  key: "Link",
-                  value: http2PushManifestItems[key]
-                    .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
-                    .join(",")
-                }
-              ]
-            });
-          return accumulator;
-        }, []);
+        const manifest = Object.keys(http2PushManifestItems).reduce(
+          (accumulator, key) => {
+            if (http2PushManifestItems[key].length !== 0)
+              accumulator.push({
+                source: key,
+                headers: [
+                  {
+                    key: "Link",
+                    value: http2PushManifestItems[key]
+                      .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
+                      .join(",")
+                  }
+                ]
+              });
+            return accumulator;
+          },
+          []
+        );
         fs.writeFileSync(
           `${destinationDir}/http2-push-manifest.json`,
           JSON.stringify(manifest)
