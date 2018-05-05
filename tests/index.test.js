@@ -1,39 +1,14 @@
-const nativeFs = require("fs");
-
-const rewiremock = require("rewiremock").default;
-rewiremock("mkdirp").with({
-  sync: (...args) => console.log(args)
-});
-
-const DevNullStream = require("dev-null-stream");
-const devNullStream = new DevNullStream();
-
-const cwd = process.cwd();
-const createReadStreamMock = jest.fn();
-const createWriteStreamMock = jest.fn();
-const writeFileSyncMock = jest.fn();
-
-const fs = {
-  existsSync: nativeFs.existsSync,
-  createReadStream: path => {
-    createReadStreamMock(path.replace(cwd, ""));
-    return nativeFs.createReadStream(path);
-  },
-  createWriteStream: path => {
-    createWriteStreamMock(path.replace(cwd, ""));
-    return devNullStream;
-  },
-  writeFileSync: (path, content) => {
-    writeFileSyncMock(path.replace(cwd, ""), content);
-  }
-};
-
+const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
-
-rewiremock.enable();
 
 describe("one page", async () => {
   const source = "tests/examples/one-page";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
   beforeAll(async () => {
     await run(
       {
@@ -49,6 +24,52 @@ describe("one page", async () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
     expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+  });
+  test("copies (original) index.html to 200.html", () => {
+    expect(createReadStreamMock.mock.calls).toEqual([
+      [`/${source}/index.html`]
+    ]);
+    expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
+  });
+});
+
+describe("many pages", async () => {
+  const source = "tests/examples/many-pages";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await run(
+      {
+        source,
+        puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"]
+      },
+      {
+        fs
+      }
+    );
+  });
+  test("crawls all links", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(6);
+    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
+      expect.arrayContaining([
+        `/${source}/1/index.html`,
+        `/${source}/2/index.html`,
+        `/${source}/3/index.html`, // ignores hash
+        `/${source}/4/index.html` // ignores query
+      ])
+    );
+  });
+  test("proceeds index.html", () => {
+    expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
+  });
+  test("proceeds 404.html", () => {
+    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
+      expect.arrayContaining([`/${source}/404.html`])
+    );
   });
   test("copies (original) index.html to 200.html", () => {
     expect(createReadStreamMock.mock.calls).toEqual([

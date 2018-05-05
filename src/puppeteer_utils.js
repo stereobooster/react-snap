@@ -207,15 +207,17 @@ const crawl = async opt => {
     options.include.map(x => addToQueue(`${basePath}${x}`));
   }
 
-  return queue
-    .map(x => _(fetchPage(x)))
-    .mergeWithLimit(options.concurrency)
-    .toPromise(Promise)
-    .then(async function() {
-      await browser.close();
-      onEnd && onEnd();
-      if (shuttingDown) process.exit(1);
-    });
+  return new Promise((resolve, reject) => {
+    queue
+      .map(x => _(fetchPage(x)))
+      .mergeWithLimit(options.concurrency)
+      .toArray(async () => {
+        await browser.close();
+        onEnd && onEnd();
+        if (shuttingDown) process.exit(1);
+        resolve();
+      });
+  });
 };
 
 exports.skipThirdPartyRequests = skipThirdPartyRequests;
