@@ -150,8 +150,8 @@ describe("possible to disable crawl option", async () => {
     });
   });
   test("crawls all links and saves as index.html in separate folders", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(4);
     // no / or /404.html
+    expect(writeFileSyncMock.mock.calls.length).toEqual(4);
     expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
       expect.arrayContaining([
         `/${source}/1/index.html`, // without slash in the end
