@@ -20,7 +20,7 @@ describe("one page", async () => {
       }
     );
   });
-  test("proceeds index.html", () => {
+  test("crawls index.html", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
     expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
@@ -63,10 +63,10 @@ describe("many pages", async () => {
       ])
     );
   });
-  test("proceeds index.html", () => {
+  test("crawls index.html", () => {
     expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
   });
-  test("proceeds 404.html", () => {
+  test("crawls 404.html", () => {
     expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
       expect.arrayContaining([`/${source}/404.html`])
     );
