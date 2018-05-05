@@ -168,3 +168,48 @@ describe("possible to disable crawl option", async () => {
     expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
   });
 });
+
+describe("inlineCss - small file", async () => {
+  const source = "tests/examples/other";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      inlineCss: true,
+      include: ["/with-small-css.html"] //, "/with-big-css.html"]
+    });
+  });
+  // 1. I want to change this behaviour
+  // see https://github.com/stereobooster/react-snap/pull/133/files
+  // 2. There is a bug with relative url in inlined CSS
+  test("whole CSS got inlined for small", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+  });
+});
+
+describe("inlineCss - big file", async () => {
+  const source = "tests/examples/other";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      inlineCss: true,
+      include: ["/with-big-css.html"]
+    });
+  });
+  test("small portion got inlined, whole css file will be loaded asynchronously", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+  });
+});

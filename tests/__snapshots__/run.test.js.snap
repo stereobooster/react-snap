@@ -1,3 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`inlineCss - big file small portion got inlined, whole css file will be loaded asynchronously 1`] = `
+"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"><style type=\\"text/css\\">/*!
+ * Bootstrap v4.1.1 (https://getbootstrap.com/)
+ * Copyright 2011-2018 The Bootstrap Authors
+ * Copyright 2011-2018 Twitter, Inc.
+ * Licensed under MIT (https://github.com/twbs/bootstrap/blob/master/LICENSE)
+ */*{box-sizing:border-box}html{font-family:sans-serif;line-height:1.15;-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;-ms-overflow-style:scrollbar;-webkit-tap-highlight-color:transparent}@-ms-viewport{width:device-width}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,\\"Segoe UI\\",Roboto,\\"Helvetica Neue\\",Arial,sans-serif,\\"Apple Color Emoji\\",\\"Segoe UI Emoji\\",\\"Segoe UI Symbol\\";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;text-align:left;background-color:#fff}</style><noscript><link rel=\\"stylesheet\\" href=\\"/css/big.css\\"></noscript><link rel=\\"preload\\" href=\\"/css/big.css\\" as=\\"style\\" onload=\\"this.rel='stylesheet'\\"></head><body><script>document.body.appendChild(document.createElement(\\"div\\"));</script><div></div><script type=\\"text/javascript\\">/*! loadCSS. [c]2017 Filament Group, Inc. MIT License */
+!function(e){\\"use strict\\";var n=function(n,t,o){function i(e){if(a.body)return e();setTimeout(function(){i(e)})}function r(){l.addEventListener&&l.removeEventListener(\\"load\\",r),l.media=o||\\"all\\"}var d,a=e.document,l=a.createElement(\\"link\\");if(t)d=t;else{var f=(a.body||a.getElementsByTagName(\\"head\\")[0]).childNodes;d=f[f.length-1]}var s=a.styleSheets;l.rel=\\"stylesheet\\",l.href=n,l.media=\\"only x\\",i(function(){d.parentNode.insertBefore(l,t?d:d.nextSibling)});var u=function(e){for(var n=l.href,t=s.length;t--;)if(s[t].href===n)return e();setTimeout(function(){u(e)})};return l.addEventListener&&l.addEventListener(\\"load\\",r),l.onloadcssdefined=u,u(r),l};\\"undefined\\"!=typeof exports?exports.loadCSS=n:e.loadCSS=n}(\\"undefined\\"!=typeof global?global:this);
+/*! loadCSS rel=preload polyfill. [c]2017 Filament Group, Inc. MIT License */
+!function(t){if(t.loadCSS){var e=loadCSS.relpreload={};if(e.support=function(){try{return t.document.createElement(\\"link\\").relList.supports(\\"preload\\")}catch(t){return!1}},e.poly=function(){for(var e=t.document.getElementsByTagName(\\"link\\"),r=0;r<e.length;r++){var n=e[r];\\"preload\\"===n.rel&&\\"style\\"===n.getAttribute(\\"as\\")&&(t.loadCSS(n.href,n,n.getAttribute(\\"media\\")),n.rel=null)}},!e.support()){e.poly();var r=t.setInterval(e.poly,300);t.addEventListener&&t.addEventListener(\\"load\\",function(){e.poly(),t.clearInterval(r)}),t.attachEvent&&t.attachEvent(\\"onload\\",function(){t.clearInterval(r)})}}}(this);</script></body></html>"
+`;
+
+exports[`inlineCss - small file whole CSS got inlined for small 1`] = `"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"><style type=\\"text/css\\">div{background:url(bg.png);height:10px}p{background:#000}</style></head><body><script>document.body.appendChild(document.createElement(\\"div\\"));</script><div></div></body></html>"`;
+
 exports[`one page crawls / and saves as index.html to the same folder 1`] = `"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"></head><body><script>document.body.appendChild(document.createTextNode(\\"test\\"));</script>test</body></html>"`;
