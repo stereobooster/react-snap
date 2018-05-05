@@ -213,3 +213,24 @@ describe("inlineCss - big file", async () => {
     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
   });
 });
+
+describe("removeBlobs", async () => {
+  const source = "tests/examples/other";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/remove-blobs.html"]
+    });
+  });
+  test("removes blob resources from final html", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+  });
+});
+

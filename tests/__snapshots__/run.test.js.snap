@@ -15,3 +15,12 @@ exports[`inlineCss - big file small portion got inlined, whole css file will be 
 exports[`inlineCss - small file whole CSS got inlined for small 1`] = `"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"><style type=\\"text/css\\">div{background:url(bg.png);height:10px}p{background:#000}</style></head><body><script>document.body.appendChild(document.createElement(\\"div\\"));</script><div></div></body></html>"`;
 
 exports[`one page crawls / and saves as index.html to the same folder 1`] = `"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"></head><body><script>document.body.appendChild(document.createTextNode(\\"test\\"));</script>test</body></html>"`;
+
+exports[`removeBlobs removes blob resources from final html 1`] = `
+"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"></head><body><p>test</p><script type=\\"text/javascript\\">const blob = new Blob(['p { color: red; }'], { type: 'text/css' });
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = window.URL.createObjectURL(blob);
+    const head = document.head || document.getElementsByTagName('head')[0];
+    head.appendChild(link);</script></body></html>"
+`;
