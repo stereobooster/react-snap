@@ -1,10 +1,3 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`one page test 1`] = `
-Array [
-  Array [
-    "/tests/examples/one-page/index.html",
-    "<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"><link href=\\"https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css\\" rel=\\"stylesheet\\" crossorigin=\\"anonymous\\" integrity=\\"sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u\\"><link href=\\"https://maxcdn.bootstrapcdn.com\\" rel=\\"preconnect\\"></head><body>test</body></html>",
-  ],
-]
-`;
+exports[`one page minifies html 1`] = `"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"></head><body><script>document.body.appendChild(document.createTextNode(\\"test\\"));</script>test</body></html>"`;
