@@ -20,7 +20,7 @@ describe("one page", async () => {
       }
     );
   });
-  test("crawls index.html", () => {
+  test("crawls / and saves as index.html to the same folder", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
     expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
@@ -54,7 +54,7 @@ describe("respects destination", async () => {
       }
     );
   });
-  test("crawls index.html", () => {
+  test("crawls / and saves as index.html to destination folder", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
     expect(writeFileSyncMock.mock.calls[0][0]).toEqual(
       `/${destination}/index.html`
@@ -97,21 +97,21 @@ describe("many pages", async () => {
       }
     );
   });
-  test("crawls all links", () => {
+  test("crawls all links and saves as index.html in separate folders", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(6);
     expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
       expect.arrayContaining([
-        `/${source}/1/index.html`,
-        `/${source}/2/index.html`,
+        `/${source}/1/index.html`, // without slash in the end
+        `/${source}/2/index.html`, // with slash in the end
         `/${source}/3/index.html`, // ignores hash
-        `/${source}/4/index.html` // ignores query
+        `/${source}/4/index.html`  // ignores query
       ])
     );
   });
-  test("crawls index.html", () => {
+  test("crawls / and saves as index.html to the same folder", () => {
     expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
   });
-  test("crawls 404.html", () => {
+  test("if there is more than page it crawls 404.html", () => {
     expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
       expect.arrayContaining([`/${source}/404.html`])
     );
