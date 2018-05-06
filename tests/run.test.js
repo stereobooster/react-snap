@@ -296,3 +296,24 @@ describe("ignoreForPreload", async () => {
     expect(writeFileSyncMock.mock.calls[1][1]).toMatchSnapshot();
   });
 });
+
+describe("preconnectThirdParty", async () => {
+  const source = "tests/examples/other";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/third-party-resource.html"]
+    });
+  });
+  test("adds <link rel=preconnect>", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+  });
+});
+
