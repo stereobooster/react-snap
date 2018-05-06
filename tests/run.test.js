@@ -332,3 +332,19 @@ describe("asyncScriptTags", async () => {
     expect(content(0)).toMatch("async></script>");
   });
 });
+
+describe("preloadImages", async () => {
+  const source = "tests/examples/other";
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/with-image.html"],
+      preloadImages: true
+    });
+  });
+  test("adds <link rel=preconnect>", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch("<link rel=\"preload\" as=\"image\"");
+  });
+});
