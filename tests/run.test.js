@@ -1,6 +1,5 @@
 // FIX: tests are flaky and slow
 // TODO: capture console log from run function
-// TODO: use less snapshot testing, because it is not clear what is being tested
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
 const snapRun = (fs, options) => {
@@ -36,9 +35,11 @@ describe("one page", () => {
   const source = "tests/examples/one-page";
   const {
     fs,
-    writeFileSyncMock,
     createReadStreamMock,
-    createWriteStreamMock
+    createWriteStreamMock,
+    filesCreated,
+    content,
+    name
   } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
@@ -46,9 +47,11 @@ describe("one page", () => {
     });
   });
   test("crawls / and saves as index.html to the same folder", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
-    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+    expect(filesCreated()).toEqual(1);
+    expect(name(0)).toEqual(`/${source}/index.html`);
+    expect(content(0)).toEqual(
+      '<html lang="en"><head><meta charset="utf-8"></head><body><script>document.body.appendChild(document.createTextNode("test"));</script>test</body></html>'
+    );
   });
   test("copies (original) index.html to 200.html", () => {
     expect(createReadStreamMock.mock.calls).toEqual([
@@ -63,9 +66,11 @@ describe("respects destination", () => {
   const destination = "tests/examples/destination";
   const {
     fs,
-    writeFileSyncMock,
     createReadStreamMock,
-    createWriteStreamMock
+    createWriteStreamMock,
+    filesCreated,
+    content,
+    name
   } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
@@ -74,10 +79,8 @@ describe("respects destination", () => {
     });
   });
   test("crawls / and saves as index.html to destination folder", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    expect(writeFileSyncMock.mock.calls[0][0]).toEqual(
-      `/${destination}/index.html`
-    );
+    expect(filesCreated()).toEqual(1);
+    expect(name(0)).toEqual(`/${destination}/index.html`);
   });
   test("copies (original) index.html to 200.html (to source folder)", () => {
     expect(createReadStreamMock.mock.calls[0]).toEqual([
@@ -184,10 +187,15 @@ describe("inlineCss - small file", () => {
   });
   // 1. I want to change this behaviour
   // see https://github.com/stereobooster/react-snap/pull/133/files
-  // 2. There is a bug with relative url in inlined CSS
+  // 2. There is a bug with relative url in inlined CSS url(bg.png)
   test("whole CSS got inlined for small", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatchSnapshot();
+    expect(content(0)).toMatch(
+      '<style type="text/css">div{background:url(bg.png);height:10px}p{background:#000}</style>'
+    );
+    expect(content(0)).not.toMatch(
+      '<link rel="stylesheet"  href="/css/small.css" >'
+    );
   });
 });
 
@@ -203,7 +211,14 @@ describe("inlineCss - big file", () => {
   });
   test("small portion got inlined, whole css file will be loaded asynchronously", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatchSnapshot();
+    expect(content(0)).toMatch('<style type="text/css">');
+    expect(content(0)).toMatch(
+      '<noscript><link rel="stylesheet" href="/css/big.css"></noscript>'
+    );
+    expect(content(0)).toMatch(
+      '<link rel="preload" href="/css/big.css" as="style" onload="this.rel=\'stylesheet\'">'
+    );
+    expect(content(0)).toMatch('<script type="text/javascript">/*! loadCSS');
   });
 });
 
@@ -218,7 +233,7 @@ describe("removeBlobs", () => {
   });
   test("removes blob resources from final html", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatchSnapshot();
+    expect(content(0)).not.toMatch('<link rel="stylesheet" href="blob:');
   });
 });
 
@@ -234,7 +249,9 @@ describe("http2PushManifest", () => {
   });
   test("writes http2 manifest file", () => {
     expect(filesCreated()).toEqual(2);
-    expect(content(1)).toMatchSnapshot();
+    expect(content(1)).toEqual(
+      '[{"source":"/with-big-css.html","headers":[{"key":"Link","value":"</css/big.css>;rel=preload;as=style"}]}]'
+    );
   });
 });
 
@@ -270,20 +287,20 @@ describe("preconnectThirdParty", () => {
   });
 });
 
-// describe("fixInsertRule", () => {
-//   const source = "tests/examples/other";
-//   const { fs, writeFileSyncMock } = mockFs();
-//   beforeAll(async () => {
-//     await snapRun(fs, {
-//       source,
-//       include: ["/fix-insert-rule.html"]
-//     });
-//   });
-//   test("fixes <style> populated with insertRule", () => {
-//     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-//     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
-//   });
-// });
+describe("fixInsertRule", () => {
+  const source = "tests/examples/other";
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/fix-insert-rule.html"]
+    });
+  });
+  test("fixes <style> populated with insertRule", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch('<style id="css-in-js">p{color:red}</style>');
+  });
+});
 
 describe("removeStyleTags", () => {
   const source = "tests/examples/other";
@@ -374,19 +391,21 @@ describe("You can not run react-snap twice", () => {
 describe("fixWebpackChunksIssue", () => {
   const source = "tests/examples/cra";
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
-      source
-    });
-  });
+  beforeAll(() => snapRun(fs, { source }));
   test("creates preload links", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch('<link rel="preload" as="script" href="/static/js/main.42105999.js"><link rel="preload" as="script" href="/static/js/0.35040230.chunk.js">');
+    expect(content(0)).toMatch(
+      '<link rel="preload" as="script" href="/static/js/main.42105999.js"><link rel="preload" as="script" href="/static/js/0.35040230.chunk.js">'
+    );
   });
   test("leaves root script", () => {
-    expect(content(0)).toMatch('<script src="/static/js/main.42105999.js"></script>');
+    expect(content(0)).toMatch(
+      '<script src="/static/js/main.42105999.js"></script>'
+    );
   });
   test("removes chunk scripts", () => {
-    expect(content(0)).not.toMatch('<script src="/static/js/0.35040230.chunk.js"></script>');
+    expect(content(0)).not.toMatch(
+      '<script src="/static/js/0.35040230.chunk.js"></script>'
+    );
   });
 });
