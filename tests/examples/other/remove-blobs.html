@@ -7,11 +7,11 @@
 <body>
   <p>test</p>
   <script type="text/javascript">
-    const blob = new Blob(['p { color: red; }'], { type: 'text/css' });
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
+    const blob = new Blob(["p { color: red; }"], { type: "text/css" });
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
     link.href = window.URL.createObjectURL(blob);
-    const head = document.head || document.getElementsByTagName('head')[0];
+    const head = document.head || document.getElementsByTagName("head")[0];
     head.appendChild(link);
   </script>
 </body>

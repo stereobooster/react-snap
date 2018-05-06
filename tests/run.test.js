@@ -234,3 +234,22 @@ describe("removeBlobs", async () => {
   });
 });
 
+// describe("fixInsertRule", async () => {
+//   const source = "tests/examples/other";
+//   const {
+//     fs,
+//     writeFileSyncMock,
+//     createReadStreamMock,
+//     createWriteStreamMock
+//   } = mockFs();
+//   beforeAll(async () => {
+//     await snapRun(fs, {
+//       source,
+//       include: ["/fix-insert-rule.html"]
+//     });
+//   });
+//   test("fixes style tags populated with insertRule", () => {
+//     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+//     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+//   });
+// });
