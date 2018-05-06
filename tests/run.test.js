@@ -41,11 +41,7 @@ describe("one page", () => {
     content,
     name
   } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
-      source
-    });
-  });
+  beforeAll(() => snapRun(fs, { source }));
   test("crawls / and saves as index.html to the same folder", () => {
     expect(filesCreated()).toEqual(1);
     expect(name(0)).toEqual(`/${source}/index.html`);
@@ -72,12 +68,7 @@ describe("respects destination", () => {
     content,
     name
   } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
-      source,
-      destination
-    });
-  });
+  beforeAll(() => snapRun(fs, { source, destination }));
   test("crawls / and saves as index.html to destination folder", () => {
     expect(filesCreated()).toEqual(1);
     expect(name(0)).toEqual(`/${destination}/index.html`);
@@ -108,11 +99,7 @@ describe("many pages", () => {
     createReadStreamMock,
     createWriteStreamMock
   } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
-      source
-    });
-  });
+  beforeAll(() => snapRun(fs, { source }));
   test("crawls all links and saves as index.html in separate folders", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(6);
     expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
@@ -148,13 +135,12 @@ describe("possible to disable crawl option", () => {
     createReadStreamMock,
     createWriteStreamMock
   } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       crawl: false,
       include: ["/1", "/2/", "/3#test", "/4?test"]
-    });
-  });
+    }));
   test("crawls all links and saves as index.html in separate folders", () => {
     // no / or /404.html
     expect(writeFileSyncMock.mock.calls.length).toEqual(4);
@@ -178,13 +164,12 @@ describe("possible to disable crawl option", () => {
 describe("inlineCss - small file", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       inlineCss: true,
       include: ["/with-small-css.html"]
-    });
-  });
+    }));
   // 1. I want to change this behaviour
   // see https://github.com/stereobooster/react-snap/pull/133/files
   // 2. There is a bug with relative url in inlined CSS url(bg.png)
@@ -205,13 +190,12 @@ describe("inlineCss - big file", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       include,
       inlineCss: true
-    });
-  });
+    }));
   test("inline style", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<style type="text/css">');
@@ -246,13 +230,12 @@ describe("http2PushManifest", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       include,
       http2PushManifest: true
-    });
-  });
+    }));
   test("writes http2 manifest file", () => {
     expect(filesCreated()).toEqual(2);
     expect(content(1)).toEqual(
@@ -265,14 +248,13 @@ describe("ignoreForPreload", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       include,
       http2PushManifest: true,
       ignoreForPreload: ["big.css"]
-    });
-  });
+    }));
   test("writes http2 manifest file", () => {
     expect(filesCreated()).toEqual(2);
     expect(content(1)).toEqual("[]");
@@ -305,13 +287,12 @@ describe("removeStyleTags", () => {
   const source = "tests/examples/other";
   const include = ["/fix-insert-rule.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       include,
       removeStyleTags: true
-    });
-  });
+    }));
   test("removes all <style>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch("<style");
@@ -322,13 +303,12 @@ describe("removeScriptTags", () => {
   const source = "tests/examples/other";
   const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       include,
       removeScriptTags: true
-    });
-  });
+    }));
   test("removes all <script>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch("<script");
@@ -339,13 +319,12 @@ describe("asyncScriptTags", () => {
   const source = "tests/examples/other";
   const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       include,
       asyncScriptTags: true
-    });
-  });
+    }));
   test("adds async to all external", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch("async></script>");
@@ -356,13 +335,12 @@ describe("preloadImages", () => {
   const source = "tests/examples/other";
   const include = ["/with-image.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
+  beforeAll(() =>
+    snapRun(fs, {
       source,
       include,
       preloadImages: true
-    });
-  });
+    }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<link rel="preload" as="image"');
@@ -409,3 +387,25 @@ describe("fixWebpackChunksIssue", () => {
     );
   });
 });
+
+describe.skip("link to existing file", () => {
+  test("link to non-html file", () => {});
+  test("link to html file", () => {});
+});
+
+describe.skip("saves state of form elements changed via JS", () => {});
+
+describe.skip("snapSaveState", () => {
+  test("supports only JSON compatible values", () => {});
+  test("protects from XSS attack", () => {});
+});
+
+describe.skip("cacheAjaxRequests", () => {});
+
+describe.skip("publicPath", () => {});
+
+describe.skip("skipThirdPartyRequests", () => {});
+
+describe.skip("waitFor", () => {});
+
+describe.skip("externalServer", () => {});
