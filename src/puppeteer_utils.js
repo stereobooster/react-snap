@@ -214,7 +214,7 @@ const crawl = async opt => {
       .toArray(async () => {
         await browser.close();
         onEnd && onEnd();
-        if (shuttingDown) process.exit(1);
+        if (shuttingDown) return reject("");
         resolve();
       });
   });

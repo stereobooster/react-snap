@@ -267,7 +267,7 @@ describe("preconnectThirdParty", async () => {
   });
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch("<link rel=\"preconnect\"");
+    expect(content(0)).toMatch('<link rel="preconnect"');
   });
 });
 
@@ -347,5 +347,18 @@ describe("preloadImages", async () => {
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch("<link rel=\"preload\" as=\"image\"");
+  });
+});
+
+describe("handles JS errors", async () => {
+  const source = "tests/examples/other";
+  const { fs, filesCreated, content } = mockFs();
+  test("returns rejected promise", () => {
+    return snapRun(fs, {
+      source,
+      include: ["/with-script-error.html"]
+    })
+      .then(() => expect(true).toEqual(false))
+      .catch(e => expect(e).toEqual(""));
   });
 });
