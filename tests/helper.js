@@ -23,8 +23,8 @@ const mockFs = () => {
     }
   };
   const filesCreated = () => writeFileSyncMock.mock.calls.length;
-  const content = index => writeFileSyncMock.mock.calls[index][0];
-  const name = index => writeFileSyncMock.mock.calls[index][1];
+  const name = index => writeFileSyncMock.mock.calls[index][0];
+  const content = index => writeFileSyncMock.mock.calls[index][1];
   return {
     // mocks
     createReadStreamMock,

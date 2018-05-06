@@ -174,7 +174,7 @@ describe("possible to disable crawl option", async () => {
 
 describe("inlineCss - small file", async () => {
   const source = "tests/examples/other";
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -186,14 +186,14 @@ describe("inlineCss - small file", async () => {
   // see https://github.com/stereobooster/react-snap/pull/133/files
   // 2. There is a bug with relative url in inlined CSS
   test("whole CSS got inlined for small", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatchSnapshot();
   });
 });
 
 describe("inlineCss - big file", async () => {
   const source = "tests/examples/other";
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -202,14 +202,14 @@ describe("inlineCss - big file", async () => {
     });
   });
   test("small portion got inlined, whole css file will be loaded asynchronously", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatchSnapshot();
   });
 });
 
 describe("removeBlobs", async () => {
   const source = "tests/examples/other";
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -217,14 +217,14 @@ describe("removeBlobs", async () => {
     });
   });
   test("removes blob resources from final html", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatchSnapshot();
   });
 });
 
 describe("http2PushManifest", async () => {
   const source = "tests/examples/other";
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -233,14 +233,14 @@ describe("http2PushManifest", async () => {
     });
   });
   test("writes http2 manifest file", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(2);
-    expect(writeFileSyncMock.mock.calls[1][1]).toMatchSnapshot();
+    expect(filesCreated()).toEqual(2);
+    expect(content(1)).toMatchSnapshot();
   });
 });
 
 describe("ignoreForPreload", async () => {
   const source = "tests/examples/other";
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -250,14 +250,14 @@ describe("ignoreForPreload", async () => {
     });
   });
   test("writes http2 manifest file", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(2);
-    expect(writeFileSyncMock.mock.calls[1][1]).toMatchSnapshot();
+    expect(filesCreated()).toEqual(2);
+    expect(content(1)).toEqual("[]");
   });
 });
 
 describe("preconnectThirdParty", async () => {
   const source = "tests/examples/other";
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -265,9 +265,8 @@ describe("preconnectThirdParty", async () => {
     });
   });
   test("adds <link rel=preconnect>", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    const html = writeFileSyncMock.mock.calls[0][1];
-    expect(html).toMatch("<link rel=\"preconnect\"");
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch("<link rel=\"preconnect\"");
   });
 });
 
