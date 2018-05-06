@@ -22,11 +22,19 @@ const mockFs = () => {
       writeFileSyncMock(path.replace(cwd, ""), content);
     }
   };
+  const filesCreated = () => writeFileSyncMock.mock.calls.length;
+  const content = index => writeFileSyncMock.mock.calls[index][0];
+  const name = index => writeFileSyncMock.mock.calls[index][1];
   return {
+    // mocks
     createReadStreamMock,
     createWriteStreamMock,
     writeFileSyncMock,
-    fs
+    fs,
+    // helpers
+    filesCreated,
+    content,
+    name
   };
 };
 

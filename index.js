@@ -2,14 +2,12 @@ const crawl = require("./src/puppeteer_utils.js").crawl;
 const http = require("http");
 const express = require("express");
 const serveStatic = require("serve-static");
-// @ts-ignore
 const fallback = require("express-history-api-fallback");
 const path = require("path");
 const nativeFs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
 const url = require("url");
-// @ts-ignore https://github.com/peterbe/minimalcss/pull/30
 const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
 const twentyKb = 20 * 1024;

@@ -288,7 +288,7 @@ describe("preconnectThirdParty", async () => {
 
 describe("removeStyleTags", async () => {
   const source = "tests/examples/other";
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -297,8 +297,23 @@ describe("removeStyleTags", async () => {
     });
   });
   test("removes all <style>", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    const html = writeFileSyncMock.mock.calls[0][1];
-    expect(html).not.toMatch("<style");
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).not.toMatch("<style");
+  });
+});
+
+describe("removeScriptTags", async () => {
+  const source = "tests/examples/other";
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/with-script.html"],
+      removeScriptTags: true
+    });
+  });
+  test("removes all <script>", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).not.toMatch("<script");
   });
 });
