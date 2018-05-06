@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`http2PushManifest writes http2 manifest file 1`] = `"[{\\"source\\":\\"/with-big-css.html\\",\\"headers\\":[{\\"key\\":\\"Link\\",\\"value\\":\\"</css/big.css>;rel=preload;as=style\\"}]}]"`;
+
 exports[`inlineCss - big file small portion got inlined, whole css file will be loaded asynchronously 1`] = `
 "<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"><style type=\\"text/css\\">/*!
  * Bootstrap v4.1.1 (https://getbootstrap.com/)
@@ -17,10 +19,10 @@ exports[`inlineCss - small file whole CSS got inlined for small 1`] = `"<html la
 exports[`one page crawls / and saves as index.html to the same folder 1`] = `"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"></head><body><script>document.body.appendChild(document.createTextNode(\\"test\\"));</script>test</body></html>"`;
 
 exports[`removeBlobs removes blob resources from final html 1`] = `
-"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"></head><body><p>test</p><script type=\\"text/javascript\\">const blob = new Blob(['p { color: red; }'], { type: 'text/css' });
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
+"<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"></head><body><p>test</p><script type=\\"text/javascript\\">const blob = new Blob([\\"p { color: red; }\\"], { type: \\"text/css\\" });
+    const link = document.createElement(\\"link\\");
+    link.rel = \\"stylesheet\\";
     link.href = window.URL.createObjectURL(blob);
-    const head = document.head || document.getElementsByTagName('head')[0];
+    const head = document.head || document.getElementsByTagName(\\"head\\")[0];
     head.appendChild(link);</script></body></html>"
 `;
