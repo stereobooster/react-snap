@@ -389,10 +389,11 @@ describe("snapSaveState", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('window["json"]=["",1,true,null,{}];');
   });
+  // need to set UTC timezone for this test to work
   test("non-JSON compatible values", () => {
     // those don't work
     expect(content(0)).toMatch(
-      'window["non-json"]=[null,"1999-12-31T23:00:00.000Z",null,{}];'
+      'window["non-json"]=[null,"2000-01-01T00:00:00.000Z",null,{}];'
     );
   });
   // this test doesn't work
