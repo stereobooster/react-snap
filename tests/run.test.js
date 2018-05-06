@@ -274,3 +274,25 @@ describe("http2PushManifest", async () => {
     expect(writeFileSyncMock.mock.calls[1][1]).toMatchSnapshot();
   });
 });
+
+describe("ignoreForPreload", async () => {
+  const source = "tests/examples/other";
+  const {
+    fs,
+    writeFileSyncMock,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/with-big-css.html"],
+      http2PushManifest: true,
+      ignoreForPreload: ["big.css"]
+    });
+  });
+  test("writes http2 manifest file", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(2);
+    expect(writeFileSyncMock.mock.calls[1][1]).toMatchSnapshot();
+  });
+});

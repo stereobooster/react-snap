@@ -2,6 +2,8 @@
 
 exports[`http2PushManifest writes http2 manifest file 1`] = `"[{\\"source\\":\\"/with-big-css.html\\",\\"headers\\":[{\\"key\\":\\"Link\\",\\"value\\":\\"</css/big.css>;rel=preload;as=style\\"}]}]"`;
 
+exports[`ignoreForPreload writes http2 manifest file 1`] = `"[]"`;
+
 exports[`inlineCss - big file small portion got inlined, whole css file will be loaded asynchronously 1`] = `
 "<html lang=\\"en\\"><head><meta charset=\\"utf-8\\"><style type=\\"text/css\\">/*!
  * Bootstrap v4.1.1 (https://getbootstrap.com/)

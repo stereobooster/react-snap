@@ -180,10 +180,16 @@ const preloadResources = opt => {
           });
         }
       } else if (http2PushManifest && /\.(css)$/.test(responseUrl)) {
-        http2PushManifestItems.push({
-          link: route,
-          as: "style"
-        });
+        const fileName = url
+          .parse(responseUrl)
+          .pathname.split("/")
+          .pop();
+        if (!ignoreForPreload.includes(fileName)) {
+          http2PushManifestItems.push({
+            link: route,
+            as: "style"
+          });
+        }
       }
       uniqueResources.add(responseUrl);
     } else if (preconnectThirdParty) {
