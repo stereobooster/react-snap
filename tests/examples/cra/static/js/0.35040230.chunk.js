@@ -1,0 +1,1 @@
+webpackJsonp([0],{10:function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0}),t.default=function(){return document.getElementById("root").appendChild(document.createTextNode("submodule"))}}});

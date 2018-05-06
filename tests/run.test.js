@@ -370,3 +370,23 @@ describe("You can not run react-snap twice", () => {
       .then(() => expect(true).toEqual(false))
       .catch(e => expect(e).toEqual("")));
 });
+
+describe("fixWebpackChunksIssue", () => {
+  const source = "tests/examples/cra";
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source
+    });
+  });
+  test("creates preload links", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch('<link rel="preload" as="script" href="/static/js/main.42105999.js"><link rel="preload" as="script" href="/static/js/0.35040230.chunk.js">');
+  });
+  test("leaves root script", () => {
+    expect(content(0)).toMatch('<script src="/static/js/main.42105999.js"></script>');
+  });
+  test("removes chunk scripts", () => {
+    expect(content(0)).not.toMatch('<script src="/static/js/0.35040230.chunk.js"></script>');
+  });
+});
