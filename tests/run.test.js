@@ -316,3 +316,19 @@ describe("removeScriptTags", async () => {
     expect(content(0)).not.toMatch("<script");
   });
 });
+
+describe("asyncScriptTags", async () => {
+  const source = "tests/examples/other";
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/with-script.html"],
+      asyncScriptTags: true
+    });
+  });
+  test("adds async to all external", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch("async></script>");
+  });
+});
