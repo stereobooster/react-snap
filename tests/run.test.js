@@ -193,6 +193,8 @@ describe("inlineCss - small file", () => {
     expect(content(0)).toMatch(
       '<style type="text/css">div{background:url(bg.png);height:10px}p{background:#000}</style>'
     );
+  });
+  test("removes <link>", () => {
     expect(content(0)).not.toMatch(
       '<link rel="stylesheet"  href="/css/small.css" >'
     );
@@ -201,36 +203,39 @@ describe("inlineCss - small file", () => {
 
 describe("inlineCss - big file", () => {
   const source = "tests/examples/other";
+  const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
-      inlineCss: true,
-      include: ["/with-big-css.html"]
+      include,
+      inlineCss: true
     });
   });
-  test("small portion got inlined, whole css file will be loaded asynchronously", () => {
+  test("inline style", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<style type="text/css">');
+  });
+  test("inserts <link> in noscript", () => {
     expect(content(0)).toMatch(
       '<noscript><link rel="stylesheet" href="/css/big.css"></noscript>'
     );
+  });
+  test('inserts <link rel="preload"> with onload', () => {
     expect(content(0)).toMatch(
       '<link rel="preload" href="/css/big.css" as="style" onload="this.rel=\'stylesheet\'">'
     );
+  });
+  test("inserts loadCSS polyfill", () => {
     expect(content(0)).toMatch('<script type="text/javascript">/*! loadCSS');
   });
 });
 
 describe("removeBlobs", () => {
   const source = "tests/examples/other";
+  const include = ["/remove-blobs.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
-      source,
-      include: ["/remove-blobs.html"]
-    });
-  });
+  beforeAll(() => snapRun(fs, { source, include }));
   test("removes blob resources from final html", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch('<link rel="stylesheet" href="blob:');
@@ -239,11 +244,12 @@ describe("removeBlobs", () => {
 
 describe("http2PushManifest", () => {
   const source = "tests/examples/other";
+  const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
-      include: ["/with-big-css.html"],
+      include,
       http2PushManifest: true
     });
   });
@@ -257,11 +263,12 @@ describe("http2PushManifest", () => {
 
 describe("ignoreForPreload", () => {
   const source = "tests/examples/other";
+  const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
-      include: ["/with-big-css.html"],
+      include,
       http2PushManifest: true,
       ignoreForPreload: ["big.css"]
     });
@@ -274,13 +281,9 @@ describe("ignoreForPreload", () => {
 
 describe("preconnectThirdParty", () => {
   const source = "tests/examples/other";
+  const include = ["/third-party-resource.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
-      source,
-      include: ["/third-party-resource.html"]
-    });
-  });
+  beforeAll(() => snapRun(fs, { source, include }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<link rel="preconnect"');
@@ -289,13 +292,9 @@ describe("preconnectThirdParty", () => {
 
 describe("fixInsertRule", () => {
   const source = "tests/examples/other";
+  const include = ["/fix-insert-rule.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(async () => {
-    await snapRun(fs, {
-      source,
-      include: ["/fix-insert-rule.html"]
-    });
-  });
+  beforeAll(() => snapRun(fs, { source, include }));
   test("fixes <style> populated with insertRule", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<style id="css-in-js">p{color:red}</style>');
@@ -304,11 +303,12 @@ describe("fixInsertRule", () => {
 
 describe("removeStyleTags", () => {
   const source = "tests/examples/other";
+  const include = ["/fix-insert-rule.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
-      include: ["/fix-insert-rule.html"],
+      include,
       removeStyleTags: true
     });
   });
@@ -320,11 +320,12 @@ describe("removeStyleTags", () => {
 
 describe("removeScriptTags", () => {
   const source = "tests/examples/other";
+  const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
-      include: ["/with-script.html"],
+      include,
       removeScriptTags: true
     });
   });
@@ -336,11 +337,12 @@ describe("removeScriptTags", () => {
 
 describe("asyncScriptTags", () => {
   const source = "tests/examples/other";
+  const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
-      include: ["/with-script.html"],
+      include,
       asyncScriptTags: true
     });
   });
@@ -352,11 +354,12 @@ describe("asyncScriptTags", () => {
 
 describe("preloadImages", () => {
   const source = "tests/examples/other";
+  const include = ["/with-image.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
-      include: ["/with-image.html"],
+      include,
       preloadImages: true
     });
   });
@@ -368,15 +371,12 @@ describe("preloadImages", () => {
 
 describe("handles JS errors", () => {
   const source = "tests/examples/other";
+  const include = ["/with-script-error.html"];
   const { fs, filesCreated, content } = mockFs();
-  test("returns rejected promise", () => {
-    return snapRun(fs, {
-      source,
-      include: ["/with-script-error.html"]
-    })
+  test("returns rejected promise", () =>
+    snapRun(fs, { source, include })
       .then(() => expect(true).toEqual(false))
-      .catch(e => expect(e).toEqual(""));
-  });
+      .catch(e => expect(e).toEqual("")));
 });
 
 describe("You can not run react-snap twice", () => {
