@@ -1,0 +1,22 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <label>
+    <input type="radio" name="radio" value="radio1"> Radio 1</label>
+  <label>
+    <input type="checkbox" name="checkbox" value="checkbox1"> Checkbox 1</label>
+  <select>
+    <option value="option1">Option 1</option>
+  </select>
+  <script type="text/javascript">
+    Array.from(document.querySelectorAll('[value=radio1]'))
+      .forEach(x => x.checked = true)
+    Array.from(document.querySelectorAll('[value=checkbox1]'))
+      .forEach(x => x.checked = true)
+    document.querySelector('[value=option1]').selected = true;
+  </script>
+</body>

@@ -426,7 +426,26 @@ describe("snapSaveState", () => {
   });
 });
 
-describe.skip("saves state of form elements changed via JS", () => {});
+describe("saves state of form elements changed via JS", () => {
+  const source = "tests/examples/other";
+  const include = ["/form-elements.html"];
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include }));
+  test("radio button", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch(
+      '<input type="radio" name="radio" value="radio1" checked>'
+    );
+  });
+  test("checkbox", () => {
+    expect(content(0)).toMatch(
+      '<input type="checkbox" name="checkbox" value="checkbox1" checked>'
+    );
+  });
+  test("select", () => {
+    expect(content(0)).toMatch('<option value="option1" selected>');
+  });
+});
 
 describe.skip("cacheAjaxRequests", () => {});
 
