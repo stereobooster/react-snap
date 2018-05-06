@@ -32,7 +32,7 @@ describe("validates options", () => {
       .catch(e => expect(e).toEqual("")));
 });
 
-describe("one page", async () => {
+describe("one page", () => {
   const source = "tests/examples/one-page";
   const {
     fs,
@@ -58,7 +58,7 @@ describe("one page", async () => {
   });
 });
 
-describe("respects destination", async () => {
+describe("respects destination", () => {
   const source = "tests/examples/one-page";
   const destination = "tests/examples/destination";
   const {
@@ -97,7 +97,7 @@ describe("respects destination", async () => {
   });
 });
 
-describe("many pages", async () => {
+describe("many pages", () => {
   const source = "tests/examples/many-pages";
   const {
     fs,
@@ -137,7 +137,7 @@ describe("many pages", async () => {
   });
 });
 
-describe("possible to disable crawl option", async () => {
+describe("possible to disable crawl option", () => {
   const source = "tests/examples/many-pages";
   const {
     fs,
@@ -172,7 +172,7 @@ describe("possible to disable crawl option", async () => {
   });
 });
 
-describe("inlineCss - small file", async () => {
+describe("inlineCss - small file", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -191,7 +191,7 @@ describe("inlineCss - small file", async () => {
   });
 });
 
-describe("inlineCss - big file", async () => {
+describe("inlineCss - big file", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -207,7 +207,7 @@ describe("inlineCss - big file", async () => {
   });
 });
 
-describe("removeBlobs", async () => {
+describe("removeBlobs", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -222,7 +222,7 @@ describe("removeBlobs", async () => {
   });
 });
 
-describe("http2PushManifest", async () => {
+describe("http2PushManifest", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -238,7 +238,7 @@ describe("http2PushManifest", async () => {
   });
 });
 
-describe("ignoreForPreload", async () => {
+describe("ignoreForPreload", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -255,7 +255,7 @@ describe("ignoreForPreload", async () => {
   });
 });
 
-describe("preconnectThirdParty", async () => {
+describe("preconnectThirdParty", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -270,7 +270,7 @@ describe("preconnectThirdParty", async () => {
   });
 });
 
-// describe("fixInsertRule", async () => {
+// describe("fixInsertRule", () => {
 //   const source = "tests/examples/other";
 //   const { fs, writeFileSyncMock } = mockFs();
 //   beforeAll(async () => {
@@ -285,7 +285,7 @@ describe("preconnectThirdParty", async () => {
 //   });
 // });
 
-describe("removeStyleTags", async () => {
+describe("removeStyleTags", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -301,7 +301,7 @@ describe("removeStyleTags", async () => {
   });
 });
 
-describe("removeScriptTags", async () => {
+describe("removeScriptTags", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -317,7 +317,7 @@ describe("removeScriptTags", async () => {
   });
 });
 
-describe("asyncScriptTags", async () => {
+describe("asyncScriptTags", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -333,7 +333,7 @@ describe("asyncScriptTags", async () => {
   });
 });
 
-describe("preloadImages", async () => {
+describe("preloadImages", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   beforeAll(async () => {
@@ -345,11 +345,11 @@ describe("preloadImages", async () => {
   });
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch("<link rel=\"preload\" as=\"image\"");
+    expect(content(0)).toMatch('<link rel="preload" as="image"');
   });
 });
 
-describe("handles JS errors", async () => {
+describe("handles JS errors", () => {
   const source = "tests/examples/other";
   const { fs, filesCreated, content } = mockFs();
   test("returns rejected promise", () => {
@@ -360,4 +360,13 @@ describe("handles JS errors", async () => {
       .then(() => expect(true).toEqual(false))
       .catch(e => expect(e).toEqual(""));
   });
+});
+
+describe("You can not run react-snap twice", () => {
+  const source = "tests/examples/processed";
+  const { fs, filesCreated, content } = mockFs();
+  test("returns rejected promise", () =>
+    snapRun(fs, { source })
+      .then(() => expect(true).toEqual(false))
+      .catch(e => expect(e).toEqual("")));
 });

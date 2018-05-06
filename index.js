@@ -492,7 +492,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     console.log(
       `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`
     );
-    process.exit(1);
+    return Promise.reject("");
   }
 
   fs
