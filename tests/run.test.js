@@ -388,17 +388,29 @@ describe("fixWebpackChunksIssue", () => {
   });
 });
 
-describe.skip("link to existing file", () => {
-  test("link to non-html file", () => {});
-  test("link to html file", () => {});
+describe("link to file", () => {
+  const source = "tests/examples/other";
+  const include = ["/link-to-file.html"];
+  const { fs, writeFileSyncMock } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include }));
+  test("link to non-html file", () => {
+    expect(writeFileSyncMock.mock.calls.map(x => x[0])).not.toEqual(
+      expect.arrayContaining([`/${source}/css/bg.png`])
+    );
+  });
+  test("link to html file", () => {
+    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
+      expect.arrayContaining([`/${source}/index.html`])
+    );
+  });
 });
-
-describe.skip("saves state of form elements changed via JS", () => {});
 
 describe.skip("snapSaveState", () => {
   test("supports only JSON compatible values", () => {});
   test("protects from XSS attack", () => {});
 });
+
+describe.skip("saves state of form elements changed via JS", () => {});
 
 describe.skip("cacheAjaxRequests", () => {});
 
