@@ -405,9 +405,25 @@ describe("link to file", () => {
   });
 });
 
-describe.skip("snapSaveState", () => {
-  test("supports only JSON compatible values", () => {});
-  test("protects from XSS attack", () => {});
+describe("snapSaveState", () => {
+  const source = "tests/examples/other";
+  const include = ["/snap-save-state.html"];
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include }));
+  test("JSON compatible values", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch('window["json"]=["",1,true,null,{}];');
+  });
+  test("non-JSON compatible values", () => {
+    // those don't work
+    expect(content(0)).toMatch(
+      'window["non-json"]=[null,"1999-12-31T23:00:00.000Z",null,{}];'
+    );
+  });
+  // this test doesn't work
+  test.skip("protects from XSS attack", () => {
+    expect(content(0)).toMatch('window["xss"]="\\u003C\\u002Fscript\\u003E');
+  });
 });
 
 describe.skip("saves state of form elements changed via JS", () => {});
