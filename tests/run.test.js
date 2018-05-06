@@ -182,7 +182,7 @@ describe("inlineCss - small file", () => {
     await snapRun(fs, {
       source,
       inlineCss: true,
-      include: ["/with-small-css.html"] //, "/with-big-css.html"]
+      include: ["/with-small-css.html"]
     });
   });
   // 1. I want to change this behaviour
