@@ -226,7 +226,7 @@ const preloadPolyfill = nativeFs.readFileSync(
 );
 
 /**
- * TODO: do we need to remove blobs for js?
+ *
  * @param {{page: Page}} opt
  * @return Promise
  */

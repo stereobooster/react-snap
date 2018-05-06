@@ -99,8 +99,7 @@ const crawl = async opt => {
   } = opt;
   let shuttingDown = false;
   let streamClosed = false;
-  // TODO: this doesn't work as expected
-  // process.stdin.resume();
+
   const onSigint = () => {
     if (shuttingDown) {
       process.exit(1);
