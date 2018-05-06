@@ -1,3 +1,6 @@
+// TODO: capture console log from run function
+// TODO: use less snapshot testing, because it is not clear what is being tested
+// FIX: (node:45014) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 SIGINT listeners added. Use emitter.setMaxListeners() to increase limit
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
 const snapRun = (fs, options) => {
@@ -171,12 +174,7 @@ describe("possible to disable crawl option", async () => {
 
 describe("inlineCss - small file", async () => {
   const source = "tests/examples/other";
-  const {
-    fs,
-    writeFileSyncMock,
-    createReadStreamMock,
-    createWriteStreamMock
-  } = mockFs();
+  const { fs, writeFileSyncMock } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -195,12 +193,7 @@ describe("inlineCss - small file", async () => {
 
 describe("inlineCss - big file", async () => {
   const source = "tests/examples/other";
-  const {
-    fs,
-    writeFileSyncMock,
-    createReadStreamMock,
-    createWriteStreamMock
-  } = mockFs();
+  const { fs, writeFileSyncMock } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -216,12 +209,7 @@ describe("inlineCss - big file", async () => {
 
 describe("removeBlobs", async () => {
   const source = "tests/examples/other";
-  const {
-    fs,
-    writeFileSyncMock,
-    createReadStreamMock,
-    createWriteStreamMock
-  } = mockFs();
+  const { fs, writeFileSyncMock } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -234,34 +222,9 @@ describe("removeBlobs", async () => {
   });
 });
 
-// describe("fixInsertRule", async () => {
-//   const source = "tests/examples/other";
-//   const {
-//     fs,
-//     writeFileSyncMock,
-//     createReadStreamMock,
-//     createWriteStreamMock
-//   } = mockFs();
-//   beforeAll(async () => {
-//     await snapRun(fs, {
-//       source,
-//       include: ["/fix-insert-rule.html"]
-//     });
-//   });
-//   test("fixes style tags populated with insertRule", () => {
-//     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-//     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
-//   });
-// });
-
 describe("http2PushManifest", async () => {
   const source = "tests/examples/other";
-  const {
-    fs,
-    writeFileSyncMock,
-    createReadStreamMock,
-    createWriteStreamMock
-  } = mockFs();
+  const { fs, writeFileSyncMock } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -277,12 +240,7 @@ describe("http2PushManifest", async () => {
 
 describe("ignoreForPreload", async () => {
   const source = "tests/examples/other";
-  const {
-    fs,
-    writeFileSyncMock,
-    createReadStreamMock,
-    createWriteStreamMock
-  } = mockFs();
+  const { fs, writeFileSyncMock } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -299,12 +257,7 @@ describe("ignoreForPreload", async () => {
 
 describe("preconnectThirdParty", async () => {
   const source = "tests/examples/other";
-  const {
-    fs,
-    writeFileSyncMock,
-    createReadStreamMock,
-    createWriteStreamMock
-  } = mockFs();
+  const { fs, writeFileSyncMock } = mockFs();
   beforeAll(async () => {
     await snapRun(fs, {
       source,
@@ -313,7 +266,39 @@ describe("preconnectThirdParty", async () => {
   });
   test("adds <link rel=preconnect>", () => {
     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
-    expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+    const html = writeFileSyncMock.mock.calls[0][1];
+    expect(html).toMatch("<link rel=\"preconnect\"");
   });
 });
 
+// describe("fixInsertRule", async () => {
+//   const source = "tests/examples/other";
+//   const { fs, writeFileSyncMock } = mockFs();
+//   beforeAll(async () => {
+//     await snapRun(fs, {
+//       source,
+//       include: ["/fix-insert-rule.html"]
+//     });
+//   });
+//   test("fixes <style> populated with insertRule", () => {
+//     expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+//     expect(writeFileSyncMock.mock.calls[0][1]).toMatchSnapshot();
+//   });
+// });
+
+describe("removeStyleTags", async () => {
+  const source = "tests/examples/other";
+  const { fs, writeFileSyncMock } = mockFs();
+  beforeAll(async () => {
+    await snapRun(fs, {
+      source,
+      include: ["/fix-insert-rule.html"],
+      removeStyleTags: true
+    });
+  });
+  test("removes all <style>", () => {
+    expect(writeFileSyncMock.mock.calls.length).toEqual(1);
+    const html = writeFileSyncMock.mock.calls[0][1];
+    expect(html).not.toMatch("<style");
+  });
+});
