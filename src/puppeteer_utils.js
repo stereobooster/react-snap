@@ -1,7 +1,6 @@
 const puppeteer = require("puppeteer");
 const _ = require("highland");
 const url = require("url");
-// @ts-ignore
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 const path = require("path");
 const fs = require("fs");
@@ -102,7 +101,7 @@ const crawl = async opt => {
   let streamClosed = false;
   // TODO: this doesn't work as expected
   // process.stdin.resume();
-  process.on("SIGINT", () => {
+  const onSigint = () => {
     if (shuttingDown) {
       process.exit(1);
     } else {
@@ -111,7 +110,8 @@ const crawl = async opt => {
         "\nGracefully shutting down. To exit immediately, press ^C again"
       );
     }
-  });
+  };
+  process.on("SIGINT", onSigint);
 
   const queue = _();
   let enqued = 0;
@@ -212,6 +212,7 @@ const crawl = async opt => {
       .map(x => _(fetchPage(x)))
       .mergeWithLimit(options.concurrency)
       .toArray(async () => {
+        process.removeListener("SIGINT", onSigint);
         await browser.close();
         onEnd && onEnd();
         if (shuttingDown) return reject("");

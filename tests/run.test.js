@@ -1,5 +1,4 @@
 // FIX: tests are flaky and slow
-// FIX: (node:45014) MaxListenersExceededWarning: Possible EventEmitter memory leak detected. 11 SIGINT listeners added. Use emitter.setMaxListeners() to increase limit
 // TODO: capture console log from run function
 // TODO: use less snapshot testing, because it is not clear what is being tested
 const { mockFs } = require("./helper.js");
