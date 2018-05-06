@@ -190,12 +190,7 @@ describe("inlineCss - big file", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
-      source,
-      include,
-      inlineCss: true
-    }));
+  beforeAll(() => snapRun(fs, { source, include, inlineCss: true }));
   test("inline style", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<style type="text/css">');
@@ -230,12 +225,7 @@ describe("http2PushManifest", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
-      source,
-      include,
-      http2PushManifest: true
-    }));
+  beforeAll(() => snapRun(fs, { source, include, http2PushManifest: true }));
   test("writes http2 manifest file", () => {
     expect(filesCreated()).toEqual(2);
     expect(content(1)).toEqual(
@@ -303,12 +293,7 @@ describe("removeScriptTags", () => {
   const source = "tests/examples/other";
   const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
-      source,
-      include,
-      removeScriptTags: true
-    }));
+  beforeAll(() => snapRun(fs, { source, include, removeScriptTags: true }));
   test("removes all <script>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch("<script");
@@ -319,12 +304,7 @@ describe("asyncScriptTags", () => {
   const source = "tests/examples/other";
   const include = ["/with-script.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
-      source,
-      include,
-      asyncScriptTags: true
-    }));
+  beforeAll(() => snapRun(fs, { source, include, asyncScriptTags: true }));
   test("adds async to all external", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch("async></script>");
@@ -335,12 +315,7 @@ describe("preloadImages", () => {
   const source = "tests/examples/other";
   const include = ["/with-image.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() =>
-    snapRun(fs, {
-      source,
-      include,
-      preloadImages: true
-    }));
+  beforeAll(() => snapRun(fs, { source, include, preloadImages: true }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<link rel="preload" as="image"');
@@ -447,7 +422,16 @@ describe("saves state of form elements changed via JS", () => {
   });
 });
 
-describe.skip("cacheAjaxRequests", () => {});
+describe.skip("cacheAjaxRequests", () => {
+  const source = "tests/examples/other";
+  const include = ["/ajax-request.html"];
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include, cacheAjaxRequests: true }));
+  test("saves ajax response", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch('window.snapStore={"/js/test.json":{test:1}};');
+  });
+});
 
 describe.skip("publicPath", () => {});
 
