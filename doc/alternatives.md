@@ -4,7 +4,7 @@
 
 |                               | react-snap | [prerender-spa-plugin][prerender-spa-plugin] | [react-snapshot][react-snapshot] | [prep][prep] | [snapshotify][snapshotify] |
 |-------------------------------|------------|----------------------------------------------|----------------------------------|--------------|----------------------------|
-| State                         | supported  | looking for maintainer                       | unsupported                      | unsupported  | experimental               |
+| State                         | supported  | supported                                    | unsupported                      | unsupported  | experimental               |
 | DOM implementation            | puppeteer  | phantomjs-prebuilt                           | jsdom                            | nightmare    | puppeteer                  |
 | Doesn't depend on Webpack     | +          | -                                            | +                                | +            | +                          |
 | Doesn't depend on React       | +          | +                                            | -                                | +            | +                          |
