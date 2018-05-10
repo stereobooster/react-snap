@@ -1,0 +1,19 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <script>
+    window.snapSaveState = () => {
+      return {
+        json: ["", 1, true, null, {}],
+        "non-json": [undefined, new Date(2000, 0, 1, 0, 0, 0), NaN, new Set([1, 2])],
+        xss: "<\/script><script>console.log('pwned');"
+      }
+    };
+  </script>
+</body>
+
+</html>

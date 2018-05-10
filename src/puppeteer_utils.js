@@ -1,7 +1,6 @@
 const puppeteer = require("puppeteer");
 const _ = require("highland");
 const url = require("url");
-// @ts-ignore
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 const path = require("path");
 const fs = require("fs");
@@ -29,7 +28,11 @@ const skipThirdPartyRequests = async opt => {
  */
 const enableLogging = opt => {
   const { page, options, route, onError, sourcemapStore } = opt;
-  page.on("console", msg => console.log(`✏️  ${route} log:`, msg.text()));
+  page.on("console", msg =>
+    Promise.all(msg.args().map(x => x.jsonValue())).then(args =>
+      console.log(`✏️  ${route} log:`, ...args)
+    )
+  );
   page.on("error", msg => {
     console.log(`🔥  ${route} error:`, msg);
     onError && onError();
@@ -100,9 +103,8 @@ const crawl = async opt => {
   } = opt;
   let shuttingDown = false;
   let streamClosed = false;
-  // TODO: this doesn't work as expected
-  // process.stdin.resume();
-  process.on("SIGINT", () => {
+
+  const onSigint = () => {
     if (shuttingDown) {
       process.exit(1);
     } else {
@@ -111,7 +113,8 @@ const crawl = async opt => {
         "\nGracefully shutting down. To exit immediately, press ^C again"
       );
     }
-  });
+  };
+  process.on("SIGINT", onSigint);
 
   const queue = _();
   let enqued = 0;
@@ -207,14 +210,18 @@ const crawl = async opt => {
     options.include.map(x => addToQueue(`${basePath}${x}`));
   }
 
-  queue
-    .map(x => _(fetchPage(x)))
-    .mergeWithLimit(options.concurrency)
-    .toArray(async function() {
-      await browser.close();
-      onEnd && onEnd();
-      if (shuttingDown) process.exit(1);
-    });
+  return new Promise((resolve, reject) => {
+    queue
+      .map(x => _(fetchPage(x)))
+      .mergeWithLimit(options.concurrency)
+      .toArray(async () => {
+        process.removeListener("SIGINT", onSigint);
+        await browser.close();
+        onEnd && onEnd();
+        if (shuttingDown) return reject("");
+        resolve();
+      });
+  });
 };
 
 exports.skipThirdPartyRequests = skipThirdPartyRequests;
