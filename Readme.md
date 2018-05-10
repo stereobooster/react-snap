@@ -46,7 +46,6 @@ That's it!
 
 ## Basic usage with Vue.js
 
-
 Install:
 
 ```sh
@@ -60,11 +59,17 @@ Change `package.json`:
   "postbuild": "react-snap"
 },
 "reactSnap": {
-  "source": "dist"
+  "source": "dist",
+  "minifyHtml": {
+    "collapseWhitespace": false, // or use preserveWhitespace: false in vue-loader
+    "removeComments": false
+  }
 }
 ```
 
 `source` - output folder of webpack or any other bundler of your choice
+
+Read more about `minifyHtml` caveats in [#142](https://github.com/stereobooster/react-snap/issues/142).
 
 Example: [Switch from prerender-spa-plugin to react-snap](https://github.com/stereobooster/prerender-spa-plugin/commit/ee73d39b862bc905b44a04c6eaa58e6730957819)
 
@@ -146,8 +151,7 @@ It is not a problem to render async component with react-snap, tricky part happe
 `react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for "snapshot" setup:
 
 ```js
-import { loadComponents } from "loadable-components";
-import { getState } from "loadable-components";
+import { loadComponents, getState } from "loadable-components";
 window.snapSaveState = () => getState();
 
 loadComponents().then(() => {
