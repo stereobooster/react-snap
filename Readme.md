@@ -154,6 +154,7 @@ It is not a problem to render async component with react-snap, tricky part happe
 import { loadComponents, getState } from "loadable-components";
 window.snapSaveState = () => getState();
 
+// For SSR only. If not, omit the following.
 loadComponents().then(() => {
   hydrate(AppWithRouter, rootElement);
 });
