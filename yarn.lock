@@ -861,7 +861,7 @@ detect-newline@^2.1.0:
   version "2.1.0"
   resolved "https://registry.yarnpkg.com/detect-newline/-/detect-newline-2.1.0.tgz#f41f1c10be4b00e87b5f13da680759f2c5bfd3e2"
 
-dev-null-stream@^0.0.1:
+dev-null-stream@0.0.1:
   version "0.0.1"
   resolved "https://registry.yarnpkg.com/dev-null-stream/-/dev-null-stream-0.0.1.tgz#a2a2e27b4db99928d6d8d44d5c5f7efbd4cb4372"
 
@@ -2132,7 +2132,7 @@ jest-worker@^22.4.3:
   dependencies:
     merge-stream "^1.0.1"
 
-jest@^22.4.3:
+jest@22.4.3:
   version "22.4.3"
   resolved "https://registry.yarnpkg.com/jest/-/jest-22.4.3.tgz#2261f4b117dc46d9a4a1a673d2150958dee92f16"
   dependencies:
