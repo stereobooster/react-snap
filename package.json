@@ -23,8 +23,8 @@
     "sourcemapped-stacktrace-node": "^2.1.6"
   },
   "devDependencies": {
-    "dev-null-stream": "^0.0.1",
-    "jest": "^22.4.3",
+    "dev-null-stream": "0.0.1",
+    "jest": "22.4.3",
     "markdown-toc": "1.2.0",
     "prettier": "1.12.1"
   },
