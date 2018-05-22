@@ -27,6 +27,7 @@ const defaultOptions = {
   puppeteerExecutablePath: undefined,
   puppeteerIgnoreHTTPSErrors: false,
   publicPath: "/",
+  proxy: {},
   minifyCss: {},
   minifyHtml: {
     collapseBooleanAttributes: true,
