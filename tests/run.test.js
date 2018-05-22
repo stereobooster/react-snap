@@ -61,6 +61,35 @@ describe("one page", () => {
   });
 });
 
+describe("proxy", () => {
+  const sourceF = "tests/examples/proxy/frontend";
+  const sourceB = "tests/examples/proxy/backend";
+  const portF = Math.floor(Math.random() * 1000 + 45000);
+  const portB = Math.floor(Math.random() * 1000 + 45000);
+  const {
+    fs,
+    createReadStreamMock,
+    createWriteStreamMock,
+    filesCreated,
+    content,
+    name
+  } = mockFs();
+  beforeAll(() => {
+      const snapB = snapRun(mockFs().fs, { source: sourceB, port: portB });
+      const proxy = {};
+      proxy[`http://localhost:${portF}/text.txt`] = `http://localhost:${portB}/text.txt`;
+      return snapB.then(function() {
+        console.log(arguments);
+        return snapRun(fs, { source: sourceF, proxy, port: portF });
+      });
+  });
+  test("crawls / and saves as index.html to the same folder", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(name(0)).toEqual(`/${sourceF}/index.html`);
+    expect(content(0)).toEqual('This is a test of the proxy.');
+  });
+});
+
 describe("respects destination", () => {
   const source = "tests/examples/one-page";
   const destination = "tests/examples/destination";
