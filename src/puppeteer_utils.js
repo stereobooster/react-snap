@@ -11,7 +11,7 @@ const fs = require("fs");
  */
 const handleThirdPartyRequests = async opt => {
   const { page, options, basePath } = opt;
-  if (!options.skipThirdPartyRequests || !options.proxy) return;
+  if (!options.skipThirdPartyRequests && !options.proxy) return;
   await page.setRequestInterception(true);
   page.on("request", request => {
     if (options.proxy) {
