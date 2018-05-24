@@ -24,7 +24,7 @@
   },
   "devDependencies": {
     "dev-null-stream": "0.0.1",
-    "jest": "22.4.4",
+    "jest": "23.0.0",
     "markdown-toc": "1.2.0",
     "prettier": "1.12.1"
   },
