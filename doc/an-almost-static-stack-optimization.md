@@ -37,7 +37,7 @@ It performs not that well:
 
 ## First round: hosting
 
-First improvement woud be to choose better hosting or use CDN in front of it. So you can use anything from the following range (I'm listing popular and free or cheap options):
+First improvement would be to choose better hosting or use CDN in front of it. So you can use anything from the following range (I'm listing popular and free or cheap options):
 
 |                       | Expiration headers | Easy to deploy | Free plan | Custom Headers   | HTTP push        |
 |-----------------------|--------------------|----------------|-----------|------------------|------------------|

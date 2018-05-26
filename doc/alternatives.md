@@ -1,6 +1,6 @@
 # Alternatives
 
-## Prerendering, snapshoting
+## Prerendering, snapshotting
 
 |                               | react-snap | [prerender-spa-plugin][prerender-spa-plugin] | [react-snapshot][react-snapshot] | [prep][prep] | [snapshotify][snapshotify] |
 |-------------------------------|------------|----------------------------------------------|----------------------------------|--------------|----------------------------|
@@ -11,7 +11,7 @@
 | Load performance optimisation | +          | -                                            | -                                | -            | +                          |
 | Zero-configuration            | +          | -                                            | +                                | -            | +                          |
 | Redux                         | +          | -                                            | +                                | -            | -                          |
-| Assync components             | +          | -                                            | -                                | -            | +                          |
+| Async components             | +          | -                                            | -                                | -            | +                          |
 | Webpack code splitting        | +          | [+][code-splitting]                          | -                                | -            | +                          |
 | `CSSStyleSheet.insertRule`    | +          | -                                            | -                                | -            | +                          |
 | blob urls                     | +          | ?                                            | -                                | -            | -                          |
@@ -23,10 +23,10 @@
 [snapshotify]: https://github.com/errorception/snapshotify
 [code-splitting]: https://github.com/chrisvfritz/prerender-spa-plugin#code-splitting
 
-- Load performancs optimisation - something beyond rendering HTML, like critical CSS
+- Load performance optimisation - something beyond rendering HTML, like critical CSS
 - Zero-configuration - provides sensible defaults
-- **Redux** - can save state at the end of redering
-- **async components** - can save state of async componets to prevent flash on the client side
+- **Redux** - can save state at the end of rendering
+- **async components** - can save state of async components to prevent flash on the client side
 - `insertRule` - Works with CSS-in-JS solutions which use `CSSStyleSheet.insertRule`
 - **blob urls** - removes blob urls from generated HTML
 
