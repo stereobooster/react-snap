@@ -26,7 +26,7 @@
     "dev-null-stream": "0.0.1",
     "jest": "23.1.0",
     "markdown-toc": "1.2.0",
-    "prettier": "1.13.0"
+    "prettier": "1.13.4"
   },
   "scripts": {
     "toc": "yarn run markdown-toc -i doc/recipes.md",
