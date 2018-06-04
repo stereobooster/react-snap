@@ -1,8 +1,7 @@
 {
   "name": "react-snap",
   "version": "1.12.2",
-  "description":
-    "Zero-configuration framework-agnostic static prerendering for SPAs",
+  "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
   "author": "stereobooster",
   "license": "MIT",
@@ -36,5 +35,10 @@
   "bin": {
     "react-snap": "./run.js"
   },
-  "files": ["index.js", "run.js", "src/", "vendor/"]
+  "files": [
+    "index.js",
+    "run.js",
+    "src/",
+    "vendor/"
+  ]
 }

@@ -144,7 +144,7 @@ const preloadResources = opt => {
   page.on("response", async response => {
     const responseUrl = response.url();
     if (/^data:|blob:/i.test(responseUrl)) return;
-    const ct = response.headers["content-type"] || "";
+    const ct = response.headers()["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
     if (/^http:\/\/localhost/i.test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
@@ -495,15 +495,15 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     return Promise.reject("");
   }
 
-  fs
-    .createReadStream(path.join(sourceDir, "index.html"))
-    .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
+  fs.createReadStream(path.join(sourceDir, "index.html")).pipe(
+    fs.createWriteStream(path.join(sourceDir, "200.html"))
+  );
 
   if (destinationDir !== sourceDir && options.saveAs === "html") {
     mkdirp.sync(destinationDir);
-    fs
-      .createReadStream(path.join(sourceDir, "index.html"))
-      .pipe(fs.createWriteStream(path.join(destinationDir, "200.html")));
+    fs.createReadStream(path.join(sourceDir, "index.html")).pipe(
+      fs.createWriteStream(path.join(destinationDir, "200.html"))
+    );
   }
 
   const server = options.externalServer ? null : startServer(options);
