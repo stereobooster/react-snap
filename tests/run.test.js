@@ -438,7 +438,9 @@ describe("cacheAjaxRequests", () => {
   beforeAll(() => snapRun(fs, { source, include, cacheAjaxRequests: true }));
   test("saves ajax response", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch('window.snapStore={"/js/test.json":{test:1}};');
+    expect(content(0)).toMatch(
+      'window.snapStore={"\\u002Fjs\\u002Ftest.json":{"test":1}};'
+    );
   });
 });
 

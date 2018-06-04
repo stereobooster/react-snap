@@ -144,7 +144,7 @@ const preloadResources = opt => {
   page.on("response", async response => {
     const responseUrl = response.url();
     if (/^data:|blob:/i.test(responseUrl)) return;
-    const ct = response.headers["content-type"] || "";
+    const ct = response.headers()["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
     if (/^http:\/\/localhost/i.test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
