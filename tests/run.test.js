@@ -431,7 +431,7 @@ describe("saves state of form elements changed via JS", () => {
   });
 });
 
-describe.skip("cacheAjaxRequests", () => {
+describe("cacheAjaxRequests", () => {
   const source = "tests/examples/other";
   const include = ["/ajax-request.html"];
   const { fs, filesCreated, content } = mockFs();
