@@ -201,12 +201,12 @@ describe("inlineCss - big file", () => {
   });
   test("inserts <link> in noscript", () => {
     expect(content(0)).toMatch(
-      '<noscript><link rel="stylesheet" href="/css/big.css"></noscript>'
+      '<noscript><link href="/css/big.css" rel="stylesheet"></noscript>'
     );
   });
   test('inserts <link rel="preload"> with onload', () => {
     expect(content(0)).toMatch(
-      '<link rel="preload" href="/css/big.css" as="style" onload="this.rel=\'stylesheet\'">'
+      '<link href="/css/big.css" rel="preload" as="style" onload="this.rel=\'stylesheet\'">'
     );
   });
   test("inserts loadCSS polyfill", () => {
@@ -262,7 +262,9 @@ describe("preconnectThirdParty", () => {
   beforeAll(() => snapRun(fs, { source, include }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch('<link rel="preconnect"');
+    expect(content(0)).toMatch(
+      '<link href="https://fonts.googleapis.com" rel="preconnect">'
+    );
   });
 });
 
@@ -311,7 +313,7 @@ describe("asyncScriptTags", () => {
   beforeAll(() => snapRun(fs, { source, include, asyncScriptTags: true }));
   test("adds async to all external", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch("async></script>");
+    expect(content(0)).toMatch('<script async src="js/main.js"></script>');
   });
 });
 
@@ -322,7 +324,9 @@ describe("preloadImages", () => {
   beforeAll(() => snapRun(fs, { source, include, preloadImages: true }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch('<link rel="preload" as="image"');
+    expect(content(0)).toMatch(
+      '<link as="image" href="/css/bg.png" rel="preload">'
+    );
   });
 });
 
@@ -352,7 +356,7 @@ describe("fixWebpackChunksIssue", () => {
   test("creates preload links", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
-      '<link rel="preload" as="script" href="/static/js/main.42105999.js"><link rel="preload" as="script" href="/static/js/0.35040230.chunk.js">'
+      '<link as="script" href="/static/js/main.42105999.js" rel="preload"><link as="script" href="/static/js/0.35040230.chunk.js" rel="preload">'
     );
   });
   test("leaves root script", () => {
@@ -414,16 +418,16 @@ describe("saves state of form elements changed via JS", () => {
   test("radio button", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
-      '<input type="radio" name="radio" value="radio1" checked>'
+      '<input checked name="radio" type="radio" value="radio1">'
     );
   });
   test("checkbox", () => {
     expect(content(0)).toMatch(
-      '<input type="checkbox" name="checkbox" value="checkbox1" checked>'
+      '<input checked name="checkbox" type="checkbox" value="checkbox1">'
     );
   });
   test("select", () => {
-    expect(content(0)).toMatch('<option value="option1" selected>');
+    expect(content(0)).toMatch('<option selected value="option1">');
   });
 });
 
