@@ -50,7 +50,7 @@ const enableLogging = opt => {
           stackRows.length - 1;
 
         console.log(
-          `🔥  ${route} pageerror: ${e.stack.split("\n")[0] +
+          `🔥  ${route} pageerror: ${(e.stack || e.message).split("\n")[0] +
             "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
         );
       }).catch((e2) => {
