@@ -32,6 +32,9 @@ Object {
   "preconnectThirdParty": true,
   "preloadImages": false,
   "publicPath": "/",
+  "puppeteer": Object {
+    "cache": true,
+  },
   "puppeteerArgs": Array [],
   "puppeteerExecutablePath": undefined,
   "puppeteerIgnoreHTTPSErrors": false,
