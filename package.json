@@ -19,7 +19,7 @@
     "mkdirp": "^0.5.1",
     "puppeteer": "^1.2.0",
     "serve-static": "^1.13.1",
-    "sourcemapped-stacktrace-node": "^2.1.6"
+    "sourcemapped-stacktrace-node": "2.1.8"
   },
   "devDependencies": {
     "dev-null-stream": "0.0.1",

@@ -39,7 +39,7 @@ const enableLogging = opt => {
   });
   page.on("pageerror", e => {
     if (options.sourceMaps) {
-      mapStackTrace(e.stack, {
+      mapStackTrace(e.stack || e.message, {
         isChromeOrEdge: true,
         store: sourcemapStore || {}
       }).then(result => {
@@ -50,9 +50,12 @@ const enableLogging = opt => {
           stackRows.length - 1;
 
         console.log(
-          `🔥  ${route} pageerror: ${e.stack.split("\n")[0] +
+          `🔥  ${route} pageerror: ${(e.stack || e.message).split("\n")[0] +
             "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
         );
+      }).catch((e2) => {
+        console.log(`🔥  ${route} pageerror:`, e);
+        console.log(`️️️⚠️  ${route} error in Source Maps:`, e2.message);
       });
     } else {
       console.log(`🔥  ${route} pageerror:`, e);
