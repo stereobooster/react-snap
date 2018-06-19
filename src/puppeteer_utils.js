@@ -42,21 +42,23 @@ const enableLogging = opt => {
       mapStackTrace(e.stack || e.message, {
         isChromeOrEdge: true,
         store: sourcemapStore || {}
-      }).then(result => {
-        // TODO: refactor mapStackTrace: return array not a string, return first row too
-        const stackRows = result.split("\n");
-        const puppeteerLine =
-          stackRows.findIndex(x => x.includes("puppeteer")) ||
-          stackRows.length - 1;
+      })
+        .then(result => {
+          // TODO: refactor mapStackTrace: return array not a string, return first row too
+          const stackRows = result.split("\n");
+          const puppeteerLine =
+            stackRows.findIndex(x => x.includes("puppeteer")) ||
+            stackRows.length - 1;
 
-        console.log(
-          `🔥  ${route} pageerror: ${(e.stack || e.message).split("\n")[0] +
-            "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
-        );
-      }).catch((e2) => {
-        console.log(`🔥  ${route} pageerror:`, e);
-        console.log(`️️️⚠️  ${route} error in Source Maps:`, e2.message);
-      });
+          console.log(
+            `🔥  ${route} pageerror: ${(e.stack || e.message).split("\n")[0] +
+              "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
+          );
+        })
+        .catch(e2 => {
+          console.log(`🔥  ${route} pageerror:`, e);
+          console.log(`️️️⚠️  ${route} error in Source Maps:`, e2.message);
+        });
     } else {
       console.log(`🔥  ${route} pageerror:`, e);
     }
@@ -118,6 +120,12 @@ const crawl = async opt => {
     }
   };
   process.on("SIGINT", onSigint);
+
+  const onUnhandledRejection = error => {
+    console.log("UnhandledPromiseRejectionWarning", error);
+    shuttingDown = true;
+  };
+  process.on("unhandledRejection", onUnhandledRejection);
 
   const queue = _();
   let enqued = 0;
@@ -220,6 +228,7 @@ const crawl = async opt => {
       .mergeWithLimit(options.concurrency)
       .toArray(async () => {
         process.removeListener("SIGINT", onSigint);
+        process.removeListener("unhandledRejection", onUnhandledRejection);
         await browser.close();
         onEnd && onEnd();
         if (shuttingDown) return reject("");
