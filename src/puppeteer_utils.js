@@ -6,21 +6,25 @@ const path = require("path");
 const fs = require("fs");
 
 /**
- * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
+ * @param {{page: Page, options: {skipThirdPartyRequests: true, allowedThirdPartyDomains: []}, basePath: string }} opt
  * @return {Promise<void>}
  */
 const skipThirdPartyRequests = async opt => {
-  const { page, options, basePath } = opt;
-  if (!options.skipThirdPartyRequests) return;
-  await page.setRequestInterception(true);
-  page.on("request", request => {
-    if (request.url().startsWith(basePath)) {
-      request.continue();
+  const {page, options, basePath} = opt
+  const {skipThirdPartyRequests, allowedThirdPartyDomains} = options
+  if (!skipThirdPartyRequests) return
+  await page.setRequestInterception(true)
+  page.on('request', request => {
+    const url = request.url()
+    if (url.startsWith(basePath)) {
+      request.continue()
+    } else if (allowedThirdPartyDomains.some(d => url.startsWith(d))) {
+      request.continue()
     } else {
-      request.abort();
+      request.abort()
     }
-  });
-};
+  })
+}
 
 /**
  * @param {{page: Page, options: {sourceMaps: boolean}, route: string, onError: ?function }} opt

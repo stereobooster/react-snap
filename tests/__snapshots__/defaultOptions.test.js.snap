@@ -2,6 +2,7 @@
 
 exports[`defaultOptions 1`] = `
 Object {
+  "allowedThirdPartyDomains": Array [],
   "asyncScriptTags": false,
   "cacheAjaxRequests": false,
   "concurrency": 4,
