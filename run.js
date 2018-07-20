@@ -7,6 +7,7 @@ const { reactSnap, homepage } = require(`${process.cwd()}/package.json`);
 run({
   publicPath: homepage ? url.parse(homepage).pathname : "/",
   ...reactSnap
-}).catch(() => {
+}).catch((error) => {
+  console.error(error)
   process.exit(1);
 });
