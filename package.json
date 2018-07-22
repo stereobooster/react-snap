@@ -1,6 +1,6 @@
 {
   "name": "react-snap",
-  "version": "1.15.0",
+  "version": "1.16.0",
   "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
   "author": "stereobooster",
