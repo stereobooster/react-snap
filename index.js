@@ -149,7 +149,7 @@ const preloadResources = opt => {
     if (/^data:|blob:/i.test(responseUrl)) return;
     const ct = response.headers()["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
-    if (/^http:\/\/localhost/i.test(responseUrl)) {
+    if (/^http:\/\/localhost/i.test(responseUrl) || ct.includes("json")) {
       if (uniqueResources.has(responseUrl)) return;
       if (preloadImages && /\.(png|jpg|jpeg|webp|gif|svg)$/.test(responseUrl)) {
         if (http2PushManifest) {
