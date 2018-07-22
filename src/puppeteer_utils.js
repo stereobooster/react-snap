@@ -66,7 +66,11 @@ const enableLogging = opt => {
   });
   page.on("response", response => {
     if (response.status() >= 400) {
-      console.log(`⚠️   ${response.status()} error: ${response.url()}`);
+      let route = ''
+      try {
+        route = response._request.headers().referer.replace(`http://localhost:${options.port}`, "");
+      } catch (e) {}
+      console.log(`⚠️   ${route} ${response.status()} error: ${response.url()}`);
     }
   });
   // page.on("requestfailed", msg =>
