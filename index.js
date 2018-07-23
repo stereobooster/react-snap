@@ -154,6 +154,7 @@ const preloadResources = opt => {
       const json = await response.json();
       ajaxCache[route] = json;
       uniqueResources.add(responseUrl);
+      return;
     }
     if (/^http:\/\/localhost/i.test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
