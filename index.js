@@ -149,6 +149,13 @@ const preloadResources = opt => {
     if (/^data:|blob:/i.test(responseUrl)) return;
     const ct = response.headers()["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
+    if (cacheAjaxRequests && ct.includes("json")) {
+      if (uniqueResources.has(responseUrl)) return;
+      const json = await response.json();
+      ajaxCache[route] = json;
+      uniqueResources.add(responseUrl);
+      return;
+    }
     if (/^http:\/\/localhost/i.test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
       if (preloadImages && /\.(png|jpg|jpeg|webp|gif|svg)$/.test(responseUrl)) {
@@ -166,9 +173,6 @@ const preloadResources = opt => {
             document.body.appendChild(linkTag);
           }, route);
         }
-      } else if (cacheAjaxRequests && ct.includes("json")) {
-        const json = await response.json();
-        ajaxCache[route] = json;
       } else if (http2PushManifest && /\.(js)$/.test(responseUrl)) {
         const fileName = url
           .parse(responseUrl)
