@@ -244,6 +244,8 @@ use the following configuration:
 "minifyHtml": { "sortClassName": false }
 ```
 
+From version `1.17.0` `sortClassName` is false by default.
+
 ### JSS
 
 > Once JS on the client is loaded, components initialized and your JSS styles are regenerated, it's a good time to remove server-side generated style tag in order to avoid side-effects
