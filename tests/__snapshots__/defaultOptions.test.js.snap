@@ -26,7 +26,7 @@ Object {
     "decodeEntities": true,
     "keepClosingSlash": true,
     "sortAttributes": true,
-    "sortClassName": true,
+    "sortClassName": false,
   },
   "port": 45678,
   "preconnectThirdParty": true,

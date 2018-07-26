@@ -37,7 +37,7 @@ const defaultOptions = {
     decodeEntities: true,
     keepClosingSlash: true,
     sortAttributes: true,
-    sortClassName: true
+    sortClassName: false
   },
   // mobile first approach
   viewport: {
