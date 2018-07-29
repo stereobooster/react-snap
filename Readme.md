@@ -32,9 +32,9 @@ Change `package.json`:
 Change `src/index.js` (for React 16+):
 
 ```js
-import { hydrate, render } from 'react-dom';
+import { hydrate, render } from "react-dom";
 
-const rootElement = document.getElementById('root');
+const rootElement = document.getElementById("root");
 if (rootElement.hasChildNodes()) {
   hydrate(<App />, rootElement);
 } else {
@@ -83,7 +83,7 @@ This is the small hack to fix rehydration problem.
 
 ```js
 window.snapSaveState = () => {
-  document.querySelector('#app').setAttribute('data-server-rendered', 'true')
+  document.querySelector("#app").setAttribute("data-server-rendered", "true");
 };
 ```
 
@@ -165,17 +165,17 @@ See: [Redux Server Rendering Section](https://redux.js.org/docs/recipes/ServerRe
 
 ```js
 // Grab the state from a global variable injected into the server-generated HTML
-const preloadedState = window.__PRELOADED_STATE__
+const preloadedState = window.__PRELOADED_STATE__;
 
 // Allow the passed state to be garbage-collected
-delete window.__PRELOADED_STATE__
+delete window.__PRELOADED_STATE__;
 
 // Create Redux store with initial state
-const store = createStore(counterApp, preloadedState || initialState)
+const store = createStore(counterApp, preloadedState || initialState);
 
 // Tell react-snap how to save Redux state
 window.snapSaveState = () => ({
-  "__PRELOADED_STATE__": store.getState()
+  __PRELOADED_STATE__: store.getState()
 });
 ```
 
@@ -262,18 +262,21 @@ See [#135](https://github.com/stereobooster/react-snap/issues/135).
 
 See [alternatives](doc/alternatives.md)
 
+## Who uses it
+
+|[![cloud.gov.au](doc/who-uses-it/cloud.gov.au.png)](https://github.com/govau/cloud.gov.au/blob/0187dd78d8f1751923631d3ff16e0fbe4a82bcc6/www/ui/package.json#L29)|[![pizza hut](doc/who-uses-it/pizza-hut.png)](https://github.com/stereobooster/react-snap/pull/213)|[![blacklane](doc/who-uses-it/blacklane.png)](http://m.blacklane.com/)|
+|---|---|---|
+
 ## Contributing
 
 ### Report a bug
 
-Please provide a reproducible demo of a bug and steps to reproduce it. Thanks
+Please provide a reproducible demo of a bug and steps to reproduce it. Thanks!
 
 ### Share on the web
 
 Tweet it, like it, share it, star it. Thank you
 
 ### Code
-
-It is hard to accept big PRs as of now because there are no tests yet. PRs for [`help wanted`](https://github.com/stereobooster/react-snap/issues?q=is:issue+is:open+label:%22help+wanted%22) tickets are very welcome.
 
 You also can contribute to [minimalcss](https://github.com/peterbe/minimalcss), which is a big part of `react-snap`. Also, give some stars.
