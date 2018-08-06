@@ -293,7 +293,7 @@ const inlineCss = async opt => {
 
   if (cssSize > twentyKb)
     console.log(
-      `⚠️  inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
+      `warning: inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
     );
 
   if (cssStrategy === "critical") {
@@ -443,11 +443,11 @@ const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
   filePath = filePath.replace(/\//g, path.sep);
   if (route.endsWith(".html")) {
     if (route.endsWith("/404.html") && !title.includes("404"))
-      console.log('⚠️  404 page title does not contain "404" string');
+      console.log('warning: 404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(filePath, minifiedContent);
   } else {
-    if (title.includes("404")) console.log(`⚠️  page not found ${route}`);
+    if (title.includes("404")) console.log(`warning: page not found ${route}`);
     mkdirp.sync(filePath);
     fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   }
