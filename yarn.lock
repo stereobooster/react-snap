@@ -2458,9 +2458,9 @@ mimic-fn@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.2.0.tgz#820c86a39334640e99516928bd03fca88057d022"
 
-minimalcss@0.7.6:
-  version "0.7.6"
-  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.7.6.tgz#6372db6f5e9dcedef1f41b64cb475d3c5efd1a3e"
+minimalcss@0.7.7:
+  version "0.7.7"
+  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.7.7.tgz#ed1aae192934b37e335d7d5c6e8d51eaf76a7663"
   dependencies:
     cheerio "1.0.0-rc.2"
     css-tree "1.0.0-alpha.28"
