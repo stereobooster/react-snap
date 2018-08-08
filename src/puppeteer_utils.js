@@ -28,13 +28,18 @@ const skipThirdPartyRequests = async opt => {
  */
 const enableLogging = opt => {
   const { page, options, route, onError, sourcemapStore } = opt;
-  page.on("console", msg =>
-    Promise.all(msg.args().map(x => x.jsonValue())).then(args =>
-      console.log(`✏️  ${route} log:`, ...args)
-    )
-  );
+  page.on("console", msg => {
+    const text = msg.text();
+    if (text !== 'JSHandle@object') {
+      console.log(`console.log at ${route}:`, text)
+    } else {
+      Promise.all(msg.args().map(x => x.jsonValue())).then(args =>
+        console.log(`console.log at ${route}:`, ...args)
+      )
+    }
+  });
   page.on("error", msg => {
-    console.log(`🔥  ${route} error:`, msg);
+    console.log(`error at ${route}:`, msg);
     onError && onError();
   });
   page.on("pageerror", e => {
@@ -51,16 +56,16 @@ const enableLogging = opt => {
             stackRows.length - 1;
 
           console.log(
-            `🔥  ${route} pageerror: ${(e.stack || e.message).split("\n")[0] +
+            `pageerror at ${route}: ${(e.stack || e.message).split("\n")[0] +
               "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
           );
         })
         .catch(e2 => {
-          console.log(`🔥  ${route} pageerror:`, e);
-          console.log(`️️️⚠️  ${route} error in Source Maps:`, e2.message);
+          console.log(`pageerror at ${route}:`, e);
+          console.log(`️️️warning at ${route} (error in source maps):`, e2.message);
         });
     } else {
-      console.log(`🔥  ${route} pageerror:`, e);
+      console.log(`pageerror at ${route}:`, e);
     }
     onError && onError();
   });
@@ -70,7 +75,7 @@ const enableLogging = opt => {
       try {
         route = response._request.headers().referer.replace(`http://localhost:${options.port}`, "");
       } catch (e) {}
-      console.log(`⚠️   ${route} ${response.status()} error: ${response.url()}`);
+      console.log(`warning at ${route}: got ${response.status()} HTTP code for ${response.url()}`);
     }
   });
   // page.on("requestfailed", msg =>
@@ -204,15 +209,16 @@ const crawl = async opt => {
         }
         afterFetch && (await afterFetch({ page, route, browser }));
         await page.close();
-        console.log(`🕸  (${processed + 1}/${enqued}) ${route}`);
+        console.log(`crawled ${processed + 1} out of ${enqued} (${route})`);
       } catch (e) {
         if (!shuttingDown) {
-          console.log(`🔥  ${route}`, e);
+          console.log(`error at ${route}`, e);
         }
         shuttingDown = true;
       }
     } else {
-      console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
+      // this message creates a lot of noise
+      // console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
     }
     processed++;
     if (enqued === processed) {
