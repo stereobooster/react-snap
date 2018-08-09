@@ -1,0 +1,22 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <p>test</p>
+  <script>
+    if (!document.getElementById("css-in-js")) {
+      const css = "p { color: red; }",
+        head = document.head || document.getElementsByTagName("head")[0],
+        style = document.createElement("style");
+      style.id = "css-in-js";
+      head.appendChild(style);
+      const sheet = style.sheet;
+      sheet.insertRule(css, sheet.cssRules.length);
+    }
+  </script>
+</body>
+
+</html>

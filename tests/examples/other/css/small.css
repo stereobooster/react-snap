@@ -1,0 +1,11 @@
+/* div is present in the document that is why it will be preserved */
+div {
+  background: url('bg.png');
+  height: 10px;
+}
+/* p is not present in the document but it will be preserved,
+   because whole css file get inlined
+*/
+p {
+  background: black;
+}

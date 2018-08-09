@@ -1,0 +1,19 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <p>test</p>
+  <script>
+    const blob = new Blob(["p { color: red; }"], { type: "text/css" });
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.href = window.URL.createObjectURL(blob);
+    const head = document.head || document.getElementsByTagName("head")[0];
+    head.appendChild(link);
+  </script>
+</body>
+
+</html>

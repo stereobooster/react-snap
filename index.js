@@ -5,7 +5,7 @@ const serveStatic = require("serve-static");
 // @ts-ignore
 const fallback = require("express-history-api-fallback");
 const path = require("path");
-const fs = require("fs");
+const nativeFs = require("fs");
 const mkdirp = require("mkdirp");
 const minify = require("html-minifier").minify;
 const url = require("url");
@@ -36,7 +36,7 @@ const defaultOptions = {
     decodeEntities: true,
     keepClosingSlash: true,
     sortAttributes: true,
-    sortClassName: true
+    sortClassName: false
   },
   // mobile first approach
   viewport: {
@@ -86,10 +86,13 @@ const defaults = userOptions => {
     ...userOptions
   };
   options.destination = options.destination || options.source;
-  if (!options.include || !options.include.length)
-    throw new Error("include should be an array");
-
   let exit = false;
+
+  if (!options.include || !options.include.length) {
+    console.log("⚠️  include should be non-empty array");
+    exit = true;
+  }
+
   if (options.preloadResources) {
     console.log(
       "⚠️  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
@@ -108,7 +111,7 @@ const defaults = userOptions => {
     console.log("⚠️  saveAs supported values are html and png");
     exit = true;
   }
-  if (exit) process.exit(1);
+  if (exit) return false;
   if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
     options.minifyHtml.minifyCSS = options.minifyCss;
   }
@@ -214,7 +217,7 @@ const removeScriptTags = ({ page }) =>
     });
   });
 
-const preloadPolyfill = fs.readFileSync(
+const preloadPolyfill = nativeFs.readFileSync(
   `${__dirname}/vendor/preload_polyfill.min.js`,
   "utf8"
 );
@@ -405,15 +408,15 @@ const fixFormFields = ({ page }) => {
         element.removeAttribute("checked");
       }
     });
-    Array.from(
-      document.querySelectorAll("[type=checkbox]")
-    ).forEach(element => {
-      if (element.checked) {
-        element.setAttribute("checked", "checked");
-      } else {
-        element.removeAttribute("checked");
+    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(
+      element => {
+        if (element.checked) {
+          element.setAttribute("checked", "checked");
+        } else {
+          element.removeAttribute("checked");
+        }
       }
-    });
+    );
     Array.from(document.querySelectorAll("option")).forEach(element => {
       if (element.selected) {
         element.setAttribute("selected", "selected");
@@ -424,7 +427,7 @@ const fixFormFields = ({ page }) => {
   });
 };
 
-const saveAsHtml = async ({ page, filePath, options, route }) => {
+const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
   let content = await page.content();
   content = content.replace(/react-snap-onload/g, "onload");
   const title = await page.title();
@@ -457,8 +460,9 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   return page.screenshot({ path: screenshotPath });
 };
 
-const run = async userOptions => {
+const run = async (userOptions, { fs } = { fs: nativeFs }) => {
   const options = defaults(userOptions);
+  if (options === false) return Promise.reject("");
 
   const sourceDir = path.normalize(`${process.cwd()}/${options.source}`);
   const destinationDir = path.normalize(
@@ -481,18 +485,18 @@ const run = async userOptions => {
     console.log(
       `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`
     );
-    process.exit(1);
+    return Promise.reject("");
   }
 
-  fs
-    .createReadStream(path.join(sourceDir, "index.html"))
-    .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
+  fs.createReadStream(path.join(sourceDir, "index.html")).pipe(
+    fs.createWriteStream(path.join(sourceDir, "200.html"))
+  );
 
   if (destinationDir !== sourceDir && options.saveAs === "html") {
     mkdirp.sync(destinationDir);
-    fs
-      .createReadStream(path.join(sourceDir, "index.html"))
-      .pipe(fs.createWriteStream(path.join(destinationDir, "200.html")));
+    fs.createReadStream(path.join(sourceDir, "index.html")).pipe(
+      fs.createWriteStream(path.join(destinationDir, "200.html"))
+    );
   }
 
   const server = options.externalServer ? null : startServer(options);
@@ -503,7 +507,7 @@ const run = async userOptions => {
   const { http2PushManifest } = options;
   const http2PushManifestItems = {};
 
-  await crawl({
+  return await crawl({
     options,
     basePath,
     publicPath,
@@ -520,18 +524,17 @@ const run = async userOptions => {
         preconnectThirdParty ||
         http2PushManifest
       ) {
-        const {
-          ajaxCache: ac,
-          http2PushManifestItems: hpm
-        } = preloadResources({
-          page,
-          basePath,
-          preloadImages,
-          cacheAjaxRequests,
-          preconnectThirdParty,
-          http2PushManifest,
-          ignoreForPreload: options.ignoreForPreload
-        });
+        const { ajaxCache: ac, http2PushManifestItems: hpm } = preloadResources(
+          {
+            page,
+            basePath,
+            preloadImages,
+            cacheAjaxRequests,
+            preconnectThirdParty,
+            http2PushManifest,
+            ignoreForPreload: options.ignoreForPreload
+          }
+        );
         ajaxCache[route] = ac;
         http2PushManifestItems[route] = hpm;
       }
@@ -625,31 +628,32 @@ const run = async userOptions => {
       const routePath = route.replace(publicPath, "");
       const filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
-        await saveAsHtml({ page, filePath, options, route });
+        await saveAsHtml({ page, filePath, options, route, fs });
       } else if (options.saveAs === "png") {
-        await saveAsPng({ page, filePath, options, route });
+        await saveAsPng({ page, filePath, options, route, fs });
       }
     },
     onEnd: () => {
       if (server) server.close();
       if (http2PushManifest) {
-        const manifest = Object.keys(
-          http2PushManifestItems
-        ).reduce((accumulator, key) => {
-          if (http2PushManifestItems[key].length !== 0)
-            accumulator.push({
-              source: key,
-              headers: [
-                {
-                  key: "Link",
-                  value: http2PushManifestItems[key]
-                    .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
-                    .join(",")
-                }
-              ]
-            });
-          return accumulator;
-        }, []);
+        const manifest = Object.keys(http2PushManifestItems).reduce(
+          (accumulator, key) => {
+            if (http2PushManifestItems[key].length !== 0)
+              accumulator.push({
+                source: key,
+                headers: [
+                  {
+                    key: "Link",
+                    value: http2PushManifestItems[key]
+                      .map(x => `<${x.link}>;rel=preload;as=${x.as}`)
+                      .join(",")
+                  }
+                ]
+              });
+            return accumulator;
+          },
+          []
+        );
         fs.writeFileSync(
           `${destinationDir}/http2-push-manifest.json`,
           JSON.stringify(manifest)

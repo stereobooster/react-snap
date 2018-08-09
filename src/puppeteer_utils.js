@@ -13,7 +13,7 @@ const fs = require("fs");
 const skipThirdPartyRequests = async opt => {
   const { page, options, basePath } = opt;
   if (!options.skipThirdPartyRequests) return;
-  await page.setRequestInterceptionEnabled(true);
+  await page.setRequestInterception(true);
   page.on("request", request => {
     if (request.url.startsWith(basePath)) {
       request.continue();
@@ -29,7 +29,16 @@ const skipThirdPartyRequests = async opt => {
  */
 const enableLogging = opt => {
   const { page, options, route, onError, sourcemapStore } = opt;
-  page.on("console", msg => console.log(`✏️  ${route} log:`, msg));
+  page.on("console", msg => {
+    const text = msg.text;
+    if (text !== 'JSHandle@object') {
+      console.log(`️️️💬  console.log at ${route}:`, text)
+    } else {
+      Promise.all(msg.args.map(x => x.jsonValue())).then(args =>
+        console.log(`💬  console.log at ${route}:`, ...args)
+      )
+    }
+  });
   page.on("error", msg => {
     console.log(`🔥  ${route} error:`, msg);
     onError && onError();
@@ -95,9 +104,8 @@ const crawl = async opt => {
   } = opt;
   let shuttingDown = false;
   let streamClosed = false;
-  // TODO: this doesn't work as expected
-  // process.stdin.resume();
-  process.on("SIGINT", () => {
+
+  const onSigint = () => {
     if (shuttingDown) {
       process.exit(1);
     } else {
@@ -106,7 +114,8 @@ const crawl = async opt => {
         "\nGracefully shutting down. To exit immediately, press ^C again"
       );
     }
-  });
+  };
+  process.on("SIGINT", onSigint);
 
   const queue = _();
   let enqued = 0;
@@ -172,7 +181,7 @@ const crawl = async opt => {
         });
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);
-        await page.goto(pageUrl, { waitUntil: "networkidle" });
+        await page.goto(pageUrl, { waitUntil: "networkidle2" });
         if (options.waitFor) await page.waitFor(options.waitFor);
         if (options.crawl) {
           const links = await getLinks({ page });
@@ -188,7 +197,8 @@ const crawl = async opt => {
         shuttingDown = true;
       }
     } else {
-      console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
+      // ignore those, because this is very noisy
+      // console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
     }
     processed++;
     if (enqued === processed) {
@@ -202,14 +212,19 @@ const crawl = async opt => {
     options.include.map(x => addToQueue(`${basePath}${x}`));
   }
 
-  queue
-    .map(x => _(fetchPage(x)))
-    .mergeWithLimit(options.concurrency)
-    .toArray(async function() {
-      await browser.close();
-      onEnd && onEnd();
-      if (shuttingDown) process.exit(1);
-    });
+  return new Promise((resolve, reject) => {
+    queue
+      .map(x => _(fetchPage(x)))
+      .mergeWithLimit(options.concurrency)
+      .toArray(async function() {
+        process.removeListener("SIGINT", onSigint);
+        // process.removeListener("unhandledRejection", onUnhandledRejection);
+        await browser.close();
+        onEnd && onEnd();
+        if (shuttingDown) return reject("");
+        resolve();
+      });
+  });
 };
 
 exports.skipThirdPartyRequests = skipThirdPartyRequests;

@@ -1,0 +1,15 @@
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+</head>
+
+<body>
+  <script>
+    fetch("/js/test.json")
+      .then(response => response.json())
+      .then(x => console.log(x));
+  </script>
+</body>
+
+</html>
