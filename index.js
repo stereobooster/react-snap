@@ -90,25 +90,25 @@ const defaults = userOptions => {
 
   let exit = false;
   if (!options.include || !options.include.length) {
-    console.log("⚠️  include option should be an non-empty array");
+    console.log("🔥  include option should be an non-empty array");
     exit = true;
   }
   if (options.preloadResources) {
     console.log(
-      "⚠️  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
+      "🔥  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
     );
     exit = true;
   }
   if (options.minifyOptions) {
-    console.log("⚠️  minifyOptions option renamed to minifyHtml");
+    console.log("🔥  minifyOptions option renamed to minifyHtml");
     options.minifyHtml = options.minifyOptions;
   }
   if (options.asyncJs) {
-    console.log("⚠️  asyncJs option renamed to asyncScriptTags");
+    console.log("🔥  asyncJs option renamed to asyncScriptTags");
     options.asyncScriptTags = options.asyncJs;
   }
   if (options.saveAs !== "html" && options.saveAs !== "png") {
-    console.log("⚠️  saveAs supported values are html and png");
+    console.log("🔥  saveAs supported values are html and png");
     exit = true;
   }
   if (exit) throw new Error();
@@ -293,7 +293,7 @@ const inlineCss = async opt => {
 
   if (cssSize > twentyKb)
     console.log(
-      `warning: inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
+      `⚠️  warning: inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
     );
 
   if (cssStrategy === "critical") {
@@ -443,11 +443,11 @@ const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
   filePath = filePath.replace(/\//g, path.sep);
   if (route.endsWith(".html")) {
     if (route.endsWith("/404.html") && !title.includes("404"))
-      console.log('warning: 404 page title does not contain "404" string');
+      console.log('⚠️  warning: 404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(filePath, minifiedContent);
   } else {
-    if (title.includes("404")) console.log(`warning: page not found ${route}`);
+    if (title.includes("404")) console.log(`⚠️  warning: page not found ${route}`);
     mkdirp.sync(filePath);
     fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   }
@@ -493,7 +493,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     fs.existsSync(path.join(sourceDir, "200.html"))
   ) {
     console.log(
-      `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`
+      `🔥  200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`
     );
     return Promise.reject("");
   }
