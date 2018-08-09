@@ -4,6 +4,7 @@ const url = require("url");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 const path = require("path");
 const fs = require("fs");
+const {createTracker, augmentTimeoutError} = require("./tracker");
 
 /**
  * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
@@ -201,7 +202,15 @@ const crawl = async opt => {
         });
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);
-        await page.goto(pageUrl, { waitUntil: "networkidle0" });
+        const tracker = createTracker(page)
+        try {
+          await page.goto(pageUrl, { waitUntil: "networkidle0" });
+        } catch (e) {
+          e.message = augmentTimeoutError(e.message, tracker);
+          throw e;
+        } finally {
+          tracker.dispose();
+        }
         if (options.waitFor) await page.waitFor(options.waitFor);
         if (options.crawl) {
           const links = await getLinks({ page });
