@@ -2,6 +2,8 @@
 // TODO: capture console log from run function
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
+const { thirdPartyRequestHandler } = require("./../src/puppeteer_utils.js");
+
 const snapRun = (fs, options) =>
   run(
     {
@@ -447,6 +449,50 @@ describe("cacheAjaxRequests", () => {
 describe.skip("publicPath", () => {});
 
 describe.skip("skipThirdPartyRequests", () => {});
+
+describe("thirdPartyRequestHandler", () => {
+  const requestBlueprint = {
+    abort: jest.fn(),
+    continue: jest.fn(),
+    url: () => "https://localhost/data"
+  };
+  afterEach(() => {
+    requestBlueprint.abort.mockClear();
+    requestBlueprint.continue.mockClear();
+  });
+  test("request.continue() is called if url starts with the basePath", () => {
+    const request = {
+      ...requestBlueprint
+    };
+    const basePath = "https://localhost/";
+    const includedThirdPartyRequests = ["https://api.localhost"];
+    thirdPartyRequestHandler(request, basePath, includedThirdPartyRequests);
+    expect(request.continue).toHaveBeenCalledTimes(1);
+    expect(request.abort).toHaveBeenCalledTimes(0);
+  });
+  test("request.continue() is called if url starts with an included third party url", () => {
+    const request = {
+      ...requestBlueprint,
+      url: () => "https://api.localhost/data"
+    };
+    const basePath = "https://localhost/";
+    const includedThirdPartyRequests = ["https://api.localhost"];
+    thirdPartyRequestHandler(request, basePath, includedThirdPartyRequests);
+    expect(request.continue).toHaveBeenCalledTimes(1);
+    expect(request.abort).toHaveBeenCalledTimes(0);
+  });
+  test("request.abort() is called if url is an excluded third party", () => {
+    const request = {
+      ...requestBlueprint,
+      url: () => "https://api.localhost/data"
+    };
+    const basePath = "https://localhost/";
+    const includedThirdPartyRequests = [];
+    thirdPartyRequestHandler(request, basePath, includedThirdPartyRequests);
+    expect(request.continue).toHaveBeenCalledTimes(0);
+    expect(request.abort).toHaveBeenCalledTimes(1);
+  });
+});
 
 describe.skip("waitFor", () => {});
 
