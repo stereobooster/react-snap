@@ -293,7 +293,8 @@ const inlineCss = async opt => {
 
   if (cssSize > twentyKb)
     console.log(
-      `⚠️  warning: inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
+      `⚠️  warning: inlining CSS more than 20kb (${cssSize /
+        1024}kb, ${cssStrategy})`
     );
 
   if (cssStrategy === "critical") {
@@ -362,13 +363,17 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
       );
-      const mainRegexp = /main\.[\w]{8}.js/;
+      // CRA v1|v2
+      const mainRegexp = /main\.[\w]{8}.js|main\.[\w]{8}\.chunk\.js/;
       const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
 
       if (!mainScript) return;
 
-      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
-      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+      const chunkRegexp = /(\w+)\.[\w]{8}\.chunk\.js/g;
+      const chunkScripts = localScripts.filter(x => {
+        const matched = chunkRegexp.exec(x.src);
+        return matched && matched[1] !== "main" && matched[1] !== "vendors";
+      });
 
       const createLink = x => {
         if (http2PushManifest) return;
@@ -380,8 +385,8 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
       };
 
       createLink(mainScript);
-      for (let i = chunkSripts.length - 1; i >= 0; --i) {
-        const x = chunkSripts[i];
+      for (let i = chunkScripts.length - 1; i >= 0; --i) {
+        const x = chunkScripts[i];
         if (x.parentElement && mainScript.parentNode) {
           x.parentElement.removeChild(x);
           createLink(x);
@@ -447,7 +452,8 @@ const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(filePath, minifiedContent);
   } else {
-    if (title.includes("404")) console.log(`⚠️  warning: page not found ${route}`);
+    if (title.includes("404"))
+      console.log(`⚠️  warning: page not found ${route}`);
     mkdirp.sync(filePath);
     fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   }
