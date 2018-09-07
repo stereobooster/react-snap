@@ -357,22 +357,37 @@ const asyncScriptTags = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
+const fixWebpackChunksIssue = ({
+  page,
+  basePath,
+  http2PushManifest,
+  inlineCss
+}) => {
   return page.evaluate(
-    (basePath, http2PushManifest) => {
+    (basePath, http2PushManifest, inlineCss) => {
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
       );
       // CRA v1|v2
       const mainRegexp = /main\.[\w]{8}.js|main\.[\w]{8}\.chunk\.js/;
-      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+      const mainScript = localScripts.find(x => mainRegexp.test(x.src));
+      const firstStyle = document.querySelector("style");
 
       if (!mainScript) return;
 
-      const chunkRegexp = /(\w+)\.[\w]{8}\.chunk\.js/g;
+      const chunkRegexp = /(\w+)\.[\w]{8}(\.chunk)?\.js/g;
       const chunkScripts = localScripts.filter(x => {
         const matched = chunkRegexp.exec(x.src);
+        // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+        chunkRegexp.lastIndex = 0;
         return matched && matched[1] !== "main" && matched[1] !== "vendors";
+      });
+
+      const mainScripts = localScripts.filter(x => {
+        const matched = chunkRegexp.exec(x.src);
+        // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+        chunkRegexp.lastIndex = 0;
+        return matched && (matched[1] === "main" || matched[1] === "vendors");
       });
 
       const createLink = x => {
@@ -381,10 +396,14 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
         linkTag.setAttribute("rel", "preload");
         linkTag.setAttribute("as", "script");
         linkTag.setAttribute("href", x.src.replace(basePath, ""));
-        document.head.appendChild(linkTag);
+        if (inlineCss) {
+          firstStyle.parentNode.insertBefore(linkTag, firstStyle);
+        } else {
+          document.head.appendChild(linkTag);
+        }
       };
 
-      createLink(mainScript);
+      mainScripts.map(x => createLink(x));
       for (let i = chunkScripts.length - 1; i >= 0; --i) {
         const x = chunkScripts[i];
         if (x.parentElement && mainScript.parentNode) {
@@ -394,7 +413,8 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
       }
     },
     basePath,
-    http2PushManifest
+    http2PushManifest,
+    inlineCss
   );
 };
 
@@ -588,7 +608,8 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         await fixWebpackChunksIssue({
           page,
           basePath,
-          http2PushManifest
+          http2PushManifest,
+          inlineCss: options.inlineCss
         });
       }
       if (options.asyncScriptTags) await asyncScriptTags({ page });
