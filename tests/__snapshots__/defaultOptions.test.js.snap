@@ -3,6 +3,7 @@
 exports[`defaultOptions 1`] = `
 Object {
   "asyncScriptTags": false,
+  "auth": undefined,
   "cacheAjaxRequests": false,
   "concurrency": 4,
   "crawl": true,
