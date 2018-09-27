@@ -5,6 +5,8 @@ const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 const path = require("path");
 const fs = require("fs");
 
+const HOST = process.env.HOST || 'localhost'
+
 /**
  * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
  * @return {Promise<void>}
@@ -68,7 +70,7 @@ const enableLogging = opt => {
     if (response.status() >= 400) {
       let route = ''
       try {
-        route = response._request.headers().referer.replace(`http://localhost:${options.port}`, "");
+        route = response._request.headers().referer.replace(`${HOST}:${options.port}`, "");
       } catch (e) {}
       console.log(`⚠️   ${route} ${response.status()} error: ${response.url()}`);
     }
@@ -145,7 +147,7 @@ const crawl = async opt => {
   const addToQueue = newUrl => {
     const { hostname, search, hash } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
-    if (hostname === "localhost" && !uniqueUrls.has(newUrl) && !streamClosed) {
+    if (hostname === HOST && !uniqueUrls.has(newUrl) && !streamClosed) {
       uniqueUrls.add(newUrl);
       enqued++;
       queue.write(newUrl);
@@ -190,7 +192,7 @@ const crawl = async opt => {
           options,
           route,
           onError: () => {
-            shuttingDown = true;
+            shuttingDown = !options.puppeteerIgnoreHTTPSErrors;
           },
           sourcemapStore
         });

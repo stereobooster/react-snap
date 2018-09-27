@@ -12,6 +12,8 @@ const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
 const twentyKb = 20 * 1024;
 
+const HOST = process.env.HOST || 'localhost'
+
 const defaultOptions = {
   //# stable configurations
   port: 45678,
@@ -149,7 +151,7 @@ const preloadResources = opt => {
     if (/^data:|blob:/i.test(responseUrl)) return;
     const ct = response.headers()["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
-    if (/^http:\/\/localhost/i.test(responseUrl)) {
+    if (new RegExp(`/^https?:\/\/${HOST}/i`).test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
       if (preloadImages && /\.(png|jpg|jpeg|webp|gif|svg)$/.test(responseUrl)) {
         if (http2PushManifest) {
@@ -254,13 +256,18 @@ const removeBlobs = async opt => {
 const inlineCss = async opt => {
   const { page, pageUrl, options, basePath, browser } = opt;
 
-  const minimalcssResult = await minimalcss.minimize({
-    urls: [pageUrl],
-    skippable: request =>
-      options.skipThirdPartyRequests && !request.url().startsWith(basePath),
-    browser: browser,
-    userAgent: options.userAgent
-  });
+  try {
+    const minimalcssResult = await minimalcss.minimize({
+      urls: [pageUrl],
+      skippable: request =>
+        options.skipThirdPartyRequests && !request.url().startsWith(basePath),
+      browser: browser,
+      userAgent: options.userAgent
+    });
+  } catch (e) {
+    console.warn('minimalcss error:', e)
+    return { cssFiles: [] }
+  }
   const criticalCss = minimalcssResult.finalCss;
   const criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
 
@@ -511,7 +518,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
 
   const server = options.externalServer ? null : startServer(options);
 
-  const basePath = `http://localhost:${options.port}`;
+  const basePath = `${HOST}:${options.port}`;
   const publicPath = options.publicPath;
   const ajaxCache = {};
   const { http2PushManifest } = options;
