@@ -258,6 +258,16 @@ This is basically mean that JSS doesn't support `rehydration`. See [#99](https:/
 
 See [#135](https://github.com/stereobooster/react-snap/issues/135).
 
+### userAgent
+
+You can use `navigator.userAgetn == "ReactSnap"` to do some checks in app code while snapping.
+For example if you use absolute path for your api ajax request, but while crawling you should request some speicfic host.
+Example code:
+```js
+const BASE_URL = process.env.NODE_ENV == 'production' && navigator.userAgent!='ReactSnap' ? '/' :'http://xxx.yy/rest-api';
+
+```
+
 ## Alternatives
 
 See [alternatives](doc/alternatives.md)
