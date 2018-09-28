@@ -256,8 +256,9 @@ const removeBlobs = async opt => {
 const inlineCss = async opt => {
   const { page, pageUrl, options, basePath, browser } = opt;
 
+  let minimalcssResult
   try {
-    const minimalcssResult = await minimalcss.minimize({
+    minimalcssResult = await minimalcss.minimize({
       urls: [pageUrl],
       skippable: request =>
         options.skipThirdPartyRequests && !request.url().startsWith(basePath),
@@ -266,6 +267,10 @@ const inlineCss = async opt => {
     });
   } catch (e) {
     console.warn('minimalcss error:', e)
+    return { cssFiles: [] }
+  }
+  if (!minimalcssResult) {
+    console.warn(`minimalcss returned null for ${pageUrl}`)
     return { cssFiles: [] }
   }
   const criticalCss = minimalcssResult.finalCss;

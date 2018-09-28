@@ -219,7 +219,8 @@ const crawl = async opt => {
     processed++;
     if (enqued === processed) {
       streamClosed = true;
-      queue.end();
+      // FIXME: https://github.com/stereobooster/react-snap/issues/248
+      setTimeout(() => queue.end(), 1);
     }
     return pageUrl;
   };
