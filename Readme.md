@@ -260,7 +260,7 @@ See [#135](https://github.com/stereobooster/react-snap/issues/135).
 
 ### userAgent
 
-You can use `navigator.userAgetn == "ReactSnap"` to do some checks in app code while snapping.
+You can use `navigator.userAgent == "ReactSnap"` to do some checks in app code while snapping.
 For example if you use absolute path for your api ajax request, but while crawling you should request some speicfic host.
 Example code:
 ```js
