@@ -12,6 +12,7 @@ const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
 const twentyKb = 20 * 1024;
 
+const PROTOCOL = process.env.PROTOCOL || 'https'
 const HOST = process.env.HOST || 'localhost'
 
 const defaultOptions = {
@@ -523,7 +524,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
 
   const server = options.externalServer ? null : startServer(options);
 
-  const basePath = `${HOST}:${options.port}`;
+  const basePath = `${PROTOCOL}://${HOST}:${options.port}`;
   const publicPath = options.publicPath;
   const ajaxCache = {};
   const { http2PushManifest } = options;
