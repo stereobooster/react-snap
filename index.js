@@ -46,7 +46,8 @@ const defaultOptions = {
   },
   sourceMaps: true,
   //# workarounds
-  fixWebpackChunksIssue: true,
+  // using CRA1 for compatibility with previous version will be changed to false in v2
+  fixWebpackChunksIssue: "CRA1",
   removeBlobs: true,
   fixInsertRule: true,
   skipThirdPartyRequests: false,
@@ -106,6 +107,12 @@ const defaults = userOptions => {
   if (options.asyncJs) {
     console.log("🔥  asyncJs option renamed to asyncScriptTags");
     options.asyncScriptTags = options.asyncJs;
+  }
+  if (options.fixWebpackChunksIssue === true) {
+    console.log(
+      "🔥  fixWebpackChunksIssue - behaviour changed, valid options are CRA1, CRA2, false"
+    );
+    options.fixWebpackChunksIssue = "CRA1";
   }
   if (
     options.saveAs !== "html" &&
@@ -368,7 +375,7 @@ const asyncScriptTags = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({
+const fixWebpackChunksIssue1 = ({
   page,
   basePath,
   http2PushManifest,
@@ -379,7 +386,7 @@ const fixWebpackChunksIssue = ({
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
       );
-      // CRA v1|v2
+      // CRA v1|v2.alpha
       const mainRegexp = /main\.[\w]{8}.js|main\.[\w]{8}\.chunk\.js/;
       const mainScript = localScripts.find(x => mainRegexp.test(x.src));
       const firstStyle = document.querySelector("style");
@@ -417,6 +424,76 @@ const fixWebpackChunksIssue = ({
       mainScripts.map(x => createLink(x));
       for (let i = chunkScripts.length - 1; i >= 0; --i) {
         const x = chunkScripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          x.parentElement.removeChild(x);
+          createLink(x);
+        }
+      }
+    },
+    basePath,
+    http2PushManifest,
+    inlineCss
+  );
+};
+
+const fixWebpackChunksIssue2 = ({
+  page,
+  basePath,
+  http2PushManifest,
+  inlineCss
+}) => {
+  return page.evaluate(
+    (basePath, http2PushManifest, inlineCss) => {
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
+      // CRA v2
+      const mainRegexp = /main\.[\w]{8}\.chunk\.js/;
+      const mainScript = localScripts.find(x => mainRegexp.test(x.src));
+      const firstStyle = document.querySelector("style");
+
+      if (!mainScript) return;
+
+      const chunkRegexp = /(\w+)\.[\w]{8}\.chunk\.js/g;
+
+      const headScripts = Array.from(document.querySelectorAll("head script"))
+        .filter(x => x.src && x.src.startsWith(basePath))
+        .filter(x => {
+          const matched = chunkRegexp.exec(x.src);
+          // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+          chunkRegexp.lastIndex = 0;
+          return matched;
+        });
+
+      const chunkScripts = localScripts.filter(x => {
+        const matched = chunkRegexp.exec(x.src);
+        // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+        chunkRegexp.lastIndex = 0;
+        return matched;
+      });
+
+      const createLink = x => {
+        if (http2PushManifest) return;
+        const linkTag = document.createElement("link");
+        linkTag.setAttribute("rel", "preload");
+        linkTag.setAttribute("as", "script");
+        linkTag.setAttribute("href", x.src.replace(basePath, ""));
+        if (inlineCss) {
+          firstStyle.parentNode.insertBefore(linkTag, firstStyle);
+        } else {
+          document.head.appendChild(linkTag);
+        }
+      };
+
+      for (let i = headScripts.length; i <= chunkScripts.length - 1; i++) {
+        const x = chunkScripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          createLink(x);
+        }
+      }
+
+      for (let i = headScripts.length - 1; i >= 0; --i) {
+        const x = headScripts[i];
         if (x.parentElement && mainScript.parentNode) {
           x.parentElement.removeChild(x);
           createLink(x);
@@ -628,8 +705,15 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
           }
         }
       }
-      if (options.fixWebpackChunksIssue) {
-        await fixWebpackChunksIssue({
+      if (options.fixWebpackChunksIssue === "CRA2") {
+        await fixWebpackChunksIssue2({
+          page,
+          basePath,
+          http2PushManifest,
+          inlineCss: options.inlineCss
+        });
+      } else if (options.fixWebpackChunksIssue === "CRA1") {
+        await fixWebpackChunksIssue1({
           page,
           basePath,
           http2PushManifest,
