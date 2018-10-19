@@ -334,7 +334,7 @@ const inlineCss = async opt => {
         style = document.createElement("style");
       style.type = "text/css";
       style.appendChild(document.createTextNode(allCss));
-      head && head.appendChild(style);
+      head.appendChild(style);
 
       const stylesheets = Array.from(
         document.querySelectorAll("link[rel=stylesheet]")
