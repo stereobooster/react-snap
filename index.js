@@ -330,10 +330,17 @@ const inlineCss = async opt => {
     );
   } else {
     await page.evaluate(allCss => {
+      if (!allCss)
+        return;
+
       const head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
       style.appendChild(document.createTextNode(allCss));
+
+      if (!head) 
+        throw "No <head> element found in document";
+
       head.appendChild(style);
 
       const stylesheets = Array.from(
