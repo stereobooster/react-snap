@@ -1,17 +1,17 @@
 # react-snap [![Build Status](https://travis-ci.org/stereobooster/react-snap.svg?branch=master)](https://travis-ci.org/stereobooster/react-snap) [![npm](https://img.shields.io/npm/v/react-snap.svg)](https://www.npmjs.com/package/react-snap) ![npm](https://img.shields.io/npm/dt/react-snap.svg) [![Twitter Follow](https://img.shields.io/twitter/url/http/shields.io.svg?style=social&label=Follow)](https://twitter.com/stereobooster)
 
-Pre-renders web app into static HTML. Uses headless chrome to crawl all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get best loading performance.
+Pre-renders a web app into static HTML. Uses [Headless Chrome](https://github.com/GoogleChrome/puppeteer) to crawl all available links starting from the root. Heavily inspired by [prep](https://github.com/graphcool/prep) and [react-snapshot](https://github.com/geelen/react-snapshot), but written from scratch. Uses best practices to get the best loading performance.
 
-## Features
+## 😍 Features
 
-- Enables **SEO** (google, duckduckgo...) and **SMO** (twitter, facebook...) for SPA.
+- Enables **SEO** (Google, DuckDuckGo...) and **SMO** (Twitter, Facebook...) for SPAs.
 - **Works out-of-the-box** with [create-react-app](https://github.com/facebookincubator/create-react-app) - no code-changes required.
-- Uses **real browser** behind the scene, so no issue with unsupported HTML5 features, like WebGL or Blobs.
-- Does a lot of load **performance optimization**. [Here are details](doc/load-performance-optimizations.md), if you are curious.
-- **Does not depend on React**. The name is inspired by `react-snapshot`. Works with any technology.
-- npm package does not have compilation step, so **you can fork** it, change what you need and install it with GitHub URL.
+- Uses a **real browser** behind the scenes, so there are no issues with unsupported HTML5 features, like WebGL or Blobs.
+- Does a lot of **load performance optimization**. [Here are details](doc/load-performance-optimizations.md), if you are curious.
+- **Does not depend on React**. The name is inspired by `react-snapshot` but works with any technology (e.g., Vue).
+- npm package does not have a compilation step, so **you can fork** it, change what you need, and install it with a GitHub URL.
 
-**Zero configuration** is the main feature. You do not need to worry how does it work or how to configure it. But if you are curious [here are details](doc/behind-the-scenes.md).
+**Zero configuration** is the main feature. You do not need to worry about how it works or how to configure it. But if you are curious, [here are details](doc/behind-the-scenes.md).
 
 ## Basic usage with create-react-app
 
@@ -61,11 +61,13 @@ Change `package.json`:
 "reactSnap": {
   "source": "dist",
   "minifyHtml": {
-    "collapseWhitespace": false, // or use preserveWhitespace: false in vue-loader
+    "collapseWhitespace": false,
     "removeComments": false
   }
 }
 ```
+
+Or use `preserveWhitespace: false` in `vue-loader`.
 
 `source` - output folder of webpack or any other bundler of your choice
 
@@ -77,9 +79,9 @@ Example: [Switch from prerender-spa-plugin to react-snap](https://github.com/ste
 
 Only works with routing strategies using the HTML5 history API. No hash(bang) URLs.
 
-Vue uses `data-server-rendered` attribute on the root element to mark SSR generated markup. When this attribute is present VDOM rehydrates instead of rendering all from scratch, which can result in a flash.
+Vue uses the `data-server-rendered` attribute on the root element to mark SSR generated markup. When this attribute is present, the VDOM rehydrates instead of rendering everything from scratch, which can result in a flash.
 
-This is the small hack to fix rehydration problem.
+This is a small hack to fix rehydration problem:
 
 ```js
 window.snapSaveState = () => {
@@ -87,7 +89,7 @@ window.snapSaveState = () => {
 };
 ```
 
-`window.snapSaveState` is a callback to save a state of the application at the end of rendering. It can be used for Redux or async components. In this example it is repurposed to change DOM, this is why I call it "hack". Maybe in future versions of `react-snap` I will come up with better abstractions or automate this process.
+`window.snapSaveState` is a callback to save the state of the application at the end of rendering. It can be used for Redux or async components. In this example, it is repurposed to alter the DOM, this is why I call it a "hack." Maybe in future versions of `react-snap`, I will come up with better abstractions or automate this process.
 
 ### Vue 1.x
 
@@ -102,7 +104,7 @@ Make sure to use [`replace: false`](https://v1.vuejs.org/api/#replace) for root 
 
 ## ⚙️ Customization
 
-If you need to pass some options for `react-snap`, you can do this in the `package.json`, like this:
+If you need to pass some options for `react-snap`, you can do this in your `package.json` like this:
 
 ```json
 "reactSnap": {
@@ -110,17 +112,17 @@ If you need to pass some options for `react-snap`, you can do this in the `packa
 }
 ```
 
-All options are not documented yet, but you can check `defaultOptions` in `index.js`.
+Not all options are documented yet, but you can check `defaultOptions` in `index.js`.
 
 ### inlineCss
 
 Experimental feature - requires improvements.
 
-`react-snap` can inline critical CSS with the help of [minimalcss](https://github.com/peterbe/minimalcss) and full CSS will be loaded in a nonblocking manner with the help of [loadCss](https://www.npmjs.com/package/fg-loadcss).
+`react-snap` can inline critical CSS with the help of [minimalcss](https://github.com/peterbe/minimalcss) and full CSS will be loaded in a non-blocking manner with the help of [loadCss](https://www.npmjs.com/package/fg-loadcss).
 
 Use `inlineCss: true` to enable this feature.
 
-TODO: as soon as the feature will be stable it should be enabled by default.
+TODO: as soon as this feature is stable, it should be enabled by default.
 
 ## ⚠️ Caveats
 
@@ -128,14 +130,14 @@ TODO: as soon as the feature will be stable it should be enabled by default.
 
 Also known as [code splitting](https://webpack.js.org/guides/code-splitting/), [dynamic import](https://github.com/tc39/proposal-dynamic-import) (TC39 proposal), "chunks" (which are loaded on demand), "layers", "rollups", or "fragments". See: [Guide To JavaScript Async Components](https://github.com/stereobooster/guide-to-async-components)
 
-Async component (in React) is a technique (typically implemented as a Higher Order Component) for loading components with dynamic `import`. There are a lot of solutions in this field. Here are some examples:
+An async component (in React) is a technique (typically implemented as a higher-order component) for loading components on demand with the dynamic `import` operator. There are a lot of solutions in this field. Here are some examples:
 
 - [`loadable-components`](https://github.com/smooth-code/loadable-components)
 - [`react-loadable`](https://github.com/thejameskyle/react-loadable)
 - [`react-async-component`](https://github.com/ctrlplusb/react-async-component)
 - [`react-code-splitting`](https://github.com/didierfranc/react-code-splitting)
 
-It is not a problem to render async component with react-snap, tricky part happens when prerendered React application boots and async components are not loaded yet, so React draws "loading" state of a component, later when component loaded react draws actual component. As the result - user sees a flash.
+It is not a problem to render async components with `react-snap`, the tricky part happens when a prerendered React application boots and async components are not loaded yet, so React draws the "loading" state of a component, and later when the component is loaded, React draws the actual component. As a result, the user sees a flash:
 
 ```
 100%                    /----|    |----
@@ -148,7 +150,7 @@ It is not a problem to render async component with react-snap, tricky part happe
 0%  -------------/
 ```
 
-`react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for "snapshot" setup:
+`react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for a "snapshot" setup:
 
 ```js
 import { loadComponents, getState } from "loadable-components";
@@ -179,50 +181,50 @@ window.snapSaveState = () => ({
 });
 ```
 
-**Caution**: as of now only basic "JSON" data types are supported e.g. Date, Set, Map, NaN **won't** be handled right ([#54](https://github.com/stereobooster/react-snap/issues/54)).
+**Caution**: as of now, only basic "JSON" data types are supported: e.g. `Date`, `Set`, `Map`, and `NaN` **won't** be handled correctly ([#54](https://github.com/stereobooster/react-snap/issues/54)).
 
-### Third-party requests: Google Analytics, Mapbox etc.
+### Third-party requests: Google Analytics, Mapbox, etc.
 
-You can block all third-party requests with the following config
+You can block all third-party requests with the following config:
 
-```
+```json
 "skipThirdPartyRequests": true
 ```
 
 ### AJAX
 
-`react-snap` can capture all AJAX requests. It will store `json` request to the same domain in `window.snapStore[<path>]`, where `<path>` is the path of json request.
+`react-snap` can capture all AJAX requests. It will store `json` requests in the domain in `window.snapStore[<path>]`, where `<path>` is the path of the request.
 
 Use `"cacheAjaxRequests": true` to enable this feature.
 
-This feature can conflict with browser cache see [#197](https://github.com/stereobooster/react-snap/issues/197#issuecomment-397893434) for details. You may want to disable cache in this case - `"puppeteer": { "cache": false }`.
+This feature can conflict with the browser cache. See [#197](https://github.com/stereobooster/react-snap/issues/197#issuecomment-397893434) for details. You may want to disable cache in this case: `"puppeteer": { "cache": false }`.
 
 ### Service Workers
 
-By default `create-react-app` uses `index.html` as fallback:
+By default, `create-react-app` uses `index.html` as a fallback:
 
-```js
+```json
 navigateFallback: publicUrl + '/index.html',
 ```
 
-you need to change this to an unprerendered version of `index.html` - `200.html`, otherwise you will see a flash of `index.html` on other pages (if you have any). See [Configure sw-precache without ejecting](https://github.com/stereobooster/react-snap/blob/master/doc/recipes.md#configure-sw-precache-without-ejecting) for more information.
+You need to change this to an un-prerendered version of `index.html` - `200.html`, otherwise you will see `index.html` flash on other pages (if you have any). See [Configure sw-precache without ejecting](https://github.com/stereobooster/react-snap/blob/master/doc/recipes.md#configure-sw-precache-without-ejecting) for more information.
 
 ### Containers and other restricted environments
 
-Puppeteer (headless chrome) may fail due to sandboxing issues. To get around this,
-you may use
+Puppeteer (Headless Chrome) may fail due to sandboxing issues. To get around this,
+you may use:
 
-```
+```json
 "puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox"]
 ```
 
-Read more about [puppeteer troubleshooting.](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md)
+Read more about [puppeteer troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md).
 
-`"inlineCss": true` sometimes cause problems in containers
+`"inlineCss": true` sometimes causes problems in containers.
 
 #### Docker + Alpine
 
-To run `react-snap` inside `docker` with Alpine, you might want to use custom chromium executable. See [#93](https://github.com/stereobooster/react-snap/issues/93#issuecomment-354994505) and [#132](https://github.com/stereobooster/react-snap/issues/132#issuecomment-362333702)
+To run `react-snap` inside `docker` with Alpine, you might want to use a custom Chromium executable. See [#93](https://github.com/stereobooster/react-snap/issues/93#issuecomment-354994505) and [#132](https://github.com/stereobooster/react-snap/issues/132#issuecomment-362333702).
 
 #### Heroku
 
@@ -232,19 +234,19 @@ heroku buildpacks:add heroku/nodejs
 heroku buildpacks:add https://github.com/heroku/heroku-buildpack-static.git
 ```
 
-See this [PR](https://github.com/stereobooster/an-almost-static-stack/pull/7/files). At the moment of writing, Heroku doesn't support HTTP2.
+See this [PR](https://github.com/stereobooster/an-almost-static-stack/pull/7/files). At the moment of writing, Heroku doesn't support HTTP/2.
 
 ### Semantic UI
 
 [Semantic UI](https://semantic-ui.com/) is defined over class substrings that contain spaces
-(eg. "three column"). Sorting the class names therefore breaks the styling. To get around this,
+(e.g., "three column"). Sorting the class names, therefore, breaks the styling. To get around this,
 use the following configuration:
 
-```
+```json
 "minifyHtml": { "sortClassName": false }
 ```
 
-From version `1.17.0` `sortClassName` is false by default.
+From version `1.17.0`, `sortClassName` is `false` by default.
 
 ### JSS
 
@@ -252,7 +254,7 @@ From version `1.17.0` `sortClassName` is false by default.
 >
 > https://github.com/cssinjs/jss/blob/master/docs/ssr.md
 
-This is basically mean that JSS doesn't support `rehydration`. See [#99](https://github.com/stereobooster/react-snap/issues/99) for possible solutions.
+This basically means that JSS doesn't support `rehydration`. See [#99](https://github.com/stereobooster/react-snap/issues/99) for a possible solutions.
 
 ### `react-router` v3
 
@@ -260,9 +262,10 @@ See [#135](https://github.com/stereobooster/react-snap/issues/135).
 
 ### userAgent
 
-You can use `navigator.userAgent == "ReactSnap"` to do some checks in app code while snapping.
-For example if you use absolute path for your api ajax request, but while crawling you should request some speicfic host.
+You can use `navigator.userAgent == "ReactSnap"` to do some checks in the app code while snapping—for example, if you use an absolute path for your API AJAX request. While crawling, however, you should request a specific host.
+
 Example code:
+
 ```js
 const BASE_URL = process.env.NODE_ENV == 'production' && navigator.userAgent!='ReactSnap' ? '/' :'http://xxx.yy/rest-api';
 
@@ -270,7 +273,7 @@ const BASE_URL = process.env.NODE_ENV == 'production' && navigator.userAgent!='R
 
 ## Alternatives
 
-See [alternatives](doc/alternatives.md)
+See [alternatives](doc/alternatives.md).
 
 ## Who uses it
 
@@ -285,8 +288,8 @@ Please provide a reproducible demo of a bug and steps to reproduce it. Thanks!
 
 ### Share on the web
 
-Tweet it, like it, share it, star it. Thank you
+Tweet it, like it, share it, star it. Thank you.
 
 ### Code
 
-You also can contribute to [minimalcss](https://github.com/peterbe/minimalcss), which is a big part of `react-snap`. Also, give some stars.
+You can also contribute to [minimalcss](https://github.com/peterbe/minimalcss), which is a big part of `react-snap`. Also, give it some stars.
