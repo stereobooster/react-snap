@@ -444,6 +444,19 @@ describe("cacheAjaxRequests", () => {
   });
 });
 
+describe("svgLinks", () => {
+  const source = "tests/examples/other";
+  const include = ["/svg.html"];
+  const {
+    fs,
+    filesCreated,
+  } = mockFs();
+  beforeAll(() => snapRun(fs, { source , include}));
+  test("Find SVG Links", () => {
+    expect(filesCreated()).toEqual(3);
+  });
+});
+
 describe.skip("publicPath", () => {});
 
 describe.skip("skipThirdPartyRequests", () => {});
@@ -451,3 +464,5 @@ describe.skip("skipThirdPartyRequests", () => {});
 describe.skip("waitFor", () => {});
 
 describe.skip("externalServer", () => {});
+
+
