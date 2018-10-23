@@ -214,6 +214,16 @@ describe("inlineCss - big file", () => {
   });
 });
 
+describe("inlineCss - partial document", () => {
+  const source = "tests/examples/partial";
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(() => snapRun(fs, { source, inlineCss: true }));
+  test("no inline style", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).not.toMatch('<style type="text/css">');
+  });
+});
+
 describe("removeBlobs", () => {
   const source = "tests/examples/other";
   const include = ["/remove-blobs.html"];
