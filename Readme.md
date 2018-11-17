@@ -44,6 +44,19 @@ if (rootElement.hasChildNodes()) {
 
 That's it!
 
+## Basic usage with Preact
+
+To do [hydration in Preact you need to use this trick](https://github.com/developit/preact/issues/1060#issuecomment-389987994):
+
+```js
+const rootElement = document.getElementById("root");
+if (rootElement.hasChildNodes()) {
+  preact.render(<App />, rootElement, rootElement.firstElementChild);
+} else {
+  preact.render(<App />, rootElement);
+}
+```
+
 ## Basic usage with Vue.js
 
 Install:
@@ -164,10 +177,9 @@ loadComponents()
 If you don't use babel plugin, [don't forget to provide modules](https://github.com/smooth-code/loadable-components/issues/114):
 
 ```js
-const NotFoundPage = loadable(
-  () => import("src/pages/NotFoundPage"),
-  { modules: ["NotFoundPage"] }
-);
+const NotFoundPage = loadable(() => import("src/pages/NotFoundPage"), {
+  modules: ["NotFoundPage"]
+});
 ```
 
 ### Redux
@@ -276,8 +288,10 @@ You can use `navigator.userAgent == "ReactSnap"` to do some checks in the app co
 Example code:
 
 ```js
-const BASE_URL = process.env.NODE_ENV == 'production' && navigator.userAgent!='ReactSnap' ? '/' :'http://xxx.yy/rest-api';
-
+const BASE_URL =
+  process.env.NODE_ENV == "production" && navigator.userAgent != "ReactSnap"
+    ? "/"
+    : "http://xxx.yy/rest-api";
 ```
 
 ## Alternatives
@@ -286,8 +300,9 @@ See [alternatives](doc/alternatives.md).
 
 ## Who uses it
 
-|[![cloud.gov.au](doc/who-uses-it/cloud.gov.au.png)](https://github.com/govau/cloud.gov.au/blob/0187dd78d8f1751923631d3ff16e0fbe4a82bcc6/www/ui/package.json#L29)|[![blacklane](doc/who-uses-it/blacklane.png)](http://m.blacklane.com/)||
-|---|---|---|
+| [![cloud.gov.au](doc/who-uses-it/cloud.gov.au.png)](https://github.com/govau/cloud.gov.au/blob/0187dd78d8f1751923631d3ff16e0fbe4a82bcc6/www/ui/package.json#L29) | [![blacklane](doc/who-uses-it/blacklane.png)](http://m.blacklane.com/) |     |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | --- |
+
 
 ## Contributing
 
