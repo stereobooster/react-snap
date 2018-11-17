@@ -110,7 +110,9 @@ const getLinks = async opt => {
   const anchors = await page.evaluate(() =>
     Array.from(document.querySelectorAll("a")).map(anchor => {
       if(anchor.href.baseVal){
-        return location.origin + anchor.href.baseVal;
+        const a = document.createElement("a");
+        a.href = anchor.href.baseVal;
+        return a.href;
       }
       return anchor.href
     })
