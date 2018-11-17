@@ -108,7 +108,12 @@ const enableLogging = opt => {
 const getLinks = async opt => {
   const { page } = opt;
   const anchors = await page.evaluate(() =>
-    Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
+    Array.from(document.querySelectorAll("a")).map(anchor => {
+      if(anchor.href.baseVal){
+        return location.origin + anchor.href.baseVal;
+      }
+      return anchor.href
+    })
   );
 
   const iframes = await page.evaluate(() =>
