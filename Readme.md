@@ -277,7 +277,7 @@ See [alternatives](doc/alternatives.md).
 
 ## Who uses it
 
-|[![cloud.gov.au](doc/who-uses-it/cloud.gov.au.png)](https://github.com/govau/cloud.gov.au/blob/0187dd78d8f1751923631d3ff16e0fbe4a82bcc6/www/ui/package.json#L29)|[![pizza hut](doc/who-uses-it/pizza-hut.png)](https://github.com/stereobooster/react-snap/pull/213)|[![blacklane](doc/who-uses-it/blacklane.png)](http://m.blacklane.com/)|
+|[![cloud.gov.au](doc/who-uses-it/cloud.gov.au.png)](https://github.com/govau/cloud.gov.au/blob/0187dd78d8f1751923631d3ff16e0fbe4a82bcc6/www/ui/package.json#L29)|[![blacklane](doc/who-uses-it/blacklane.png)](http://m.blacklane.com/)||
 |---|---|---|
 
 ## Contributing
