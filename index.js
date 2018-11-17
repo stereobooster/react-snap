@@ -107,8 +107,8 @@ const defaults = userOptions => {
     console.log("🔥  asyncJs option renamed to asyncScriptTags");
     options.asyncScriptTags = options.asyncJs;
   }
-  if (options.saveAs !== "html" && options.saveAs !== "png") {
-    console.log("🔥  saveAs supported values are html and png");
+  if (options.saveAs !== "html" && options.saveAs !== "png" && options.saveAs !== "jpeg") {
+    console.log("🔥  saveAs supported values are html, png, and jpeg");
     exit = true;
   }
   if (exit) throw new Error();
@@ -485,9 +485,22 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   if (route.endsWith(".html")) {
     screenshotPath = filePath.replace(/\.html$/, ".png");
   } else if (route === "/") {
-    screenshotPath = `${filePath}/index.png`;
+    screenshotPath = `${filePath}index.png`;
   } else {
     screenshotPath = `${filePath.replace(/\/$/, "")}.png`;
+  }
+  return page.screenshot({ path: screenshotPath });
+};
+
+const saveAsJpeg = ({ page, filePath, options, route }) => {
+  mkdirp.sync(path.dirname(filePath));
+  let screenshotPath;
+  if (route.endsWith(".html")) {
+    screenshotPath = filePath.replace(/\.html$/, ".jpeg");
+  } else if (route === "/") {
+    screenshotPath = `${filePath}index.jpeg`;
+  } else {
+    screenshotPath = `${filePath.replace(/\/$/, "")}.jpeg`;
   }
   return page.screenshot({ path: screenshotPath });
 };
@@ -668,6 +681,8 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         await saveAsHtml({ page, filePath, options, route, fs });
       } else if (options.saveAs === "png") {
         await saveAsPng({ page, filePath, options, route, fs });
+      } else if (options.saveAs === "jpeg") {
+        await saveAsJpeg({ page, filePath, options, route, fs });
       }
     },
     onEnd: () => {

@@ -1,5 +1,9 @@
 // FIX: tests are slow - use unit tests instead of integration tests
 // TODO: capture console log from run function
+const fs = require('fs');
+const writeFileSpy = jest.spyOn(fs, 'writeFile');
+writeFileSpy.mockImplementation((file, data, cb) => cb());
+
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
 const snapRun = (fs, options) =>
@@ -52,6 +56,50 @@ describe("one page", () => {
     expect(content(0)).toEqual(
       '<html lang="en"><head><meta charset="utf-8"></head><body><script>document.body.appendChild(document.createTextNode("test"));</script>test</body></html>'
     );
+  });
+  test("copies (original) index.html to 200.html", () => {
+    expect(createReadStreamMock.mock.calls).toEqual([
+      [`/${source}/index.html`]
+    ]);
+    expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
+  });
+});
+
+describe("saveAs png", () => {
+  const source = "tests/examples/one-page";
+  const cwd = process.cwd();
+  const {
+    fs: mockedFs,
+    createReadStreamMock,
+    createWriteStreamMock,
+  } = mockFs();
+  beforeAll(() => snapRun(mockedFs, { source, saveAs: 'png' }));
+  afterAll(() => writeFileSpy.mockClear())
+  test("crawls / and saves as index.png to the same folder", () => {
+    expect(writeFileSpy).toHaveBeenCalledTimes(1);
+    expect(writeFileSpy.mock.calls[0][0]).toEqual(cwd + `/${source}/index.png`);
+  });
+  test("copies (original) index.html to 200.html", () => {
+    expect(createReadStreamMock.mock.calls).toEqual([
+      [`/${source}/index.html`]
+    ]);
+    expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
+  });
+});
+
+describe("saveAs jpeg", () => {
+  const source = "tests/examples/one-page";
+  const cwd = process.cwd();
+  const {
+    fs: mockedFs,
+    createReadStreamMock,
+    createWriteStreamMock,
+  } = mockFs();
+  beforeAll(() => snapRun(mockedFs, { source, saveAs: 'jpeg' }));
+  afterAll(() => writeFileSpy.mockClear())
+  test("crawls / and saves as index.png to the same folder", () => {
+    expect(writeFileSpy).toHaveBeenCalledTimes(1);
+    expect(writeFileSpy.mock.calls[0][0]).toEqual(cwd + `/${source}/index.jpeg`);
   });
   test("copies (original) index.html to 200.html", () => {
     expect(createReadStreamMock.mock.calls).toEqual([
