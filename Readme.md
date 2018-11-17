@@ -156,9 +156,18 @@ It is not a problem to render async components with `react-snap`, the tricky par
 import { loadComponents, getState } from "loadable-components";
 window.snapSaveState = () => getState();
 
-loadComponents().then(() => {
-  hydrate(AppWithRouter, rootElement);
-});
+loadComponents()
+  .then(() => hydrate(AppWithRouter, rootElement))
+  .catch(() => render(AppWithRouter, rootElement));
+```
+
+If you don't use babel plugin, [don't forget to provide modules](https://github.com/smooth-code/loadable-components/issues/114):
+
+```js
+const NotFoundPage = loadable(
+  () => import("src/pages/NotFoundPage"),
+  { modules: ["NotFoundPage"] }
+);
 ```
 
 ### Redux
