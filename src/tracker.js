@@ -9,15 +9,15 @@ const createTracker = page => {
   const requests = new Set();
   const onStarted = request => requests.add(request);
   const onFinished = request => requests.delete(request);
-  page.on('request', onStarted);
-  page.on('requestfinished', onFinished);
-  page.on('requestfailed', onFinished);
+  page.on("request", onStarted);
+  page.on("requestfinished", onFinished);
+  page.on("requestfailed", onFinished);
   return {
     urls: () => Array.from(requests).map(r => r.url()),
     dispose: () => {
-      page.removeListener('request', onStarted);
-      page.removeListener('requestfinished', onFinished);
-      page.removeListener('requestfailed', onFinished);
+      page.removeListener("request", onStarted);
+      page.removeListener("requestfinished", onFinished);
+      page.removeListener("requestfailed", onFinished);
     }
   };
 };
@@ -30,19 +30,17 @@ const createTracker = page => {
  * @returns {string}
  */
 const augmentTimeoutError = (message, tracker) => {
-  if (message.startsWith('Navigation Timeout Exceeded')) {
+  if (message.startsWith("Navigation Timeout Exceeded")) {
     const urls = tracker.urls();
     if (urls.length > 1) {
-      message += `\nTracked URLs that have not finished: ${urls.join(
-        ', '
-      )}`;
+      message += `\nTracked URLs that have not finished: ${urls.join(", ")}`;
     } else if (urls.length > 0) {
       message += `\nFor ${urls[0]}`;
     } else {
       message += `\nBut there are no pending connections`;
     }
   }
-  return message
-}
+  return message;
+};
 
 module.exports = { createTracker, augmentTimeoutError };

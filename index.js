@@ -107,7 +107,11 @@ const defaults = userOptions => {
     console.log("🔥  asyncJs option renamed to asyncScriptTags");
     options.asyncScriptTags = options.asyncJs;
   }
-  if (options.saveAs !== "html" && options.saveAs !== "png" && options.saveAs !== "jpeg") {
+  if (
+    options.saveAs !== "html" &&
+    options.saveAs !== "png" &&
+    options.saveAs !== "jpeg"
+  ) {
     console.log("🔥  saveAs supported values are html, png, and jpeg");
     exit = true;
   }
@@ -330,16 +334,14 @@ const inlineCss = async opt => {
     );
   } else {
     await page.evaluate(allCss => {
-      if (!allCss)
-        return;
+      if (!allCss) return;
 
       const head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
       style.appendChild(document.createTextNode(allCss));
 
-      if (!head)
-        throw new Error("No <head> element found in document");
+      if (!head) throw new Error("No <head> element found in document");
 
       head.appendChild(style);
 

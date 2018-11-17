@@ -1,7 +1,7 @@
 // FIX: tests are slow - use unit tests instead of integration tests
 // TODO: capture console log from run function
-const fs = require('fs');
-const writeFileSpy = jest.spyOn(fs, 'writeFile');
+const fs = require("fs");
+const writeFileSpy = jest.spyOn(fs, "writeFile");
 writeFileSpy.mockImplementation((file, data, cb) => cb());
 
 const { mockFs } = require("./helper.js");
@@ -71,10 +71,10 @@ describe("saveAs png", () => {
   const {
     fs: mockedFs,
     createReadStreamMock,
-    createWriteStreamMock,
+    createWriteStreamMock
   } = mockFs();
-  beforeAll(() => snapRun(mockedFs, { source, saveAs: 'png' }));
-  afterAll(() => writeFileSpy.mockClear())
+  beforeAll(() => snapRun(mockedFs, { source, saveAs: "png" }));
+  afterAll(() => writeFileSpy.mockClear());
   test("crawls / and saves as index.png to the same folder", () => {
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
     expect(writeFileSpy.mock.calls[0][0]).toEqual(cwd + `/${source}/index.png`);
@@ -93,13 +93,15 @@ describe("saveAs jpeg", () => {
   const {
     fs: mockedFs,
     createReadStreamMock,
-    createWriteStreamMock,
+    createWriteStreamMock
   } = mockFs();
-  beforeAll(() => snapRun(mockedFs, { source, saveAs: 'jpeg' }));
-  afterAll(() => writeFileSpy.mockClear())
+  beforeAll(() => snapRun(mockedFs, { source, saveAs: "jpeg" }));
+  afterAll(() => writeFileSpy.mockClear());
   test("crawls / and saves as index.png to the same folder", () => {
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
-    expect(writeFileSpy.mock.calls[0][0]).toEqual(cwd + `/${source}/index.jpeg`);
+    expect(writeFileSpy.mock.calls[0][0]).toEqual(
+      cwd + `/${source}/index.jpeg`
+    );
   });
   test("copies (original) index.html to 200.html", () => {
     expect(createReadStreamMock.mock.calls).toEqual([
@@ -505,11 +507,8 @@ describe("cacheAjaxRequests", () => {
 describe("svgLinks", () => {
   const source = "tests/examples/other";
   const include = ["/svg.html"];
-  const {
-    fs,
-    filesCreated,
-  } = mockFs();
-  beforeAll(() => snapRun(fs, { source , include}));
+  const { fs, filesCreated } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include }));
   test("Find SVG Links", () => {
     expect(filesCreated()).toEqual(3);
   });
@@ -522,5 +521,3 @@ describe.skip("skipThirdPartyRequests", () => {});
 describe.skip("waitFor", () => {});
 
 describe.skip("externalServer", () => {});
-
-
