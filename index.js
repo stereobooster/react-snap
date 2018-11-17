@@ -338,8 +338,8 @@ const inlineCss = async opt => {
       style.type = "text/css";
       style.appendChild(document.createTextNode(allCss));
 
-      if (!head) 
-        throw "No <head> element found in document";
+      if (!head)
+        throw new Error("No <head> element found in document");
 
       head.appendChild(style);
 
