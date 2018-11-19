@@ -692,6 +692,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         await saveAsHtml({ page, filePath, options, route, fs });
         routePath = normalizePath(routePath);
         let newPath = await page.evaluate(() => location.pathname);
+        newPath = newPath.replace(publicPath, "");
         newPath = normalizePath(newPath);
         if (routePath !== newPath) {
           console.log(`💬  in browser redirect (${newPath})`);
