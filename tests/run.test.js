@@ -194,7 +194,8 @@ describe("possible to disable crawl option", () => {
       source,
       crawl: false,
       include: ["/1", "/2/", "/3#test", "/4?test"]
-    }));
+    })
+  );
   test("crawls all links and saves as index.html in separate folders", () => {
     // no / or /404.html
     expect(writeFileSyncMock.mock.calls.length).toEqual(4);
@@ -223,7 +224,8 @@ describe("inlineCss - small file", () => {
       source,
       inlineCss: true,
       include: ["/with-small-css.html"]
-    }));
+    })
+  );
   // 1. I want to change this behaviour
   // see https://github.com/stereobooster/react-snap/pull/133/files
   // 2. There is a bug with relative url in inlined CSS url(bg.png)
@@ -308,7 +310,8 @@ describe("ignoreForPreload", () => {
       include,
       http2PushManifest: true,
       ignoreForPreload: ["big.css"]
-    }));
+    })
+  );
   test("writes http2 manifest file", () => {
     expect(filesCreated()).toEqual(2);
     expect(content(1)).toEqual("[]");
@@ -348,7 +351,8 @@ describe("removeStyleTags", () => {
       source,
       include,
       removeStyleTags: true
-    }));
+    })
+  );
   test("removes all <style>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch("<style");
@@ -511,6 +515,16 @@ describe("svgLinks", () => {
   beforeAll(() => snapRun(fs, { source, include }));
   test("Find SVG Links", () => {
     expect(filesCreated()).toEqual(3);
+  });
+});
+
+describe("history.pushState", () => {
+  const source = "tests/examples/other";
+  const include = ["/history-push.html"];
+  const { fs, filesCreated } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include }));
+  test("in case of browser redirect it creates 2 files", () => {
+    expect(filesCreated()).toEqual(2);
   });
 });
 
