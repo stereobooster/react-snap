@@ -131,10 +131,7 @@ const defaults = userOptions => {
   return options;
 };
 
-const normalizePath = path => {
-  path = path.replace(/\/$/, "");
-  return path === "" ? "/" : path;
-};
+const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
 
 /**
  *
@@ -693,10 +690,10 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       let filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
         await saveAsHtml({ page, filePath, options, route, fs });
+        routePath = normalizePath(routePath);
         let newPath = await page.evaluate(() => location.pathname);
         newPath = normalizePath(newPath);
-        routePath = normalizePath(routePath);
-        if (newPath !== routePath) {
+        if (routePath !== newPath) {
           console.log(`💬  in browser redirect (${newPath})`);
           filePath = path.join(destinationDir, newPath);
           await saveAsHtml({ page, filePath, options, route, fs });
