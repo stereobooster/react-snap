@@ -125,7 +125,20 @@ If you need to pass some options for `react-snap`, you can do this in your `pack
 }
 ```
 
-Not all options are documented yet, but you can check `defaultOptions` in `index.js`.
+The default stable options are:
+
+```json
+{
+  "port": 45678,
+  "source": "build",
+  "destination": null,
+  "concurrency": 4,
+  "include": ["/"],
+  "userAgent": "ReactSnap",
+}
+```
+
+Not all options are documented yet, but you can check defaultOptions in index.js.
 
 ### inlineCss
 
