@@ -131,6 +131,8 @@ const defaults = userOptions => {
   return options;
 };
 
+const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
+
 /**
  *
  * @param {{page: Page, basePath: string}} opt
@@ -684,10 +686,18 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       if (options.fixInsertRule) await fixInsertRule({ page });
       await fixFormFields({ page });
 
-      const routePath = route.replace(publicPath, "");
-      const filePath = path.join(destinationDir, routePath);
+      let routePath = route.replace(publicPath, "");
+      let filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
         await saveAsHtml({ page, filePath, options, route, fs });
+        routePath = normalizePath(routePath);
+        let newPath = await page.evaluate(() => location.pathname);
+        newPath = normalizePath(newPath);
+        if (routePath !== newPath) {
+          console.log(`💬  in browser redirect (${newPath})`);
+          filePath = path.join(destinationDir, newPath);
+          await saveAsHtml({ page, filePath, options, route, fs });
+        }
       } else if (options.saveAs === "png") {
         await saveAsPng({ page, filePath, options, route, fs });
       } else if (options.saveAs === "jpeg") {
