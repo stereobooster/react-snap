@@ -397,7 +397,7 @@ describe("preloadImages", () => {
 describe("handles JS errors", () => {
   const source = "tests/examples/other";
   const include = ["/with-script-error.html"];
-  const { fs, filesCreated, content } = mockFs();
+  const { fs } = mockFs();
   test("returns rejected promise", () =>
     snapRun(fs, { source, include })
       .then(() => expect(true).toEqual(false))
@@ -406,7 +406,7 @@ describe("handles JS errors", () => {
 
 describe("You can not run react-snap twice", () => {
   const source = "tests/examples/processed";
-  const { fs, filesCreated, content } = mockFs();
+  const { fs } = mockFs();
   test("returns rejected promise", () =>
     snapRun(fs, { source })
       .then(() => expect(true).toEqual(false))
@@ -521,10 +521,24 @@ describe("svgLinks", () => {
 describe("history.pushState", () => {
   const source = "tests/examples/other";
   const include = ["/history-push.html"];
-  const { fs, filesCreated } = mockFs();
+  const { fs, filesCreated, name } = mockFs();
   beforeAll(() => snapRun(fs, { source, include }));
   test("in case of browser redirect it creates 2 files", () => {
     expect(filesCreated()).toEqual(2);
+    expect(name(0)).toEqual("/tests/examples/other/history-push.html");
+    expect(name(1)).toEqual("/tests/examples/other/hello");
+  });
+});
+
+describe("history.pushState in sub-directory", () => {
+  const source = "tests/examples/other";
+  const include = ["/history-push.html"];
+  const { fs, filesCreated, name } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
+  test("in case of browser redirect it creates 2 files", () => {
+    expect(filesCreated()).toEqual(2);
+    expect(name(0)).toEqual("/tests/examples/other/history-push.html");
+    expect(name(1)).toEqual("/tests/examples/other/hello");
   });
 });
 
