@@ -15,7 +15,7 @@
     "express-history-api-fallback": "2.2.1",
     "highland": "2.13.0",
     "html-minifier": "3.5.21",
-    "minimalcss": "0.8.0",
+    "minimalcss": "0.8.1",
     "mkdirp": "0.5.1",
     "puppeteer": "^1.8.0",
     "serve-static": "1.13.2",
