@@ -9,7 +9,7 @@ Object {
   "destination": null,
   "externalServer": false,
   "fixInsertRule": true,
-  "fixWebpackChunksIssue": true,
+  "fixWebpackChunksIssue": "CRA1",
   "headless": true,
   "http2PushManifest": false,
   "ignoreForPreload": Array [
