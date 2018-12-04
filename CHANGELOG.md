@@ -1,3 +1,7 @@
+# 1.22.0
+
+- Fix CRA2 compatibility (#264)
+
 # 1.21.0
 
 - Support in browser redirect (#292, #294, #296)
