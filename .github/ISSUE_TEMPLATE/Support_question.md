@@ -9,6 +9,6 @@ We primarily use GitHub as an issue tracker; for usage and support questions, pl
 
 ---
 
-* StackOverflow: https://stackoverflow.com/questions/tagged/react-snap using the tag `react-snap`
+* StackOverflow: https://stackoverflow.com/search?q=react-snap using the tag `react-snap`
 * Also have a look at the readme and doc folder:
   https://github.com/stereobooster/react-snap/blob/master/README.md
