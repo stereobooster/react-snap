@@ -12,7 +12,8 @@ const {
 const publicUrl = process.env.PUBLIC_URL || homepage;
 
 const reactScriptsVersion = parseInt(
-  devDependencies["react-scripts"] || dependencies["react-scripts"]
+  (devDependencies && devDependencies["react-scripts"]) 
+  || (dependencies && dependencies["react-scripts"])
 );
 let fixWebpackChunksIssue;
 switch (reactScriptsVersion) {
