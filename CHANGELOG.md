@@ -1,3 +1,7 @@
+# 1.22.1
+
+- Fix bug introduced in 1.22.0 (#312 by @kjkta)
+
 # 1.22.0
 
 - Fix CRA2 compatibility (#264)
