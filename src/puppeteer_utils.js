@@ -4,6 +4,12 @@ const url = require("url");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 const path = require("path");
 const fs = require("fs");
+const { createTracker, augmentTimeoutError } = require("./tracker");
+
+const errorToString = jsHandle =>
+  jsHandle.executionContext().evaluate(e => e.toString(), jsHandle);
+
+const objectToJson = jsHandle => jsHandle.jsonValue();
 
 /**
  * @param {{page: Page, options: {skipThirdPartyRequests: true, proxy: {}}, basePath: string }} opt
@@ -42,44 +48,70 @@ const handleThirdPartyRequests = async opt => {
  */
 const enableLogging = opt => {
   const { page, options, route, onError, sourcemapStore } = opt;
-  page.on("console", msg =>
-    Promise.all(msg.args().map(x => x.jsonValue())).then(args =>
-      console.log(`✏️  ${route} log:`, ...args)
-    )
-  );
+  page.on("console", msg => {
+    const text = msg.text();
+    if (text === "JSHandle@object") {
+      Promise.all(msg.args().map(objectToJson)).then(args =>
+        console.log(`💬  console.log at ${route}:`, ...args)
+      );
+    } else if (text === "JSHandle@error") {
+      Promise.all(msg.args().map(errorToString)).then(args =>
+        console.log(`💬  console.log at ${route}:`, ...args)
+      );
+    } else {
+      console.log(`️️️💬  console.log at ${route}:`, text);
+    }
+  });
   page.on("error", msg => {
-    console.log(`🔥  ${route} error:`, msg);
+    console.log(`🔥  error at ${route}:`, msg);
     onError && onError();
   });
   page.on("pageerror", e => {
     if (options.sourceMaps) {
-      mapStackTrace(e.stack, {
+      mapStackTrace(e.stack || e.message, {
         isChromeOrEdge: true,
         store: sourcemapStore || {}
-      }).then(result => {
-        // TODO: refactor mapStackTrace: return array not a string, return first row too
-        const stackRows = result.split("\n");
-        const puppeteerLine =
-          stackRows.findIndex(x => x.includes("puppeteer")) ||
-          stackRows.length - 1;
+      })
+        .then(result => {
+          // TODO: refactor mapStackTrace: return array not a string, return first row too
+          const stackRows = result.split("\n");
+          const puppeteerLine =
+            stackRows.findIndex(x => x.includes("puppeteer")) ||
+            stackRows.length - 1;
 
-        console.log(
-          `🔥  ${route} pageerror: ${e.stack.split("\n")[0] +
-            "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
-        );
-      });
+          console.log(
+            `🔥  pageerror at ${route}: ${(e.stack || e.message).split(
+              "\n"
+            )[0] + "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
+          );
+        })
+        .catch(e2 => {
+          console.log(`🔥  pageerror at ${route}:`, e);
+          console.log(
+            `️️️⚠️  warning at ${route} (error in source maps):`,
+            e2.message
+          );
+        });
     } else {
-      console.log(`🔥  ${route} pageerror:`, e);
+      console.log(`🔥  pageerror at ${route}:`, e);
     }
     onError && onError();
   });
   page.on("response", response => {
     if (response.status() >= 400) {
-      console.log(`⚠️   ${response.status()} error: ${response.url()}`);
+      let route = "";
+      try {
+        route = response._request
+          .headers()
+          .referer.replace(`http://localhost:${options.port}`, "");
+      } catch (e) {}
+      console.log(
+        `️️️⚠️  warning at ${route}: got ${response.status()} HTTP code for ${response.url()}`
+      );
     }
   });
   // page.on("requestfailed", msg =>
-  //   console.log(`${route} requestfailed:`, msg)
+  //   console.log(`️️️⚠️  ${route} requestfailed:`, msg)
   // );
 };
 
@@ -90,7 +122,14 @@ const enableLogging = opt => {
 const getLinks = async opt => {
   const { page } = opt;
   const anchors = await page.evaluate(() =>
-    Array.from(document.querySelectorAll("a")).map(anchor => anchor.href)
+    Array.from(document.querySelectorAll("a")).map(anchor => {
+      if (anchor.href.baseVal) {
+        const a = document.createElement("a");
+        a.href = anchor.href.baseVal;
+        return a.href;
+      }
+      return anchor.href;
+    })
   );
 
   const iframes = await page.evaluate(() =>
@@ -129,6 +168,12 @@ const crawl = async opt => {
     }
   };
   process.on("SIGINT", onSigint);
+
+  const onUnhandledRejection = error => {
+    console.log("🔥  UnhandledPromiseRejectionWarning", error);
+    shuttingDown = true;
+  };
+  process.on("unhandledRejection", onUnhandledRejection);
 
   const queue = _();
   let enqued = 0;
@@ -180,6 +225,7 @@ const crawl = async opt => {
     if (!shuttingDown && !skipExistingFile) {
       try {
         const page = await browser.newPage();
+        await page.setCacheEnabled(options.puppeteer.cache);
         if (options.viewport) await page.setViewport(options.viewport);
         if (options.skipThirdPartyRequests || options.proxy)
           await handleThirdPartyRequests({ page, options, basePath });
@@ -194,7 +240,15 @@ const crawl = async opt => {
         });
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);
-        await page.goto(pageUrl, { waitUntil: "networkidle0" });
+        const tracker = createTracker(page);
+        try {
+          await page.goto(pageUrl, { waitUntil: "networkidle0" });
+        } catch (e) {
+          e.message = augmentTimeoutError(e.message, tracker);
+          throw e;
+        } finally {
+          tracker.dispose();
+        }
         if (options.waitFor) await page.waitFor(options.waitFor);
         if (options.crawl) {
           const links = await getLinks({ page });
@@ -202,15 +256,16 @@ const crawl = async opt => {
         }
         afterFetch && (await afterFetch({ page, route, browser }));
         await page.close();
-        console.log(`🕸  (${processed + 1}/${enqued}) ${route}`);
+        console.log(`✅  crawled ${processed + 1} out of ${enqued} (${route})`);
       } catch (e) {
         if (!shuttingDown) {
-          console.log(`🔥  ${route}`, e);
+          console.log(`🔥  error at ${route}`, e);
         }
         shuttingDown = true;
       }
     } else {
-      console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
+      // this message creates a lot of noise
+      // console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
     }
     processed++;
     if (enqued === processed) {
@@ -230,6 +285,7 @@ const crawl = async opt => {
       .mergeWithLimit(options.concurrency)
       .toArray(async () => {
         process.removeListener("SIGINT", onSigint);
+        process.removeListener("unhandledRejection", onUnhandledRejection);
         await browser.close();
         onEnd && onEnd();
         if (shuttingDown) return reject("");

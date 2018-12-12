@@ -23,6 +23,9 @@ const defaultOptions = {
   // 4 params below will be refactored to one: `puppeteer: {}`
   // https://github.com/stereobooster/react-snap/issues/120
   headless: true,
+  puppeteer: {
+    cache: true
+  },
   puppeteerArgs: [],
   puppeteerExecutablePath: undefined,
   puppeteerIgnoreHTTPSErrors: false,
@@ -35,7 +38,7 @@ const defaultOptions = {
     decodeEntities: true,
     keepClosingSlash: true,
     sortAttributes: true,
-    sortClassName: true
+    sortClassName: false
   },
   // mobile first approach
   viewport: {
@@ -44,7 +47,8 @@ const defaultOptions = {
   },
   sourceMaps: true,
   //# workarounds
-  fixWebpackChunksIssue: true,
+  // using CRA1 for compatibility with previous version will be changed to false in v2
+  fixWebpackChunksIssue: "CRA1",
   removeBlobs: true,
   fixInsertRule: true,
   skipThirdPartyRequests: false,
@@ -88,25 +92,35 @@ const defaults = userOptions => {
 
   let exit = false;
   if (!options.include || !options.include.length) {
-    console.log("⚠️  include option should be an non-empty array");
+    console.log("🔥  include option should be an non-empty array");
     exit = true;
   }
   if (options.preloadResources) {
     console.log(
-      "⚠️  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
+      "🔥  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
     );
     exit = true;
   }
   if (options.minifyOptions) {
-    console.log("⚠️  minifyOptions option renamed to minifyHtml");
+    console.log("🔥  minifyOptions option renamed to minifyHtml");
     options.minifyHtml = options.minifyOptions;
   }
   if (options.asyncJs) {
-    console.log("⚠️  asyncJs option renamed to asyncScriptTags");
+    console.log("🔥  asyncJs option renamed to asyncScriptTags");
     options.asyncScriptTags = options.asyncJs;
   }
-  if (options.saveAs !== "html" && options.saveAs !== "png") {
-    console.log("⚠️  saveAs supported values are html and png");
+  if (options.fixWebpackChunksIssue === true) {
+    console.log(
+      "🔥  fixWebpackChunksIssue - behaviour changed, valid options are CRA1, CRA2, false"
+    );
+    options.fixWebpackChunksIssue = "CRA1";
+  }
+  if (
+    options.saveAs !== "html" &&
+    options.saveAs !== "png" &&
+    options.saveAs !== "jpeg"
+  ) {
+    console.log("🔥  saveAs supported values are html, png, and jpeg");
     exit = true;
   }
   if (exit) throw new Error();
@@ -124,6 +138,8 @@ const defaults = userOptions => {
   );
   return options;
 };
+
+const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
 
 /**
  *
@@ -145,7 +161,7 @@ const preloadResources = opt => {
   page.on("response", async response => {
     const responseUrl = response.url();
     if (/^data:|blob:/i.test(responseUrl)) return;
-    const ct = response.headers["content-type"] || "";
+    const ct = response.headers()["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
     if (/^http:\/\/localhost/i.test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
@@ -291,7 +307,8 @@ const inlineCss = async opt => {
 
   if (cssSize > twentyKb)
     console.log(
-      `⚠️  inlining CSS more than 20kb (${cssSize / 1024}kb, ${cssStrategy})`
+      `⚠️  warning: inlining CSS more than 20kb (${cssSize /
+        1024}kb, ${cssStrategy})`
     );
 
   if (cssStrategy === "critical") {
@@ -327,10 +344,15 @@ const inlineCss = async opt => {
     );
   } else {
     await page.evaluate(allCss => {
+      if (!allCss) return;
+
       const head = document.head || document.getElementsByTagName("head")[0],
         style = document.createElement("style");
       style.type = "text/css";
       style.appendChild(document.createTextNode(allCss));
+
+      if (!head) throw new Error("No <head> element found in document");
+
       head.appendChild(style);
 
       const stylesheets = Array.from(
@@ -354,19 +376,38 @@ const asyncScriptTags = ({ page }) => {
   });
 };
 
-const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
+const fixWebpackChunksIssue1 = ({
+  page,
+  basePath,
+  http2PushManifest,
+  inlineCss
+}) => {
   return page.evaluate(
-    (basePath, http2PushManifest) => {
+    (basePath, http2PushManifest, inlineCss) => {
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
       );
-      const mainRegexp = /main\.[\w]{8}.js/;
-      const mainScript = localScripts.filter(x => mainRegexp.test(x.src))[0];
+      // CRA v1|v2.alpha
+      const mainRegexp = /main\.[\w]{8}.js|main\.[\w]{8}\.chunk\.js/;
+      const mainScript = localScripts.find(x => mainRegexp.test(x.src));
+      const firstStyle = document.querySelector("style");
 
       if (!mainScript) return;
 
-      const chunkRegexp = /\.[\w]{8}\.chunk\.js/;
-      const chunkSripts = localScripts.filter(x => chunkRegexp.test(x.src));
+      const chunkRegexp = /(\w+)\.[\w]{8}(\.chunk)?\.js/g;
+      const chunkScripts = localScripts.filter(x => {
+        const matched = chunkRegexp.exec(x.src);
+        // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+        chunkRegexp.lastIndex = 0;
+        return matched && matched[1] !== "main" && matched[1] !== "vendors";
+      });
+
+      const mainScripts = localScripts.filter(x => {
+        const matched = chunkRegexp.exec(x.src);
+        // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+        chunkRegexp.lastIndex = 0;
+        return matched && (matched[1] === "main" || matched[1] === "vendors");
+      });
 
       const createLink = x => {
         if (http2PushManifest) return;
@@ -374,12 +415,16 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
         linkTag.setAttribute("rel", "preload");
         linkTag.setAttribute("as", "script");
         linkTag.setAttribute("href", x.src.replace(basePath, ""));
-        document.head.appendChild(linkTag);
+        if (inlineCss) {
+          firstStyle.parentNode.insertBefore(linkTag, firstStyle);
+        } else {
+          document.head.appendChild(linkTag);
+        }
       };
 
-      createLink(mainScript);
-      for (let i = chunkSripts.length - 1; i >= 0; --i) {
-        const x = chunkSripts[i];
+      mainScripts.map(x => createLink(x));
+      for (let i = chunkScripts.length - 1; i >= 0; --i) {
+        const x = chunkScripts[i];
         if (x.parentElement && mainScript.parentNode) {
           x.parentElement.removeChild(x);
           createLink(x);
@@ -387,7 +432,78 @@ const fixWebpackChunksIssue = ({ page, basePath, http2PushManifest }) => {
       }
     },
     basePath,
-    http2PushManifest
+    http2PushManifest,
+    inlineCss
+  );
+};
+
+const fixWebpackChunksIssue2 = ({
+  page,
+  basePath,
+  http2PushManifest,
+  inlineCss
+}) => {
+  return page.evaluate(
+    (basePath, http2PushManifest, inlineCss) => {
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
+      // CRA v2
+      const mainRegexp = /main\.[\w]{8}\.chunk\.js/;
+      const mainScript = localScripts.find(x => mainRegexp.test(x.src));
+      const firstStyle = document.querySelector("style");
+
+      if (!mainScript) return;
+
+      const chunkRegexp = /(\w+)\.[\w]{8}\.chunk\.js/g;
+
+      const headScripts = Array.from(document.querySelectorAll("head script"))
+        .filter(x => x.src && x.src.startsWith(basePath))
+        .filter(x => {
+          const matched = chunkRegexp.exec(x.src);
+          // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+          chunkRegexp.lastIndex = 0;
+          return matched;
+        });
+
+      const chunkScripts = localScripts.filter(x => {
+        const matched = chunkRegexp.exec(x.src);
+        // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+        chunkRegexp.lastIndex = 0;
+        return matched;
+      });
+
+      const createLink = x => {
+        if (http2PushManifest) return;
+        const linkTag = document.createElement("link");
+        linkTag.setAttribute("rel", "preload");
+        linkTag.setAttribute("as", "script");
+        linkTag.setAttribute("href", x.src.replace(basePath, ""));
+        if (inlineCss) {
+          firstStyle.parentNode.insertBefore(linkTag, firstStyle);
+        } else {
+          document.head.appendChild(linkTag);
+        }
+      };
+
+      for (let i = headScripts.length; i <= chunkScripts.length - 1; i++) {
+        const x = chunkScripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          createLink(x);
+        }
+      }
+
+      for (let i = headScripts.length - 1; i >= 0; --i) {
+        const x = headScripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          x.parentElement.removeChild(x);
+          createLink(x);
+        }
+      }
+    },
+    basePath,
+    http2PushManifest,
+    inlineCss
   );
 };
 
@@ -441,11 +557,12 @@ const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
   filePath = filePath.replace(/\//g, path.sep);
   if (route.endsWith(".html")) {
     if (route.endsWith("/404.html") && !title.includes("404"))
-      console.log('⚠️  404 page title does not contain "404" string');
+      console.log('⚠️  warning: 404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
     fs.writeFileSync(filePath, minifiedContent);
   } else {
-    if (title.includes("404")) console.log(`⚠️  page not found ${route}`);
+    if (title.includes("404"))
+      console.log(`⚠️  warning: page not found ${route}`);
     mkdirp.sync(filePath);
     fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
   }
@@ -457,9 +574,22 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   if (route.endsWith(".html")) {
     screenshotPath = filePath.replace(/\.html$/, ".png");
   } else if (route === "/") {
-    screenshotPath = `${filePath}/index.png`;
+    screenshotPath = `${filePath}index.png`;
   } else {
     screenshotPath = `${filePath.replace(/\/$/, "")}.png`;
+  }
+  return page.screenshot({ path: screenshotPath });
+};
+
+const saveAsJpeg = ({ page, filePath, options, route }) => {
+  mkdirp.sync(path.dirname(filePath));
+  let screenshotPath;
+  if (route.endsWith(".html")) {
+    screenshotPath = filePath.replace(/\.html$/, ".jpeg");
+  } else if (route === "/") {
+    screenshotPath = `${filePath}index.jpeg`;
+  } else {
+    screenshotPath = `${filePath.replace(/\/$/, "")}.jpeg`;
   }
   return page.screenshot({ path: screenshotPath });
 };
@@ -491,20 +621,20 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     fs.existsSync(path.join(sourceDir, "200.html"))
   ) {
     console.log(
-      `200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`
+      `🔥  200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`
     );
     return Promise.reject("");
   }
 
-  fs
-    .createReadStream(path.join(sourceDir, "index.html"))
-    .pipe(fs.createWriteStream(path.join(sourceDir, "200.html")));
+  fs.createReadStream(path.join(sourceDir, "index.html")).pipe(
+    fs.createWriteStream(path.join(sourceDir, "200.html"))
+  );
 
   if (destinationDir !== sourceDir && options.saveAs === "html") {
     mkdirp.sync(destinationDir);
-    fs
-      .createReadStream(path.join(sourceDir, "index.html"))
-      .pipe(fs.createWriteStream(path.join(destinationDir, "200.html")));
+    fs.createReadStream(path.join(sourceDir, "index.html")).pipe(
+      fs.createWriteStream(path.join(destinationDir, "200.html"))
+    );
   }
 
   const server = options.externalServer ? null : startServer(options);
@@ -576,11 +706,19 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
           }
         }
       }
-      if (options.fixWebpackChunksIssue) {
-        await fixWebpackChunksIssue({
+      if (options.fixWebpackChunksIssue === "CRA2") {
+        await fixWebpackChunksIssue2({
           page,
           basePath,
-          http2PushManifest
+          http2PushManifest,
+          inlineCss: options.inlineCss
+        });
+      } else if (options.fixWebpackChunksIssue === "CRA1") {
+        await fixWebpackChunksIssue1({
+          page,
+          basePath,
+          http2PushManifest,
+          inlineCss: options.inlineCss
         });
       }
       if (options.asyncScriptTags) await asyncScriptTags({ page });
@@ -633,12 +771,23 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       if (options.fixInsertRule) await fixInsertRule({ page });
       await fixFormFields({ page });
 
-      const routePath = route.replace(publicPath, "");
-      const filePath = path.join(destinationDir, routePath);
+      let routePath = route.replace(publicPath, "");
+      let filePath = path.join(destinationDir, routePath);
       if (options.saveAs === "html") {
         await saveAsHtml({ page, filePath, options, route, fs });
+        routePath = normalizePath(routePath);
+        let newPath = await page.evaluate(() => location.pathname);
+        newPath = newPath.replace(publicPath, "");
+        newPath = normalizePath(newPath);
+        if (routePath !== newPath) {
+          console.log(`💬  in browser redirect (${newPath})`);
+          filePath = path.join(destinationDir, newPath);
+          await saveAsHtml({ page, filePath, options, route, fs });
+        }
       } else if (options.saveAs === "png") {
         await saveAsPng({ page, filePath, options, route, fs });
+      } else if (options.saveAs === "jpeg") {
+        await saveAsJpeg({ page, filePath, options, route, fs });
       }
     },
     onEnd: () => {

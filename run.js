@@ -2,11 +2,34 @@
 
 const url = require("url");
 const { run } = require("./index.js");
-const { reactSnap, homepage } = require(`${process.cwd()}/package.json`);
+const {
+  reactSnap,
+  homepage,
+  devDependencies,
+  dependencies
+} = require(`${process.cwd()}/package.json`);
+
+const publicUrl = process.env.PUBLIC_URL || homepage;
+
+const reactScriptsVersion = parseInt(
+  (devDependencies && devDependencies["react-scripts"]) 
+  || (dependencies && dependencies["react-scripts"])
+);
+let fixWebpackChunksIssue;
+switch (reactScriptsVersion) {
+  case 1:
+    fixWebpackChunksIssue = "CRA1";
+    break;
+  case 2:
+    fixWebpackChunksIssue = "CRA2";
+    break;
+}
 
 run({
-  publicPath: homepage ? url.parse(homepage).pathname : "/",
+  publicPath: publicUrl ? url.parse(publicUrl).pathname : "/",
+  fixWebpackChunksIssue,
   ...reactSnap
-}).catch(() => {
+}).catch(error => {
+  console.error(error);
   process.exit(1);
 });

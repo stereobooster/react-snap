@@ -1,5 +1,9 @@
 // FIX: tests are slow - use unit tests instead of integration tests
 // TODO: capture console log from run function
+const fs = require("fs");
+const writeFileSpy = jest.spyOn(fs, "writeFile");
+writeFileSpy.mockImplementation((file, data, cb) => cb());
+
 const { mockFs } = require("./helper.js");
 const { run } = require("./../index.js");
 const snapRun = (fs, options) =>
@@ -90,6 +94,52 @@ describe("proxy", () => {
   });
 });
 
+describe("saveAs png", () => {
+  const source = "tests/examples/one-page";
+  const cwd = process.cwd();
+  const {
+    fs: mockedFs,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(() => snapRun(mockedFs, { source, saveAs: "png" }));
+  afterAll(() => writeFileSpy.mockClear());
+  test("crawls / and saves as index.png to the same folder", () => {
+    expect(writeFileSpy).toHaveBeenCalledTimes(1);
+    expect(writeFileSpy.mock.calls[0][0]).toEqual(cwd + `/${source}/index.png`);
+  });
+  test("copies (original) index.html to 200.html", () => {
+    expect(createReadStreamMock.mock.calls).toEqual([
+      [`/${source}/index.html`]
+    ]);
+    expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
+  });
+});
+
+describe("saveAs jpeg", () => {
+  const source = "tests/examples/one-page";
+  const cwd = process.cwd();
+  const {
+    fs: mockedFs,
+    createReadStreamMock,
+    createWriteStreamMock
+  } = mockFs();
+  beforeAll(() => snapRun(mockedFs, { source, saveAs: "jpeg" }));
+  afterAll(() => writeFileSpy.mockClear());
+  test("crawls / and saves as index.png to the same folder", () => {
+    expect(writeFileSpy).toHaveBeenCalledTimes(1);
+    expect(writeFileSpy.mock.calls[0][0]).toEqual(
+      cwd + `/${source}/index.jpeg`
+    );
+  });
+  test("copies (original) index.html to 200.html", () => {
+    expect(createReadStreamMock.mock.calls).toEqual([
+      [`/${source}/index.html`]
+    ]);
+    expect(createWriteStreamMock.mock.calls).toEqual([[`/${source}/200.html`]]);
+  });
+});
+
 describe("respects destination", () => {
   const source = "tests/examples/one-page";
   const destination = "tests/examples/destination";
@@ -173,7 +223,8 @@ describe("possible to disable crawl option", () => {
       source,
       crawl: false,
       include: ["/1", "/2/", "/3#test", "/4?test"]
-    }));
+    })
+  );
   test("crawls all links and saves as index.html in separate folders", () => {
     // no / or /404.html
     expect(writeFileSyncMock.mock.calls.length).toEqual(4);
@@ -202,7 +253,8 @@ describe("inlineCss - small file", () => {
       source,
       inlineCss: true,
       include: ["/with-small-css.html"]
-    }));
+    })
+  );
   // 1. I want to change this behaviour
   // see https://github.com/stereobooster/react-snap/pull/133/files
   // 2. There is a bug with relative url in inlined CSS url(bg.png)
@@ -230,16 +282,26 @@ describe("inlineCss - big file", () => {
   });
   test("inserts <link> in noscript", () => {
     expect(content(0)).toMatch(
-      '<noscript><link rel="stylesheet" href="/css/big.css"></noscript>'
+      '<noscript><link href="/css/big.css" rel="stylesheet"></noscript>'
     );
   });
   test('inserts <link rel="preload"> with onload', () => {
     expect(content(0)).toMatch(
-      '<link rel="preload" href="/css/big.css" as="style" onload="this.rel=\'stylesheet\'">'
+      '<link href="/css/big.css" rel="preload" as="style" onload="this.rel=\'stylesheet\'">'
     );
   });
   test("inserts loadCSS polyfill", () => {
     expect(content(0)).toMatch('<script type="text/javascript">/*! loadCSS');
+  });
+});
+
+describe("inlineCss - partial document", () => {
+  const source = "tests/examples/partial";
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(() => snapRun(fs, { source, inlineCss: true }));
+  test("no inline style", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).not.toMatch('<style type="text/css">');
   });
 });
 
@@ -277,7 +339,8 @@ describe("ignoreForPreload", () => {
       include,
       http2PushManifest: true,
       ignoreForPreload: ["big.css"]
-    }));
+    })
+  );
   test("writes http2 manifest file", () => {
     expect(filesCreated()).toEqual(2);
     expect(content(1)).toEqual("[]");
@@ -291,7 +354,9 @@ describe("preconnectThirdParty", () => {
   beforeAll(() => snapRun(fs, { source, include }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch('<link rel="preconnect"');
+    expect(content(0)).toMatch(
+      '<link href="https://fonts.googleapis.com" rel="preconnect">'
+    );
   });
 });
 
@@ -315,7 +380,8 @@ describe("removeStyleTags", () => {
       source,
       include,
       removeStyleTags: true
-    }));
+    })
+  );
   test("removes all <style>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).not.toMatch("<style");
@@ -340,7 +406,7 @@ describe("asyncScriptTags", () => {
   beforeAll(() => snapRun(fs, { source, include, asyncScriptTags: true }));
   test("adds async to all external", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch("async></script>");
+    expect(content(0)).toMatch('<script async src="js/main.js"></script>');
   });
 });
 
@@ -351,14 +417,16 @@ describe("preloadImages", () => {
   beforeAll(() => snapRun(fs, { source, include, preloadImages: true }));
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch('<link rel="preload" as="image"');
+    expect(content(0)).toMatch(
+      '<link as="image" href="/css/bg.png" rel="preload">'
+    );
   });
 });
 
 describe("handles JS errors", () => {
   const source = "tests/examples/other";
   const include = ["/with-script-error.html"];
-  const { fs, filesCreated, content } = mockFs();
+  const { fs } = mockFs();
   test("returns rejected promise", () =>
     snapRun(fs, { source, include })
       .then(() => expect(true).toEqual(false))
@@ -367,7 +435,7 @@ describe("handles JS errors", () => {
 
 describe("You can not run react-snap twice", () => {
   const source = "tests/examples/processed";
-  const { fs, filesCreated, content } = mockFs();
+  const { fs } = mockFs();
   test("returns rejected promise", () =>
     snapRun(fs, { source })
       .then(() => expect(true).toEqual(false))
@@ -381,7 +449,7 @@ describe("fixWebpackChunksIssue", () => {
   test("creates preload links", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
-      '<link rel="preload" as="script" href="/static/js/main.42105999.js"><link rel="preload" as="script" href="/static/js/0.35040230.chunk.js">'
+      '<link as="script" href="/static/js/main.42105999.js" rel="preload"><link as="script" href="/static/js/0.35040230.chunk.js" rel="preload">'
     );
   });
   test("leaves root script", () => {
@@ -443,27 +511,63 @@ describe("saves state of form elements changed via JS", () => {
   test("radio button", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
-      '<input type="radio" name="radio" value="radio1" checked>'
+      '<input checked name="radio" type="radio" value="radio1">'
     );
   });
   test("checkbox", () => {
     expect(content(0)).toMatch(
-      '<input type="checkbox" name="checkbox" value="checkbox1" checked>'
+      '<input checked name="checkbox" type="checkbox" value="checkbox1">'
     );
   });
   test("select", () => {
-    expect(content(0)).toMatch('<option value="option1" selected>');
+    expect(content(0)).toMatch('<option selected value="option1">');
   });
 });
 
-describe.skip("cacheAjaxRequests", () => {
+describe("cacheAjaxRequests", () => {
   const source = "tests/examples/other";
   const include = ["/ajax-request.html"];
   const { fs, filesCreated, content } = mockFs();
   beforeAll(() => snapRun(fs, { source, include, cacheAjaxRequests: true }));
   test("saves ajax response", () => {
     expect(filesCreated()).toEqual(1);
-    expect(content(0)).toMatch('window.snapStore={"/js/test.json":{test:1}};');
+    expect(content(0)).toMatch(
+      'window.snapStore={"\\u002Fjs\\u002Ftest.json":{"test":1}};'
+    );
+  });
+});
+
+describe("svgLinks", () => {
+  const source = "tests/examples/other";
+  const include = ["/svg.html"];
+  const { fs, filesCreated } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include }));
+  test("Find SVG Links", () => {
+    expect(filesCreated()).toEqual(3);
+  });
+});
+
+describe("history.pushState", () => {
+  const source = "tests/examples/other";
+  const include = ["/history-push.html"];
+  const { fs, filesCreated, name } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include }));
+  test("in case of browser redirect it creates 2 files", () => {
+    expect(filesCreated()).toEqual(2);
+    expect(name(0)).toEqual("/tests/examples/other/history-push.html");
+    expect(name(1)).toEqual("/tests/examples/other/hello");
+  });
+});
+
+describe("history.pushState in sub-directory", () => {
+  const source = "tests/examples/other";
+  const include = ["/history-push.html"];
+  const { fs, filesCreated, name } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
+  test("in case of browser redirect it creates 2 files", () => {
+    expect(filesCreated()).toEqual(2);
+    expect(name(0)).toEqual("/tests/examples/other/history-push.html");
+    expect(name(1)).toEqual("/tests/examples/other/hello");
   });
 });
 

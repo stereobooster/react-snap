@@ -1,8 +1,7 @@
 {
   "name": "react-snap",
-  "version": "1.12.2",
-  "description":
-    "Zero-configuration framework-agnostic static prerendering for SPAs",
+  "version": "1.22.1",
+  "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
   "author": "stereobooster",
   "license": "MIT",
@@ -11,22 +10,22 @@
     "node": ">= 8.6.0"
   },
   "dependencies": {
-    "clean-css": "^4.1.9",
-    "express": "^4.16.1",
-    "express-history-api-fallback": "^2.2.1",
-    "highland": "^2.11.1",
-    "html-minifier": "^3.5.5",
-    "minimalcss": "^0.7.5",
-    "mkdirp": "^0.5.1",
-    "puppeteer": "^1.2.0",
-    "serve-static": "^1.13.1",
-    "sourcemapped-stacktrace-node": "^2.1.6"
+    "clean-css": "4.2.1",
+    "express": "4.16.4",
+    "express-history-api-fallback": "2.2.1",
+    "highland": "2.13.0",
+    "html-minifier": "3.5.21",
+    "minimalcss": "0.8.1",
+    "mkdirp": "0.5.1",
+    "puppeteer": "^1.8.0",
+    "serve-static": "1.13.2",
+    "sourcemapped-stacktrace-node": "2.1.8"
   },
   "devDependencies": {
     "dev-null-stream": "0.0.1",
-    "jest": "22.4.4",
+    "jest": "23.6.0",
     "markdown-toc": "1.2.0",
-    "prettier": "1.12.1"
+    "prettier": "1.15.3"
   },
   "scripts": {
     "toc": "yarn run markdown-toc -i doc/recipes.md",
@@ -36,5 +35,10 @@
   "bin": {
     "react-snap": "./run.js"
   },
-  "files": ["index.js", "run.js", "src/", "vendor/"]
+  "files": [
+    "index.js",
+    "run.js",
+    "src/",
+    "vendor/"
+  ]
 }
