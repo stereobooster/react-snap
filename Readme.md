@@ -182,6 +182,8 @@ const NotFoundPage = loadable(() => import("src/pages/NotFoundPage"), {
 });
 ```
 
+`loadable-components` were deprecated in favour of `@loadable/component`, but `@loadable/component` dropped `getState`. So if you want to use `loadable-components` you can use old version (`2.2.3` latest version at the moment of writing) or you can wait until `React` will implement proper handling of this case with asynchronous rendering and `React.lazy`.
+
 ### Redux
 
 See: [Redux Server Rendering Section](https://redux.js.org/docs/recipes/ServerRendering.html#the-client-side)
