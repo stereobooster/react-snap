@@ -163,7 +163,7 @@ describe("many pages", () => {
         `/${source}/1/index.html`, // without slash in the end
         `/${source}/2/index.html`, // with slash in the end
         `/${source}/3/index.html`, // ignores hash
-        `/${source}/4/index.html`  // ignores query
+        `/${source}/4/index.html` // ignores query
       ])
     );
   });
@@ -520,24 +520,34 @@ describe("svgLinks", () => {
 describe("history.pushState", () => {
   const source = "tests/examples/other";
   const include = ["/history-push.html"];
-  const { fs, filesCreated, name } = mockFs();
+  const { fs, filesCreated, names } = mockFs();
   beforeAll(() => snapRun(fs, { source, include }));
   test("in case of browser redirect it creates 2 files", () => {
-    expect(filesCreated()).toEqual(2);
-    expect(name(0)).toEqual("/tests/examples/other/history-push.html");
-    expect(name(1)).toEqual("/tests/examples/other/hello");
+    expect(filesCreated()).toEqual(3);
+    expect(names()).toEqual(
+      expect.arrayContaining([
+        `/${source}/404.html`,
+        `/${source}/history-push.html`,
+        `/${source}/hello/index.html`
+      ])
+    );
   });
 });
 
 describe("history.pushState in sub-directory", () => {
   const source = "tests/examples/other";
   const include = ["/history-push.html"];
-  const { fs, filesCreated, name } = mockFs();
+  const { fs, filesCreated, names } = mockFs();
   beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
   test("in case of browser redirect it creates 2 files", () => {
-    expect(filesCreated()).toEqual(2);
-    expect(name(0)).toEqual("/tests/examples/other/history-push.html");
-    expect(name(1)).toEqual("/tests/examples/other/hello");
+    expect(filesCreated()).toEqual(3);
+    expect(names()).toEqual(
+      expect.arrayContaining([
+        `/${source}/404.html`,
+        `/${source}/history-push.html`,
+        `/${source}/hello/index.html`
+      ])
+    );
   });
 });
 
@@ -547,13 +557,15 @@ describe("history.pushState two redirects to the same file", () => {
   const { fs, filesCreated, names } = mockFs();
   beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
   test("in case of browser redirect it creates 2 files", () => {
-    expect(filesCreated()).toEqual(5);
-    expect(names()).toEqual(expect.arrayContaining([
-      `/${source}/404.html`,
-      `/${source}/history-push.html`,
-      `/${source}/hello`,
-      `/${source}/history-push-more.html`,
-    ]));
+    expect(filesCreated()).toEqual(4);
+    expect(names()).toEqual(
+      expect.arrayContaining([
+        `/${source}/404.html`,
+        `/${source}/history-push.html`,
+        `/${source}/hello/index.html`,
+        `/${source}/history-push-more.html`
+      ])
+    );
   });
 });
 
