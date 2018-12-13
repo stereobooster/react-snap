@@ -149,29 +149,29 @@ describe("many pages", () => {
   const source = "tests/examples/many-pages";
   const {
     fs,
-    writeFileSyncMock,
     createReadStreamMock,
-    createWriteStreamMock
+    createWriteStreamMock,
+    filesCreated,
+    name,
+    names
   } = mockFs();
   beforeAll(() => snapRun(fs, { source }));
   test("crawls all links and saves as index.html in separate folders", () => {
-    expect(writeFileSyncMock.mock.calls.length).toEqual(6);
-    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
+    expect(filesCreated()).toEqual(6);
+    expect(names()).toEqual(
       expect.arrayContaining([
         `/${source}/1/index.html`, // without slash in the end
         `/${source}/2/index.html`, // with slash in the end
         `/${source}/3/index.html`, // ignores hash
-        `/${source}/4/index.html` // ignores query
+        `/${source}/4/index.html`  // ignores query
       ])
     );
   });
   test("crawls / and saves as index.html to the same folder", () => {
-    expect(writeFileSyncMock.mock.calls[0][0]).toEqual(`/${source}/index.html`);
+    expect(name(0)).toEqual(`/${source}/index.html`);
   });
   test("if there is more than page it crawls 404.html", () => {
-    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
-      expect.arrayContaining([`/${source}/404.html`])
-    );
+    expect(names()).toEqual(expect.arrayContaining([`/${source}/404.html`]));
   });
   test("copies (original) index.html to 200.html", () => {
     expect(createReadStreamMock.mock.calls).toEqual([
@@ -185,9 +185,10 @@ describe("possible to disable crawl option", () => {
   const source = "tests/examples/many-pages";
   const {
     fs,
-    writeFileSyncMock,
     createReadStreamMock,
-    createWriteStreamMock
+    createWriteStreamMock,
+    filesCreated,
+    names
   } = mockFs();
   beforeAll(() =>
     snapRun(fs, {
@@ -198,8 +199,8 @@ describe("possible to disable crawl option", () => {
   );
   test("crawls all links and saves as index.html in separate folders", () => {
     // no / or /404.html
-    expect(writeFileSyncMock.mock.calls.length).toEqual(4);
-    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
+    expect(filesCreated()).toEqual(4);
+    expect(names()).toEqual(
       expect.arrayContaining([
         `/${source}/1/index.html`, // without slash in the end
         `/${source}/2/index.html`, // with slash in the end
@@ -438,17 +439,15 @@ describe("fixWebpackChunksIssue", () => {
 describe("link to file", () => {
   const source = "tests/examples/other";
   const include = ["/link-to-file.html"];
-  const { fs, writeFileSyncMock } = mockFs();
+  const { fs, names } = mockFs();
   beforeAll(() => snapRun(fs, { source, include }));
   test("link to non-html file", () => {
-    expect(writeFileSyncMock.mock.calls.map(x => x[0])).not.toEqual(
+    expect(names()).not.toEqual(
       expect.arrayContaining([`/${source}/css/bg.png`])
     );
   });
   test("link to html file", () => {
-    expect(writeFileSyncMock.mock.calls.map(x => x[0])).toEqual(
-      expect.arrayContaining([`/${source}/index.html`])
-    );
+    expect(names()).toEqual(expect.arrayContaining([`/${source}/index.html`]));
   });
 });
 
@@ -539,6 +538,22 @@ describe("history.pushState in sub-directory", () => {
     expect(filesCreated()).toEqual(2);
     expect(name(0)).toEqual("/tests/examples/other/history-push.html");
     expect(name(1)).toEqual("/tests/examples/other/hello");
+  });
+});
+
+describe("history.pushState two redirects to the same file", () => {
+  const source = "tests/examples/other";
+  const include = ["/history-push.html", "/history-push-more.html"];
+  const { fs, filesCreated, names } = mockFs();
+  beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
+  test("in case of browser redirect it creates 2 files", () => {
+    expect(filesCreated()).toEqual(5);
+    expect(names()).toEqual(expect.arrayContaining([
+      `/${source}/404.html`,
+      `/${source}/history-push.html`,
+      `/${source}/hello`,
+      `/${source}/history-push-more.html`,
+    ]));
   });
 });
 

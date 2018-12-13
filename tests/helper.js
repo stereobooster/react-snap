@@ -25,6 +25,7 @@ const mockFs = () => {
   const filesCreated = () => writeFileSyncMock.mock.calls.length;
   const name = index => writeFileSyncMock.mock.calls[index][0];
   const content = index => writeFileSyncMock.mock.calls[index][1];
+  const names = () => writeFileSyncMock.mock.calls.map(x => x[0]);
   return {
     // mocks
     createReadStreamMock,
@@ -34,7 +35,8 @@ const mockFs = () => {
     // helpers
     filesCreated,
     content,
-    name
+    name,
+    names
   };
 };
 
