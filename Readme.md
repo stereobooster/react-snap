@@ -256,6 +256,7 @@ heroku buildpacks:add https://github.com/jontewks/puppeteer-heroku-buildpack.git
 heroku buildpacks:add heroku/nodejs
 heroku buildpacks:add https://github.com/heroku/heroku-buildpack-static.git
 ```
+The order of these buildpacks is very important. Heroku allows you to reorder them in the admin UI.
 
 See this [PR](https://github.com/stereobooster/an-almost-static-stack/pull/7/files). At the moment of writing, Heroku doesn't support HTTP/2.
 
