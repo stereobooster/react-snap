@@ -1,10 +1,10 @@
 # Anatomy of JavaScript static website generator
 
-First of all, let's assume we have JavaScript application itself which is able to run on the client. Now we want to prerender our application to make first paint faster, to make it crawlable by search engine bots and by social network bots.
+First of all, let's assume we have JavaScript application itself which is able to run on the client. Now we want to prerender our application to make the first paint faster, to make it crawlable by search engine bots and by social network bots.
 
 ## DOM
 
-To prerender JavaScript application we need either virtual DOM like in React or Node.js DOM implementation like JSDOM or a headless browser like a puppeteer.
+To prerender JavaScript a application we need either a virtual DOM like in React or a Node.js DOM implementation like JSDOM or a headless browser like a puppeteer.
 
 ### Virtual DOM with something like `renderToString`
 
@@ -15,11 +15,11 @@ To prerender JavaScript application we need either virtual DOM like in React or 
 **Cons**:
 
 - Works only with the chosen library, for example React in case of `react-static`
-- Works only with components with SSR support, some component doesn't have it
+- Works only with components with SSR support, some components don't have it
 
 **Pros**:
 
-- It is possible to use cache, for example [`react-component-caching`](https://github.com/rookLab/react-component-caching)
+- It is possible to use caching, for example [`react-component-caching`](https://github.com/rookLab/react-component-caching)
 
 ### Node.js DOM library
 
@@ -81,8 +81,8 @@ Because we have a client-side application, most likely we deal with client-side 
 
 **Cons**:
 
-- In cases, if some routes cannot be discovered by crawler we need to add those manually
-- It can happen that we do not want to render all the routes then we need to ignore those routes
+- In some cases, if some routes cannot be discovered by a crawler we need to add those manually
+- We may not want to render all the routes then we need to ignore those routes
 
 ## Data layer
 
@@ -97,7 +97,7 @@ If prerenderer is data layer agnostic or not?
 
 **Pros**:
 
-- we can use anything we got used to
+- we can use anything we are used to
 
 ### Not data layer agnostic
 
@@ -107,7 +107,7 @@ If prerenderer is data layer agnostic or not?
 
 **Cons**:
 
-- We need to use framework specific data layer, for example in case of Gatsby it is Graphql
+- We need to use a framework specific data layer, for example, in the case of Gatsby it is Graphql
 
 ## Data generator
 
@@ -126,7 +126,7 @@ If prerenderer is data layer agnostic or not?
 
 ## Data rehydration
 
-Now when we have our application prerendered next question is how to properly rehydrate it. The main trick here is to recreate exactly the same state of the application as it was at the moment of HTML rendering, so rehydration would reuse as much as possible existing markup (ideally all of it). To do this we need to pass serialized state of the application.
+Now, once we have our application prerendered, the next question is how to properly rehydrate it. The main trick here is to recreate exactly the same state of the application as it was at the moment of HTML rendering, so rehydration would reuse existing markup as much as possible (ideally all of it). To do this we need to pass serialized state of the application.
 
 ### Redux
 
@@ -149,7 +149,7 @@ Now when we have our application prerendered next question is how to properly re
 
 ## Webpack
 
-Some of prerenderers are Webpack agnostic, some implemented as Webpack plugin other have it built-in.
+Some of prerenderers are Webpack agnostic, some are implemented as Webpack plugin, others have it built-in.
 
 ### Webpack agnostic
 
@@ -178,7 +178,7 @@ Some of prerenderers are Webpack agnostic, some implemented as Webpack plugin ot
 
 **Cons**:
 
-- would require rewrite of existing code unless you initially started with it
+- would require rewriting existing code unless you initially started with it
 
 ## Data source
 
