@@ -13,7 +13,7 @@
     "clean-css": "4.2.1",
     "express": "4.16.4",
     "express-history-api-fallback": "2.2.1",
-    "highland": "2.13.0",
+    "highland": "2.13.1",
     "html-minifier": "3.5.21",
     "minimalcss": "0.8.1",
     "mkdirp": "0.5.1",
