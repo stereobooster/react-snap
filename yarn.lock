@@ -1102,9 +1102,9 @@ fileset@^2.0.3:
     glob "^7.0.3"
     minimatch "^3.0.3"
 
-filesize@^3.5.11:
-  version "3.6.1"
-  resolved "https://registry.yarnpkg.com/filesize/-/filesize-3.6.1.tgz#090bb3ee01b6f801a8a8be99d31710b3422bb317"
+filesize@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/filesize/-/filesize-4.0.0.tgz#edd45b16247c815ac3bc7265c34cf3dab6b41234"
 
 fill-range@^2.1.0:
   version "2.2.4"
@@ -2314,14 +2314,14 @@ mimic-fn@^1.0.0:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/mimic-fn/-/mimic-fn-1.2.0.tgz#820c86a39334640e99516928bd03fca88057d022"
 
-minimalcss@0.8.1:
-  version "0.8.1"
-  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.8.1.tgz#7bc74d7e474f83e316e3bdf24554ad863ab277ad"
+minimalcss@0.8.2:
+  version "0.8.2"
+  resolved "https://registry.yarnpkg.com/minimalcss/-/minimalcss-0.8.2.tgz#2e86fac0b7d42ce36e0b16d109e8eb869b5a22b6"
   dependencies:
     cheerio "1.0.0-rc.2"
     css-tree "1.0.0-alpha.28"
     csso "~3.5.0"
-    filesize "^3.5.11"
+    filesize "^4.0.0"
     minimist "^1.2.0"
     puppeteer "^1.8.0"
 
