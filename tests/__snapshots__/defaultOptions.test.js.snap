@@ -7,6 +7,7 @@ Object {
   "concurrency": 4,
   "crawl": true,
   "destination": null,
+  "exclude": Array [],
   "externalServer": false,
   "fixInsertRule": true,
   "fixWebpackChunksIssue": "CRA1",
