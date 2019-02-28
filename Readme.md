@@ -192,18 +192,16 @@ This library could _keep_ the pre-rendered HTML until codesplitted part is not l
 ```js
 import {PrerenderedComponent} from 'react-prerendered-component';
 
-// using react-loadable
-const AsyncLoadedComponent = loadable(() => import('./deferredComponent'));
-// using react-imported-component
-const AsyncLoadedComponent = imported(() => import('./deferredComponent'));
+const AsyncLoadedComponent = someLibrary(() => import('./deferredComponent'));
 
 <PrerenderedComponent
-  live={AsyncLoadedComponent.preload()}
+  live={AsyncLoadedComponent.preload()} // for react-loadable or react-imported-component
+  live={AsyncLoadedComponent.requireAsync()} // for @loadable/components (not official way)
 >
   <AsyncLoadedComponent />
 </PrerenderedComponent>
 ```
-Until `import promise` would not resolved - it would display content, react-snap pre-rendered for you.
+Until `import promise` would not resolved - it would display content, react-snap have pre-rendered for you.
 
 The same apporoach would work with `React.lazy`, but it does not support `prefetch`, so you will have to do it yourself (fragile!).
 ```js
@@ -221,7 +219,6 @@ const AsyncLoadedComponent = React.lazy(() => import('./deferredComponent'));
 >
   <AsyncLoadedComponent />
 </PrerenderedComponent>
-
 ```
 
 ### Redux
