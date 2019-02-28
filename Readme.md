@@ -145,10 +145,10 @@ Also known as [code splitting](https://webpack.js.org/guides/code-splitting/), [
 
 An async component (in React) is a technique (typically implemented as a higher-order component) for loading components on demand with the dynamic `import` operator. There are a lot of solutions in this field. Here are some examples:
 
+- [`react.lazy`](https://reactjs.org/docs/code-splitting.html#reactlazy)
 - [`loadable-components`](https://github.com/smooth-code/loadable-components)
 - [`react-loadable`](https://github.com/thejameskyle/react-loadable)
 - [`react-async-component`](https://github.com/ctrlplusb/react-async-component)
-- [`react-code-splitting`](https://github.com/didierfranc/react-code-splitting)
 
 It is not a problem to render async components with `react-snap`, the tricky part happens when a prerendered React application boots and async components are not loaded yet, so React draws the "loading" state of a component, and later when the component is loaded, React draws the actual component. As a result, the user sees a flash:
 
@@ -163,7 +163,10 @@ It is not a problem to render async components with `react-snap`, the tricky par
 0%  -------------/
 ```
 
-`react-loadable` and `loadable-components` solve this issue for SSR. But only `loadable-components` can solve this issue for a "snapshot" setup:
+Usually _code splitting_ library provides an API to handle it during SSR, but as long as "real" SSR is not used in react-snap - the issue surfaces, and there is no simple way to fix it.
+
+1. use `loadable-components` 2.2.3 (current is >5)
+The old version of `loadable-components` can solve this issue for a "snapshot" setup:
 
 ```js
 import { loadComponents, getState } from "loadable-components";
@@ -182,7 +185,44 @@ const NotFoundPage = loadable(() => import("src/pages/NotFoundPage"), {
 });
 ```
 
-`loadable-components` were deprecated in favour of `@loadable/component`, but `@loadable/component` dropped `getState`. So if you want to use `loadable-components` you can use old version (`2.2.3` latest version at the moment of writing) or you can wait until `React` will implement proper handling of this case with asynchronous rendering and `React.lazy`.
+> `loadable-components` were deprecated in favour of `@loadable/component`, but `@loadable/component` dropped `getState`. So if you want to use `loadable-components` you can use old version (`2.2.3` latest version at the moment of writing) or you can wait until `React` will implement proper handling of this case with asynchronous rendering and `React.lazy`.
+
+2. Use [react-prerendered-component](https://github.com/theKashey/react-prerendered-component)
+This library could _keep_ the pre-rendered HTML until codesplitted part is not loaded and ready.
+```js
+import {PrerenderedComponent} from 'react-prerendered-component';
+
+// using react-loadable
+const AsyncLoadedComponent = loadable(() => import('./deferredComponent'));
+// using react-imported-component
+const AsyncLoadedComponent = imported(() => import('./deferredComponent'));
+
+<PrerenderedComponent
+  live={AsyncLoadedComponent.preload()}
+>
+  <AsyncLoadedComponent />
+</PrerenderedComponent>
+```
+Until `import promise` would not resolved - it would display content, react-snap pre-rendered for you.
+
+The same apporoach would work with `React.lazy`, but it does not support `prefetch`, so you will have to do it yourself (fragile!).
+```js
+const PrefetchLazy = lazy => {
+  let value = PrefetchMap.get(lazy) || lazy._ctor();
+  PrefetchMap.set(lazy, value);
+  return value;
+);
+
+// using React.lazy
+const AsyncLoadedComponent = React.lazy(() => import('./deferredComponent'));
+
+<PrerenderedComponent
+  live={PrefetchLazy(AsyncLoadedComponent)} 
+>
+  <AsyncLoadedComponent />
+</PrerenderedComponent>
+
+```
 
 ### Redux
 
