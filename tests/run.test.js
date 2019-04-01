@@ -157,13 +157,14 @@ describe("many pages", () => {
   } = mockFs();
   beforeAll(() => snapRun(fs, { source }));
   test("crawls all links and saves as index.html in separate folders", () => {
-    expect(filesCreated()).toEqual(6);
+    expect(filesCreated()).toEqual(7);
     expect(names()).toEqual(
       expect.arrayContaining([
         `/${source}/1/index.html`, // without slash in the end
         `/${source}/2/index.html`, // with slash in the end
         `/${source}/3/index.html`, // ignores hash
-        `/${source}/4/index.html` // ignores query
+        `/${source}/4/index.html`, // ignores query
+        `/${source}/5/index.html`, // link rel="alternate"
       ])
     );
   });
