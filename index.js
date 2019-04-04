@@ -271,7 +271,7 @@ const inlineCss = async opt => {
     urls: [pageUrl],
     skippable: request =>
       options.skipThirdPartyRequests && !request.url().startsWith(basePath),
-    browser: browser,
+    // browser: browser,
     userAgent: options.userAgent
   });
   const criticalCss = minimalcssResult.finalCss;
