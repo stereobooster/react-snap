@@ -12,7 +12,7 @@ const {
 const publicUrl = process.env.PUBLIC_URL || homepage;
 
 const reactScriptsVersion = parseInt(
-  (devDependencies && devDependencies["react-scripts"]) 
+  (devDependencies && devDependencies["react-scripts"])
   || (dependencies && dependencies["react-scripts"])
 );
 let fixWebpackChunksIssue;
@@ -23,6 +23,19 @@ switch (reactScriptsVersion) {
   case 2:
     fixWebpackChunksIssue = "CRA2";
     break;
+}
+
+const parcel = Boolean(
+  (devDependencies && devDependencies["parcel-bundler"])
+  || (dependencies && dependencies["parcel-bundler"])
+);
+
+if (parcel) {
+  if (fixWebpackChunksIssue) {
+    console.log("Detected both Parcel and CRA. Fixing chunk names for CRA!")
+  } else {
+    fixWebpackChunksIssue = "Parcel";
+  }
 }
 
 run({

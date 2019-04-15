@@ -110,7 +110,7 @@ const defaults = userOptions => {
   }
   if (options.fixWebpackChunksIssue === true) {
     console.log(
-      "🔥  fixWebpackChunksIssue - behaviour changed, valid options are CRA1, CRA2, false"
+      "🔥  fixWebpackChunksIssue - behaviour changed, valid options are CRA1, CRA2, Parcel, false"
     );
     options.fixWebpackChunksIssue = "CRA1";
   }
@@ -506,6 +506,58 @@ const fixWebpackChunksIssue2 = ({
   );
 };
 
+const fixParcelChunksIssue = ({
+  page,
+  basePath,
+  http2PushManifest,
+  inlineCss
+}) => {
+  return page.evaluate(
+    (basePath, http2PushManifest, inlineCss) => {
+      const localScripts = Array.from(document.scripts)
+        .filter(x => x.src && x.src.startsWith(basePath))
+
+      const mainRegexp = /main\.[\w]{8}\.js/;
+      const mainScript = localScripts.find(x => mainRegexp.test(x.src));
+      const firstStyle = document.querySelector("style");
+
+      if (!mainScript) return;
+
+      const chunkRegexp = /(\w+)\.[\w]{8}\.js/g;
+      const chunkScripts = localScripts.filter(x => {
+        const matched = chunkRegexp.exec(x.src);
+        // we need to reset state of RegExp https://stackoverflow.com/a/11477448
+        chunkRegexp.lastIndex = 0;
+        return matched && matched[1] !== "main";
+      });
+
+      const createLink = x => {
+        if (http2PushManifest) return;
+        const linkTag = document.createElement("link");
+        linkTag.setAttribute("rel", "preload");
+        linkTag.setAttribute("as", "script");
+        linkTag.setAttribute("href", x.src.replace(`${basePath}/`, ""));
+        if (inlineCss) {
+          firstStyle.parentNode.insertBefore(linkTag, firstStyle);
+        } else {
+          document.head.appendChild(linkTag);
+        }
+      };
+
+      for (let i = 0; i <= chunkScripts.length - 1; i++) {
+        const x = chunkScripts[i];
+        if (x.parentElement && mainScript.parentNode) {
+          x.parentElement.removeChild(x);
+          createLink(x);
+        }
+      }
+    },
+    basePath,
+    http2PushManifest,
+    inlineCss
+  );
+};
+
 const fixInsertRule = ({ page }) => {
   return page.evaluate(() => {
     Array.from(document.querySelectorAll("style")).forEach(style => {
@@ -705,7 +757,15 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
           }
         }
       }
-      if (options.fixWebpackChunksIssue === "CRA2") {
+
+      if (options.fixWebpackChunksIssue === "Parcel") {
+        await fixParcelChunksIssue({
+          page,
+          basePath,
+          http2PushManifest,
+          inlineCss: options.inlineCss
+        });
+      } else if (options.fixWebpackChunksIssue === "CRA2") {
         await fixWebpackChunksIssue2({
           page,
           basePath,
