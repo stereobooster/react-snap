@@ -196,7 +196,7 @@ const AsyncLoadedComponent = someLibrary(() => import('./deferredComponent'));
 
 <PrerenderedComponent
   live={AsyncLoadedComponent.preload()} // for react-loadable or react-imported-component
-  live={AsyncLoadedComponent.requireAsync()} // for @loadable/components (not official way)
+  live={AsyncLoadedComponent.load()} // for @loadable/components (not official way)
 >
   <AsyncLoadedComponent />
 </PrerenderedComponent>
