@@ -173,9 +173,17 @@ const crawl = async opt => {
    * @returns {void}
    */
   const addToQueue = newUrl => {
-    const { hostname, search, hash } = url.parse(newUrl);
+    const { hostname, search, hash, port } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
-    if (hostname === "localhost" && !uniqueUrls.has(newUrl) && !streamClosed) {
+
+    // Ensures that only link on the same port are crawled
+    //
+    // url.parse returns a string,
+    // but options port is passed by a user and default value is a number
+    // we are converting both to string to be sure
+    const isOnAppPort = port.toString() === options.port.toString();
+
+    if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
       uniqueUrls.add(newUrl);
       enqued++;
       queue.write(newUrl);
