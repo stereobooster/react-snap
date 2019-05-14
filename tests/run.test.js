@@ -515,15 +515,12 @@ describe("don't crawl localhost links on different port", () => {
   const { fs, filesCreated, names } = mockFs();
 
   beforeAll(() => snapRun(fs, { source, include }));
-  test("three files are crawled", () => {
-    console.log(names());
-    expect(filesCreated()).toEqual(3);
+  test("only one file is crawled", () => {
+    expect(filesCreated()).toEqual(1);
     expect(names()).toEqual(
       expect.arrayContaining([
-        `/${source}/localhost-links-different-port.html`,
-        `/${source}/404.html`,
-        `/${source}/index.html`
-      ])
+        `/${source}/localhost-links-different-port.html`
+      ]);
     );
   });
   
