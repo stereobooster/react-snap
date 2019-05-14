@@ -520,7 +520,7 @@ describe("don't crawl localhost links on different port", () => {
     expect(names()).toEqual(
       expect.arrayContaining([
         `/${source}/localhost-links-different-port.html`
-      ]);
+      ])
     );
   });
   
