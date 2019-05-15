@@ -508,6 +508,25 @@ describe("cacheAjaxRequests", () => {
   });
 });
 
+describe("don't crawl localhost links on different port", () => {
+  const source = "tests/examples/other";
+  const include = ["/localhost-links-different-port.html"];
+  
+  const { fs, filesCreated, names } = mockFs();
+
+  beforeAll(() => snapRun(fs, { source, include }));
+  test("only one file is crawled", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(names()).toEqual(
+      expect.arrayContaining([
+        `/${source}/localhost-links-different-port.html`
+      ])
+    );
+  });
+  
+});
+
+
 describe("svgLinks", () => {
   const source = "tests/examples/other";
   const include = ["/svg.html"];
