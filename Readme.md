@@ -173,10 +173,9 @@ import { PrerenderedComponent } from "react-prerendered-component";
 
 const prerenderedLoadable = dynamicImport => {
   const LoadableComponent = loadable(dynamicImport);
-  // you can use the `.preload()` method from react-loadable or react-imported-component`
-  const live = () => LoadableComponent.load();
   return React.memo(props => (
-    <PrerenderedComponent live={live}>
+    // you can use the `.preload()` method from react-loadable or react-imported-component`
+    <PrerenderedComponent live={LoadableComponent.load()}>
       <LoadableComponent {...props} />
     </PrerenderedComponent>
   ));
@@ -200,9 +199,8 @@ const prefetchLazy = LazyComponent => {
 
 const prerenderedLazy = dynamicImport => {
   const LazyComponent = React.lazy(dynamicImport);
-  const live = () => prefetchLazy(AsyncLoadedComponent)
   return React.memo(props => (
-    <PrerenderedComponent live={live}>
+    <PrerenderedComponent live={prefetchLazy(AsyncLoadedComponent)}>
       <LazyComponent {...props} />
     </PrerenderedComponent>
   ));
