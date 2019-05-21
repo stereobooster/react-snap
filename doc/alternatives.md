@@ -57,6 +57,7 @@
 
 ## Other
 
+- [React on Rails](https://github.com/shakacode/react_on_rails), SSR of React on top of Ruby on Rails
 - [usus](https://github.com/gajus/usus), chrome-remote-interface, chrome-launcher
 - [hypernova](https://github.com/airbnb/hypernova)
 - [static-site-generator-webpack-plugin](https://github.com/markdalgleish/static-site-generator-webpack-plugin), webpack
