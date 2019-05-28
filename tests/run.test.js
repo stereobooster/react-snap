@@ -508,6 +508,26 @@ describe("cacheAjaxRequests", () => {
   });
 });
 
+describe("onFetchJson", () => {
+  const source = "tests/examples/other";
+  const include = ["/ajax-request.html"];
+  const { fs, filesCreated, content } = mockFs();
+
+  beforeAll(() => snapRun(fs, { 
+    source, 
+    include, 
+    onJsonFetch: './tests/examples/callbacks/on-json-fetch.js'
+  }));
+
+  jest.spyOn(global.console, 'log');
+
+  test("on json fetch callback is called", () => {
+    expect(filesCreated()).toEqual(1);
+    // make sure console.log in on-json-fetch.js is called
+    expect(console.log).toBeCalledWith('onJsonFetch callback', '/js/test.json', { 'test': 1 });
+  });
+});
+
 describe("don't crawl localhost links on different port", () => {
   const source = "tests/examples/other";
   const include = ["/localhost-links-different-port.html"];
