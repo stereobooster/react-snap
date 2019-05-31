@@ -181,7 +181,8 @@ const crawl = async opt => {
     // url.parse returns a string,
     // but options port is passed by a user and default value is a number
     // we are converting both to string to be sure
-    const isOnAppPort = port.toString() === options.port.toString();
+    // Port can be null, therefore we need the null check
+    const isOnAppPort = port && port.toString() === options.port.toString();
 
     if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
       uniqueUrls.add(newUrl);
