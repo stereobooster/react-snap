@@ -200,7 +200,7 @@ const prefetchLazy = LazyComponent => {
 const prerenderedLazy = dynamicImport => {
   const LazyComponent = React.lazy(dynamicImport);
   return React.memo(props => (
-    <PrerenderedComponent live={prefetchLazy(AsyncLoadedComponent)}>
+    <PrerenderedComponent live={prefetchLazy(LazyComponent)}>
       <LazyComponent {...props} />
     </PrerenderedComponent>
   ));
