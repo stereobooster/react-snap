@@ -127,9 +127,9 @@ const defaults = userOptions => {
     options.minifyHtml.minifyCSS = options.minifyCss;
   }
 
-  if (!options.publicPath.startsWith("/")) {
-    options.publicPath = `/${options.publicPath}`;
-  }
+  options.useRelativeLinks = 'useRelativeLinks' in options ? Boolean(options.useRelativeLinks) : /^\./.test(options.publicPath);
+
+  options.publicPath = new url.URL(options.publicPath || '/', 'http://localhost').pathname;
   options.publicPath = options.publicPath.replace(/\/$/, "");
 
   options.include = options.include.map(
@@ -599,6 +599,18 @@ const fixFormFields = ({ page }) => {
 };
 
 const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
+  if (options.useRelativeLinks) {
+    await page.evaluate(replacer => ['href', 'src'].forEach(
+      name => Array.from(
+        document.querySelectorAll(`[${name}^="/"],[${name}^="./"],[${name}^="../"]`)
+      ).forEach(
+        element => element.setAttribute(
+          name,
+          element.getAttribute(name).replace(/^(\.*)\//, ($0, $1) => $1 ? replacer + $1 : replacer)
+        )
+      )
+    ), path.relative(route, options.publicPath || '/') || './');
+  }
   let content = await page.content();
   content = content.replace(/react-snap-onload/g, "onload");
   const title = await page.title();
