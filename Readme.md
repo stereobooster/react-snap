@@ -195,7 +195,7 @@ const prefetchLazy = LazyComponent => {
     prefetchMap.set(LazyComponent, LazyComponent._ctor());
   }
   return prefetchMap.get(LazyComponent);
-);
+};
 
 const prerenderedLazy = dynamicImport => {
   const LazyComponent = React.lazy(dynamicImport);
