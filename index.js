@@ -51,6 +51,7 @@ const defaultOptions = {
   removeBlobs: true,
   fixInsertRule: true,
   skipThirdPartyRequests: false,
+  includedThirdPartyRequests: [],
   cacheAjaxRequests: false,
   http2PushManifest: false,
   // may use some glob solution in the future, if required

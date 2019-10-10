@@ -12,20 +12,37 @@ const errorToString = jsHandle =>
 const objectToJson = jsHandle => jsHandle.jsonValue();
 
 /**
- * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
+ * @param {request: {url: function, abort: function, continue: function}, basePath: string, includedThirdPartyRequests: []}
+ * @return {undefined}
+ */
+const thirdPartyRequestHandler = (
+  request,
+  basePath,
+  includedThirdPartyRequests
+) => {
+  const url = request.url();
+  if (
+    url.startsWith(basePath) ||
+    includedThirdPartyRequests.some(d => url.startsWith(d))
+  ) {
+    request.continue();
+  } else {
+    request.abort();
+  }
+};
+
+/**
+ * @param {{page: Page, options: {skipThirdPartyRequests: true, includedThirdPartyRequests: []}, basePath: string }} opt
  * @return {Promise<void>}
  */
 const skipThirdPartyRequests = async opt => {
   const { page, options, basePath } = opt;
-  if (!options.skipThirdPartyRequests) return;
+  const { skipThirdPartyRequests, includedThirdPartyRequests } = options;
+  if (!skipThirdPartyRequests) return;
   await page.setRequestInterception(true);
-  page.on("request", request => {
-    if (request.url().startsWith(basePath)) {
-      request.continue();
-    } else {
-      request.abort();
-    }
-  });
+  page.on("request", request =>
+    thirdPartyRequestHandler(request, basePath, includedThirdPartyRequests)
+  );
 };
 
 /**
@@ -291,6 +308,7 @@ const crawl = async opt => {
 };
 
 exports.skipThirdPartyRequests = skipThirdPartyRequests;
+exports.thirdPartyRequestHandler = thirdPartyRequestHandler;
 exports.enableLogging = enableLogging;
 exports.getLinks = getLinks;
 exports.crawl = crawl;

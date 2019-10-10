@@ -18,6 +18,7 @@ Object {
   "include": Array [
     "/",
   ],
+  "includedThirdPartyRequests": Array [],
   "inlineCss": false,
   "minifyCss": Object {},
   "minifyHtml": Object {
