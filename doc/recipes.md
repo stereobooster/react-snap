@@ -82,6 +82,7 @@ module.exports = {
     "build/index.html"
   ],
   stripPrefix: "build",
+  // relative paths like this will rewrite href and src links as relative links
   publicPath: ".",
   // there is "reactSnap.include": ["/shell.html"] in package.json
   navigateFallback: "/shell.html",
