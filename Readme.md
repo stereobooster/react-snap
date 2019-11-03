@@ -46,14 +46,16 @@ That's it!
 
 ## Basic usage with Preact
 
-To do [hydration in Preact you need to use this trick](https://github.com/developit/preact/issues/1060#issuecomment-389987994):
+Usage with Preact is virtually the same, since Preact v10 also has a hydrate method.
 
 ```js
-const rootElement = document.getElementById("root");
+import { h, render, hydrate } from 'preact';
+
+const rootElement = document.getElementById('root');
 if (rootElement.hasChildNodes()) {
-  preact.render(<App />, rootElement, rootElement.firstElementChild);
+  hydrate(h(App), rootElement);
 } else {
-  preact.render(<App />, rootElement);
+  render(h(App), rootElement);
 }
 ```
 
