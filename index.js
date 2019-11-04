@@ -283,7 +283,7 @@ const inlineCss = async opt => {
     );
     const cssArray = await Promise.all(
       stylesheets.map(async link => {
-        const response = await fetch(link.href);
+        const response = await fetch(link.href,{mode:"no-cors"});
         return response.text();
       })
     );
