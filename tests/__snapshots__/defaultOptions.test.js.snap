@@ -28,6 +28,7 @@ Object {
     "sortAttributes": true,
     "sortClassName": false,
   },
+  "onJsonFetch": null,
   "port": 45678,
   "preconnectThirdParty": true,
   "preloadImages": false,
