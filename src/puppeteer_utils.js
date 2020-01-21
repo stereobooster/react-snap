@@ -23,13 +23,13 @@ const skipThirdPartyRequests = async opt => {
     if (request.url().startsWith(basePath)) {
       request.continue();
     } else {
-      request.abort();
+      request.abort('blockedbyclient');
     }
   });
 };
 
 /**
- * @param {{page: Page, options: {sourceMaps: boolean}, route: string, onError: ?function }} opt
+ * @param {{page: Page, options: {sourceMaps: boolean}, route: string, onError: ?function, basePath: string }} opt
  * @return {void}
  */
 const enableLogging = opt => {
@@ -44,6 +44,9 @@ const enableLogging = opt => {
       Promise.all(msg.args().map(errorToString)).then(args =>
         console.log(`💬  console.log at ${route}:`, ...args)
       );
+    } else if (text.includes('ERR_BLOCKED_BY_CLIENT') && options.skipThirdPartyRequests === true &&
+      msg.location() && !msg.location().url.startsWith(basePath)) {
+      // pass -- do not log errors from requests blocked by skipThirdPartyRequests
     } else {
       console.log(`️️️💬  console.log at ${route}:`, text);
     }
@@ -232,7 +235,8 @@ const crawl = async opt => {
           onError: () => {
             shuttingDown = true;
           },
-          sourcemapStore
+          sourcemapStore,
+          basePath
         });
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);
