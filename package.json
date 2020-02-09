@@ -10,7 +10,7 @@
     "node": ">= 8.6.0"
   },
   "dependencies": {
-    "clean-css": "4.2.1",
+    "clean-css": "4.2.3",
     "express": "4.17.1",
     "express-history-api-fallback": "2.2.1",
     "highland": "2.13.4",
