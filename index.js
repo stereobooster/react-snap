@@ -66,6 +66,9 @@ const defaultOptions = {
   crawl: true,
   waitFor: false,
   externalServer: false,
+  // if true: save as ${route}/index.html else just ${route}
+  saveAsIndexHtml: true,
+  
   //# even more workarounds
   removeStyleTags: false,
   preloadImages: false,
@@ -606,7 +609,7 @@ const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
     ? minify(content, options.minifyHtml)
     : content;
   filePath = filePath.replace(/\//g, path.sep);
-  if (route.endsWith(".html")) {
+  if (route.endsWith(".html") || (!options.saveAsIndexHtml && route !== "/")) {
     if (route.endsWith("/404.html") && !title.includes("404"))
       console.log('⚠️  warning: 404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
