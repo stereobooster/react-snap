@@ -108,14 +108,16 @@ const enableLogging = opt => {
 const getLinks = async opt => {
   const { page } = opt;
   const anchors = await page.evaluate(() =>
-    Array.from(document.querySelectorAll("a,link[rel='alternate']")).map(anchor => {
-      if (anchor.href.baseVal) {
-        const a = document.createElement("a");
-        a.href = anchor.href.baseVal;
-        return a.href;
+    Array.from(document.querySelectorAll("a,link[rel='alternate']")).map(
+      anchor => {
+        if (anchor.href.baseVal) {
+          const a = document.createElement("a");
+          a.href = anchor.href.baseVal;
+          return a.href;
+        }
+        return anchor.href;
       }
-      return anchor.href;
-    })
+    )
   );
 
   const iframes = await page.evaluate(() =>
@@ -184,7 +186,12 @@ const crawl = async opt => {
     // Port can be null, therefore we need the null check
     const isOnAppPort = port && port.toString() === options.port.toString();
 
-    if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
+    if (
+      hostname === "localhost" &&
+      isOnAppPort &&
+      !uniqueUrls.has(newUrl) &&
+      !streamClosed
+    ) {
       uniqueUrls.add(newUrl);
       enqued++;
       queue.write(newUrl);
@@ -235,7 +242,9 @@ const crawl = async opt => {
           sourcemapStore
         });
         beforeFetch && beforeFetch({ page, route });
-        await page.setUserAgent(options.userAgent);
+        if (options.userAgent) {
+          await page.setUserAgent(options.userAgent);
+        }
         const tracker = createTracker(page);
         try {
           await page.goto(pageUrl, { waitUntil: "networkidle0" });
