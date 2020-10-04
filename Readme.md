@@ -137,6 +137,14 @@ Use `inlineCss: true` to enable this feature.
 
 TODO: as soon as this feature is stable, it should be enabled by default.
 
+### preloadFonts
+
+Use `preloadFonts: true` to enable this feature.
+
+Will add preload `<link rel="preload">` tags to the document head for fonts as describe in [the preload critical assets guide of web.dev](https://web.dev/preload-critical-assets/).
+
+Note when using Google Fonts the react-snap `User-Agent` header will cause only `ttf` fonts to be preloaded. This can be avoided by setting `"userAgent": null` in your configuration. Alternatively you could self-host the `@font-face` declaration so that it will specify modern and fallback fonts regardless of the `User-Agent`.
+
 ## ⚠️ Caveats
 
 ### Async components

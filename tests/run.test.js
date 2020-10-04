@@ -400,11 +400,13 @@ describe("preloadFonts", () => {
   const source = "tests/examples/other";
   const include = ["/with-font.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, preloadFonts: true }));
+  beforeAll(() =>
+    snapRun(fs, { source, include, preloadFonts: true, userAgent: null })
+  );
   test("adds <link rel=preconnect>", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch(
-      /<link href="https:\/\/fonts.gstatic.com\/s\/opensans.*" rel="preload" as="font" crossorigin="anonymous" type="font\/ttf">/
+      /<link href="https:\/\/fonts.gstatic.com\/s\/opensans.*" rel="preload" as="font" crossorigin="anonymous" type="font\/woff2">/
     );
   });
 });
