@@ -30,7 +30,7 @@
   "scripts": {
     "toc": "yarn run markdown-toc -i doc/recipes.md",
     "test": "jest",
-    "precommit": "prettier --write {*,src/*}.{js,json,css}"
+    "precommit": "prettier --write {*,src/*}.{js,json,css,md}"
   },
   "bin": {
     "react-snap": "./run.js"
