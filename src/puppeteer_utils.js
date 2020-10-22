@@ -234,7 +234,7 @@ const crawl = async opt => {
         await page.setUserAgent(options.userAgent);
         const tracker = createTracker(page);
         try {
-          await page.goto(pageUrl, { timeout: options.puppeteer.timeout, waitUntil: "domcontentloaded" });
+          await page.goto(pageUrl, { timeout: options.puppeteer.timeout, waitUntil: "networkidle0" });
         } catch (e) {
           e.message = augmentTimeoutError(e.message, tracker);
           throw e;
