@@ -194,13 +194,9 @@ const crawl = async opt => {
     }
   };
 
-  const browser = await puppeteer.launch({
-    args: options.puppeteerArgs,
-    headless: options.puppeteer.headless,
-    executablePath: options.puppeteer.executablePath,
-    ignoreHTTPSErrors: options.puppeteer.ignoreHTTPSErrors,
-    handleSIGINT: options.puppeteer.handleSIGINT
-  });
+  console.log('Puppeteer is starting with following options: ', options.puppeteer);
+
+  const browser = await puppeteer.launch(options.puppeteer);
 
   /**
    * @param {string} pageUrl

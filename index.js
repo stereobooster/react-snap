@@ -22,8 +22,8 @@ const defaultOptions = {
   userAgent: "ReactSnap",
   // 4 params below will be refactored to one: `puppeteer: {}`
   // https://github.com/stereobooster/react-snap/issues/120
-  puppeteerArgs: [],
   puppeteer: {
+    args: [],
     cache: true,
     headless: true,
     executablePath: undefined,
@@ -83,10 +83,13 @@ const defaultOptions = {
  * @param {{source: ?string, destination: ?string, include: ?Array<string>, sourceMaps: ?boolean, skipThirdPartyRequests: ?boolean }} userOptions
  * @return {*}
  */
-const defaults = userOptions => {
+const defaults = (userOptions = {}) => {
+  const puppeteer = { ...defaultOptions.puppeteer, ...userOptions.puppeteer };
+
   const options = {
     ...defaultOptions,
-    ...userOptions
+    ...userOptions,
+    puppeteer
   };
   options.destination = options.destination || options.source;
 

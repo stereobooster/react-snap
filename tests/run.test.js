@@ -10,7 +10,7 @@ const snapRun = (fs, options) =>
   run(
     {
       // for Travis CI
-      puppeteerArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
+      puppeteer: { args: ["--no-sandbox", "--disable-setuid-sandbox"] },
       // sometimes web server from previous test have not enough time to shut down
       // as a result you get `Error: listen EADDRINUSE :::45678`
       // to prevent this we use random port

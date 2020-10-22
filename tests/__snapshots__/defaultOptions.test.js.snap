@@ -32,9 +32,9 @@ Object {
   "preloadImages": false,
   "publicPath": "/",
   "puppeteer": Object {
+    "args": Array [],
     "cache": true,
     "headless": true,
-    "puppeteerArgs": Array [],
     "executablePath": undefined,
     "ignoreHTTPSErrors": false,
     "handleSIGINT": false
