@@ -10,7 +10,6 @@ Object {
   "externalServer": false,
   "fixInsertRule": true,
   "fixWebpackChunksIssue": "CRA1",
-  "headless": true,
   "http2PushManifest": false,
   "ignoreForPreload": Array [
     "service-worker.js",
@@ -34,10 +33,12 @@ Object {
   "publicPath": "/",
   "puppeteer": Object {
     "cache": true,
+    "headless": true,
+    "puppeteerArgs": Array [],
+    "executablePath": undefined,
+    "ignoreHTTPSErrors": false,
+    "handleSIGINT": false
   },
-  "puppeteerArgs": Array [],
-  "puppeteerExecutablePath": undefined,
-  "puppeteerIgnoreHTTPSErrors": false,
   "removeBlobs": true,
   "removeScriptTags": false,
   "removeStyleTags": false,

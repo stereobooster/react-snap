@@ -22,13 +22,14 @@ const defaultOptions = {
   userAgent: "ReactSnap",
   // 4 params below will be refactored to one: `puppeteer: {}`
   // https://github.com/stereobooster/react-snap/issues/120
-  headless: true,
-  puppeteer: {
-    cache: true
-  },
   puppeteerArgs: [],
-  puppeteerExecutablePath: undefined,
-  puppeteerIgnoreHTTPSErrors: false,
+  puppeteer: {
+    cache: true,
+    headless: true,
+    executablePath: undefined,
+    ignoreHTTPSErrors: false,
+    handleSIGINT: false
+  },
   publicPath: "/",
   minifyCss: {},
   minifyHtml: {
