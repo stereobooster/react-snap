@@ -201,11 +201,6 @@ const crawl = async opt => {
     }
   };
 
-  console.log(
-    "Puppeteer is starting with following options: ",
-    options.puppeteer
-  );
-
   const browser = await puppeteer.launch(options.puppeteer);
 
   /**
