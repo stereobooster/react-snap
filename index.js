@@ -20,15 +20,14 @@ const defaultOptions = {
   concurrency: 4,
   include: ["/"],
   userAgent: "ReactSnap",
-  // 4 params below will be refactored to one: `puppeteer: {}`
-  // https://github.com/stereobooster/react-snap/issues/120
   puppeteer: {
     args: [],
     cache: true,
     headless: true,
     executablePath: undefined,
     ignoreHTTPSErrors: false,
-    handleSIGINT: false
+    handleSIGINT: false,
+    timeout: 2*60*1000, // 2mins
   },
   publicPath: "/",
   minifyCss: {},

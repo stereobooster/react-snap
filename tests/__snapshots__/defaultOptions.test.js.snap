@@ -34,10 +34,11 @@ Object {
   "puppeteer": Object {
     "args": Array [],
     "cache": true,
-    "headless": true,
     "executablePath": undefined,
+    "handleSIGINT": false,
+    "headless": true,
     "ignoreHTTPSErrors": false,
-    "handleSIGINT": false
+    "timeout": 120000,
   },
   "removeBlobs": true,
   "removeScriptTags": false,
