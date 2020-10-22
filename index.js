@@ -27,7 +27,7 @@ const defaultOptions = {
     executablePath: undefined,
     ignoreHTTPSErrors: false,
     handleSIGINT: false,
-    timeout: 2*60*1000, // 2mins
+    timeout: 2 * 60 * 1000 // 2mins
   },
   publicPath: "/",
   minifyCss: {},
@@ -517,8 +517,9 @@ const fixParcelChunksIssue = ({
 }) => {
   return page.evaluate(
     (basePath, http2PushManifest, inlineCss) => {
-      const localScripts = Array.from(document.scripts)
-        .filter(x => x.src && x.src.startsWith(basePath))
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
 
       const mainRegexp = /main\.[\w]{8}\.js/;
       const mainScript = localScripts.find(x => mainRegexp.test(x.src));
@@ -843,7 +844,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         );
         routePath = normalizePath(routePath);
         if (routePath !== newPath) {
-          console.log(newPath)
+          console.log(newPath);
           console.log(`💬  in browser redirect (${newPath})`);
           addToQueue(newRoute);
         }
