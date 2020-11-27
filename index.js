@@ -29,6 +29,10 @@ const defaultOptions = {
   puppeteerArgs: [],
   puppeteerExecutablePath: undefined,
   puppeteerIgnoreHTTPSErrors: false,
+  // this will be merged into browser.launch
+  // see https://pptr.dev/#?product=Puppeteer&version=v5.5.0&show=api-puppeteerlaunchoptions
+  // for all options
+  puppeteerSettings: {},
   publicPath: "/",
   minifyCss: {},
   minifyHtml: {
