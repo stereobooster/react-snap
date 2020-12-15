@@ -157,7 +157,9 @@ const crawl = async opt => {
 
   const onUnhandledRejection = error => {
     console.log("🔥  UnhandledPromiseRejectionWarning", error);
-    shuttingDown = true;
+    if (options.fastFail) {
+      shuttingDown = true;
+    }
   };
   process.on("unhandledRejection", onUnhandledRejection);
 
