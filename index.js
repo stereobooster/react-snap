@@ -19,6 +19,8 @@ const defaultOptions = {
   destination: null,
   concurrency: 4,
   include: ["/"],
+  // If you get a Timeout error, ignore and move on
+  fastFail: true,
   userAgent: "ReactSnap",
   // 4 params below will be refactored to one: `puppeteer: {}`
   // https://github.com/stereobooster/react-snap/issues/120
