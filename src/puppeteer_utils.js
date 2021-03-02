@@ -11,6 +11,8 @@ const errorToString = jsHandle =>
 
 const objectToJson = jsHandle => jsHandle.jsonValue();
 
+const isWhitelisted = (url, ajaxDomainWhitelist) => ajaxDomainWhitelist.reduce((allow, domain) => allow || url.startsWith(domain), false);
+
 /**
  * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
  * @return {Promise<void>}
@@ -20,7 +22,7 @@ const skipThirdPartyRequests = async opt => {
   if (!options.skipThirdPartyRequests) return;
   await page.setRequestInterception(true);
   page.on("request", request => {
-    if (request.url().startsWith(basePath)) {
+    if (request.url().startsWith(basePath) || isWhitelisted(request.url(), options.ajaxDomainWhitelist)) {
       request.continue();
     } else {
       request.abort();
@@ -294,3 +296,4 @@ exports.skipThirdPartyRequests = skipThirdPartyRequests;
 exports.enableLogging = enableLogging;
 exports.getLinks = getLinks;
 exports.crawl = crawl;
+exports.isWhitelisted = isWhitelisted;

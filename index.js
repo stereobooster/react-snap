@@ -1,4 +1,5 @@
 const crawl = require("./src/puppeteer_utils.js").crawl;
+const isWhitelisted = require("./src/puppeteer_utils.js").isWhitelisted;
 const http = require("http");
 const express = require("express");
 const serveStatic = require("serve-static");
@@ -51,6 +52,7 @@ const defaultOptions = {
   removeBlobs: true,
   fixInsertRule: true,
   skipThirdPartyRequests: false,
+  ajaxDomainWhitelist: [], // will be allowed to make requests even if skipThirdPartyRequests is true
   cacheAjaxRequests: false,
   http2PushManifest: false,
   // may use some glob solution in the future, if required
@@ -270,7 +272,7 @@ const inlineCss = async opt => {
   const minimalcssResult = await minimalcss.minimize({
     urls: [pageUrl],
     skippable: request =>
-      options.skipThirdPartyRequests && !request.url().startsWith(basePath),
+      options.skipThirdPartyRequests && !isWhitelisted(request.url(), options.ajaxDomainWhitelist) && !request.url().startsWith(basePath),
     browser: browser,
     userAgent: options.userAgent
   });
