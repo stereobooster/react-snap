@@ -27,6 +27,7 @@ const defaultOptions = {
     cache: true
   },
   puppeteerArgs: [],
+  generateSitemap: true,
   puppeteerExecutablePath: undefined,
   puppeteerIgnoreHTTPSErrors: false,
   publicPath: "/",
@@ -258,6 +259,26 @@ const removeBlobs = async opt => {
       }
     });
   });
+};
+
+/**
+ *
+ * @param {{page: Page}} opt
+ * @return Promise
+ */
+ const generateSitemap = async opt => {
+  const { page, pageUrl, indexRoutes } = opt;
+  try{
+    console.log('generate sitemap function')
+    console.log('-start-')
+    console.log(pageUrl)
+    console.log(indexRoutes)
+    indexRoutes.push(pageUrl)
+    console.log(indexRoutes)
+    console.log('-end-')
+  } catch (e) {
+    return Promise.reject(e.message);
+  }
 };
 
 /**
@@ -695,6 +716,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
   const ajaxCache = {};
   const { http2PushManifest } = options;
   const http2PushManifestItems = {};
+  const indexRoutes = [];
 
   await crawl({
     options,
@@ -730,9 +752,11 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     },
     afterFetch: async ({ page, route, browser, addToQueue }) => {
       const pageUrl = `${basePath}${route}`;
+      await console.log('--AFTER FETCH--')
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
+      if (options.generateSitemap) await generateSitemap({ page, pageUrl, indexRoutes });
       if (options.inlineCss) {
         const { cssFiles } = await inlineCss({
           page,
@@ -875,6 +899,14 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
           `${destinationDir}/http2-push-manifest.json`,
           JSON.stringify(manifest)
         );
+      }
+      if (generateSitemap) {
+        console.log("@@--ON FILE END SITEMAP--@@")
+        console.log("---")
+        head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?\>\n<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">"
+        tail = "</urlset>"
+        console.log(indexRoutes)
+        console.log("@@@@")
       }
     }
   });
