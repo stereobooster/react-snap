@@ -1,5 +1,4 @@
 const puppeteer = require("puppeteer");
-const glob = require("glob-to-regexp");
 const _ = require("highland");
 const url = require("url");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
@@ -141,7 +140,7 @@ const crawl = async opt => {
     publicPath,
     sourceDir
   } = opt;
-  const exclude = options.exclude.map(g => glob(g, { extended: true, globstar: true}));
+  const exclude = options.exclude;
   let shuttingDown = false;
   let streamClosed = false;
 
