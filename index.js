@@ -15,6 +15,7 @@ const twentyKb = 20 * 1024;
 const defaultOptions = {
   //# stable configurations
   port: 45678,
+  basePath: "http://localhost",
   source: "build",
   destination: null,
   concurrency: 4,
@@ -691,7 +692,11 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
 
   const server = options.externalServer ? null : startServer(options);
 
-  const basePath = `http://localhost:${options.port}`;
+  const getFinalBasePath = options => {
+    return [options.basePath, options.port].filter(v => !!v).join(":");
+  }
+
+  const basePath = getFinalBasePath(options);
   const publicPath = options.publicPath;
   const ajaxCache = {};
   const { http2PushManifest } = options;
