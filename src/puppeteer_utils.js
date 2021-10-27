@@ -33,7 +33,7 @@ const skipThirdPartyRequests = async opt => {
  * @return {void}
  */
 const enableLogging = opt => {
-  const { page, options, route, onError, sourcemapStore } = opt;
+  const { page, options, basePath, route, onError, sourcemapStore } = opt;
   page.on("console", msg => {
     const text = msg.text();
     if (text === "JSHandle@object") {
@@ -89,7 +89,7 @@ const enableLogging = opt => {
       try {
         route = response._request
           .headers()
-          .referer.replace(`http://localhost:${options.port}`, "");
+          .referer.replace(basePath, "");
       } catch (e) {}
       console.log(
         `️️️⚠️  warning at ${route}: got ${response.status()} HTTP code for ${response.url()}`
@@ -165,6 +165,8 @@ const crawl = async opt => {
   const queue = _();
   let enqued = 0;
   let processed = 0;
+
+  const basePathHostname = options.basePath.replace(/https?:\/\//, "");
   // use Set instead
   const uniqueUrls = new Set();
   const sourcemapStore = {};
@@ -173,7 +175,7 @@ const crawl = async opt => {
    * @param {string} path
    * @returns {void}
    */
-  const addToQueue = newUrl => {
+  const addToQueue = (newUrl) => {
     const { hostname, search, hash, port, pathname } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
 
@@ -186,7 +188,7 @@ const crawl = async opt => {
     const isOnAppPort = port && port.toString() === options.port.toString();
 
     if (exclude.filter(regex => regex.test(pathname)).length > 0) return;
-    if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
+    if (basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
       uniqueUrls.add(newUrl);
       enqued++;
       queue.write(newUrl);
@@ -230,6 +232,7 @@ const crawl = async opt => {
         enableLogging({
           page,
           options,
+          basePath,
           route,
           onError: () => {
             shuttingDown = true;

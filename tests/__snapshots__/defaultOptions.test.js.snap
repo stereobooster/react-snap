@@ -3,10 +3,12 @@
 exports[`defaultOptions 1`] = `
 Object {
   "asyncScriptTags": false,
+  "basePath": "http://localhost",
   "cacheAjaxRequests": false,
   "concurrency": 4,
   "crawl": true,
   "destination": null,
+  "exclude": Array [],
   "externalServer": false,
   "fixInsertRule": true,
   "fixWebpackChunksIssue": "CRA1",
