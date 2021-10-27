@@ -702,6 +702,8 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
   const { http2PushManifest } = options;
   const http2PushManifestItems = {};
 
+  console.log(`Crawling paths on ${basePath}${publicPath}`)
+
   await crawl({
     options,
     basePath,
