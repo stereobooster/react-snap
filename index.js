@@ -149,13 +149,13 @@ const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
 const preloadResources = opt => {
   const {
     page,
-    basePath,
     preloadImages,
     cacheAjaxRequests,
     preconnectThirdParty,
     http2PushManifest,
     ignoreForPreload
   } = opt;
+  const basePath = opt.basePath || defaultOptions.basePath;
   const ajaxCache = {};
   const http2PushManifestItems = [];
   const uniqueResources = new Set();

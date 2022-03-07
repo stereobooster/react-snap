@@ -166,7 +166,7 @@ const crawl = async opt => {
   let enqued = 0;
   let processed = 0;
 
-  const basePathHostname = options.basePath.replace(/https?:\/\//, "");
+  const basePathHostname = options.basePath?.replace(/https?:\/\//, "");
   // use Set instead
   const uniqueUrls = new Set();
   const sourcemapStore = {};
