@@ -90,6 +90,7 @@ const defaults = userOptions => {
     ...userOptions
   };
   options.destination = options.destination || options.source;
+  options.basePath = options.basePath || defaultOptions.basePath;
 
   let exit = false;
   if (!options.include || !options.include.length) {
@@ -155,7 +156,6 @@ const preloadResources = opt => {
     http2PushManifest,
     ignoreForPreload
   } = opt;
-  const basePath = opt.basePath || defaultOptions.basePath;
   const ajaxCache = {};
   const http2PushManifestItems = [];
   const uniqueResources = new Set();
