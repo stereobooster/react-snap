@@ -32,24 +32,40 @@ const skipThirdPartyRequests = async opt => {
  * @param {{page: Page, options: {sourceMaps: boolean}, route: string, onError: ?function }} opt
  * @return {void}
  */
-const enableLogging = opt => {
+const enableLogging = (opt, logs = []) => {
   const { page, options, basePath, route, onError, sourcemapStore } = opt;
   page.on("console", msg => {
+
     const text = msg.text();
     if (text === "JSHandle@object") {
-      Promise.all(msg.args().map(objectToJson)).then(args =>
-        console.log(`💬  console.log at ${route}:`, ...args)
-      );
+      Promise.all(msg.args().map(objectToJson)).then(args => {
+        logs.push(args)
+        console.log(`💬  console.log of JSHandle@object at ${route}:`, ...args)
+      });
     } else if (text === "JSHandle@error") {
-      Promise.all(msg.args().map(errorToString)).then(args =>
-        console.log(`💬  console.log at ${route}:`, ...args)
-      );
+      Promise.all(msg.args().map(errorToString)).then(args => {
+        logs.push(args)
+        console.log(`💬  console.log of JSHandle@error at ${route}:`, ...args)
+      });
     } else {
-      console.log(`️️️💬  console.log at ${route}:`, text);
+      const url = msg._location.url;
+      const ignoreThirdPartyError = options.skipThirdPartyRequests && text.includes("ERR_FAILED") && url && url.includes("http") && !url.includes(options.basePath)
+
+      if (ignoreThirdPartyError) {
+          return;
+      }
+
+      if (!text.includes("[webpack-dev-server]") && !text.includes("WebSocket")) {
+          logs.push([text, url])
+          if (!text.includes("was preloaded")) {
+            console.log(`️️️💬  console.log at ${route}:`, text, url);
+          }
+      }
     }
   });
   page.on("error", msg => {
     console.log(`🔥  error at ${route}:`, msg);
+    logs.push([msg])
     onError && onError();
   });
   page.on("pageerror", e => {
@@ -58,30 +74,35 @@ const enableLogging = opt => {
         isChromeOrEdge: true,
         store: sourcemapStore || {}
       })
-        .then(result => {
+      .then(result => {
           // TODO: refactor mapStackTrace: return array not a string, return first row too
           const stackRows = result.split("\n");
           const puppeteerLine =
-            stackRows.findIndex(x => x.includes("puppeteer")) ||
-            stackRows.length - 1;
+          stackRows.findIndex(x => x.includes("puppeteer")) ||
+          stackRows.length - 1;
 
-          console.log(
-            `🔥  pageerror at ${route}: ${(e.stack || e.message).split(
-              "\n"
-            )[0] + "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
-          );
+          const msg = `🔥  pageerror at ${route}: ${(e.stack || e.message).split("\n")[0] + "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`;
+          logs.push([msg])
+          console.log(msg);
         })
         .catch(e2 => {
-          console.log(`🔥  pageerror at ${route}:`, e);
+          const msg = e;
+          logs.push([msg])
+          console.log(`🔥  pageerror at ${route}:`, msg);
           console.log(
             `️️️⚠️  warning at ${route} (error in source maps):`,
             e2.message
           );
         });
     } else {
-      console.log(`🔥  pageerror at ${route}:`, e);
+      const msg = e;
+      logs.push([msg])
+      console.log(`🔥  pageerror at ${route}:`, msg);
     }
-    onError && onError();
+
+    if (e.message !== "Event" && !e.message.startsWith("TypeError")) {
+        onError && onError();
+    }
   });
   page.on("response", response => {
     if (response.status() >= 400) {
@@ -91,9 +112,10 @@ const enableLogging = opt => {
           .headers()
           .referer.replace(basePath, "");
       } catch (e) {}
-      console.log(
-        `️️️⚠️  warning at ${route}: got ${response.status()} HTTP code for ${response.url()}`
-      );
+
+      const msg = `️️️⚠️  warning at ${route}: got ${response.status()} HTTP code for ${response.url()}`;
+      logs.push([msg])
+      console.log(msg);
     }
   });
   // page.on("requestfailed", msg =>
@@ -125,10 +147,16 @@ const getLinks = async opt => {
 };
 
 /**
+ * @typedef UrlLogs
+ * @property {string} url True if the token is valid.
+ * @property {Array<Array<string>>} logs The user id bound to the token.
+ */
+
+/**
  * can not use null as default for function because of TS error https://github.com/Microsoft/TypeScript/issues/14889
  *
  * @param {{options: *, basePath: string, beforeFetch: ?(function({ page: Page, route: string }):Promise), afterFetch: ?(function({ page: Page, browser: Browser, route: string }):Promise), onEnd: ?(function():void)}} opt
- * @return {Promise}
+ * @return {Promise<Array<UrlLogs>>}
  */
 const crawl = async opt => {
   const {
@@ -158,7 +186,9 @@ const crawl = async opt => {
 
   const onUnhandledRejection = error => {
     console.log("🔥  UnhandledPromiseRejectionWarning", error);
-    shuttingDown = true;
+    if (!options.ignorePageErrors) {
+        shuttingDown = true;
+    }
   };
   process.on("unhandledRejection", onUnhandledRejection);
 
@@ -208,7 +238,7 @@ const crawl = async opt => {
 
   /**
    * @param {string} pageUrl
-   * @returns {Promise<string>}
+   * @returns {Promise<UrlLogs>}
    */
   const fetchPage = async pageUrl => {
     const route = pageUrl.replace(basePath, "");
@@ -221,60 +251,70 @@ const crawl = async opt => {
       skipExistingFile = fs.existsSync(filePath);
     }
 
+    const logs = [];
+
     if (!shuttingDown && !skipExistingFile) {
       try {
         const page = await browser.newPage();
         await page._client.send("ServiceWorker.disable");
         await page.setCacheEnabled(options.puppeteer.cache);
         if (options.viewport) await page.setViewport(options.viewport);
-        if (options.skipThirdPartyRequests)
-          await skipThirdPartyRequests({ page, options, basePath });
+        if (options.skipThirdPartyRequests) await skipThirdPartyRequests({ page, options, basePath });
+
         enableLogging({
           page,
           options,
           basePath,
           route,
           onError: () => {
-            shuttingDown = true;
+            if (!options.ignorePageErrors) {
+              shuttingDown = true;
+            }
           },
           sourcemapStore
-        });
+        }, logs);
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);
         const tracker = createTracker(page);
+        let responsePromise = Promise.resolve();
         try {
           await page.goto(pageUrl, { waitUntil: "networkidle2" });
+
+          if (options.waitForResponse) responsePromise = page.waitForResponse(options.waitForResponse, {timeout: 0});
+
         } catch (e) {
           e.message = augmentTimeoutError(e.message, tracker);
           throw e;
         } finally {
           tracker.dispose();
         }
+        await responsePromise
         if (options.waitFor) await page.waitFor(options.waitFor);
-        if (options.waitForResponse) await page.waitForResponse(options.waitForResponse);
         if (options.crawl) {
           const links = await getLinks({ page });
           links.forEach(addToQueue);
         }
-        afterFetch && (await afterFetch({ page, route, browser, addToQueue }));
+        afterFetch && (await afterFetch({ page, route, browser, addToQueue, logs }));
         await page.close();
         console.log(`✅  crawled ${processed + 1} out of ${enqued} (${route})`);
       } catch (e) {
         if (!shuttingDown) {
-          console.log(`🔥  error at ${route}`, e);
+            console.log(`🔥 Crawl error at ${route}`, e);
+            if (!options.ignorePageErrors) {
+                shuttingDown = true;
+            }
         }
-        shuttingDown = true;
       }
     } else {
-      // this message creates a lot of noise
-      // console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
+      // this message creates a lot of noise if crawling enabled
+      console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
     }
     processed++;
     if (enqued === processed) {
       streamClosed = true;
       queue.end();
     }
-    return pageUrl;
+    return {url: pageUrl, logs};
   };
 
   if (options.include) {
@@ -283,15 +323,17 @@ const crawl = async opt => {
 
   return new Promise((resolve, reject) => {
     queue
-      .map(x => _(fetchPage(x)))
+        .map(x => {
+            return _(fetchPage(x));
+        })
       .mergeWithLimit(options.concurrency)
-      .toArray(async () => {
+      .toArray(async (allLogs) => {
         process.removeListener("SIGINT", onSigint);
         process.removeListener("unhandledRejection", onUnhandledRejection);
         await browser.close();
         onEnd && onEnd();
         if (shuttingDown) return reject("");
-        resolve();
+        resolve(allLogs);
       });
   });
 };
