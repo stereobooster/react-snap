@@ -67,6 +67,7 @@ const defaultOptions = {
   // Experimental. This config stands for two strategies inline and critical.
   // TODO: inline strategy can contain errors, like, confuse relative urls
   inlineCss: false,
+  leaveLinkCss: false,
   processCss: undefined,
   //# feature creeps to generate screenshots
   saveAs: "html", // options are "html", "png", "jpg" as string or array
@@ -298,7 +299,7 @@ const cleanPreloads = async (opt, logs) => {
             })
     }) || [];
 
-  return page.evaluate((unnecessaryPreloads) => {
+  page.evaluate((unnecessaryPreloads) => {
     const preloads = Array.from(
       document.querySelectorAll("link[rel=preload]")
     );
@@ -315,7 +316,7 @@ const cleanPreloads = async (opt, logs) => {
  * @param {{
      * page: Page,
      * pageUrl: string,
-     * options: {minifyCss: object | boolean, processCss: (css: string, html: string, route: string) => Promise<string>, skipThirdPartyRequests: boolean, userAgent: string},
+     * options: {minifyCss: object | boolean leaveLinkCss: boolean, processCss: (css: string, html: string, route: string) => Promise<string>, skipThirdPartyRequests: boolean, userAgent: string},
      * basePath: string,
      * route: string,
      * browser: Browser,
@@ -368,6 +369,7 @@ const inlineCss = async opt => {
           allCss: cssArray.join("")
         };
       });
+
       const allCss = new CleanCSS(options.minifyCss).minify(result.allCss).styles;
       const allCssSize = Buffer.byteLength(allCss, "utf8");
 
@@ -427,7 +429,7 @@ const inlineCss = async opt => {
           preloadPolyfill
         );
       } else {
-        await page.evaluate(css => {
+        await page.evaluate((css, leaveLinkCss) => {
           if (!css) return;
 
           const head = document.head || document.getElementsByTagName("head")[0],
@@ -437,15 +439,17 @@ const inlineCss = async opt => {
 
           if (!head) throw new Error("No <head> element found in document");
 
-          head.appendChild(style);
+          head.insertBefore(head.querySelectorAll("link[rel=stylesheet]")[0], style);
 
-          const stylesheets = Array.from(
-            document.querySelectorAll("link[rel=stylesheet]")
-          );
-          stylesheets.forEach(link => {
-              link.parentNode && link.parentNode.removeChild(link);
-          });
-        }, css);
+          if (!leaveLinkCss) {
+              const stylesheets = Array.from(
+                document.querySelectorAll("link[rel=stylesheet]")
+              );
+              stylesheets.forEach(link => {
+                  link.parentNode && link.parentNode.removeChild(link);
+              });
+          }
+        }, css, options.leaveLinkCss);
       }
 
   } catch (e) {
@@ -725,7 +729,7 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   if (route.endsWith(".html")) {
     screenshotPath = filePath.replace(/\.html$/, ".png");
   } else {
-    screenshotPath = `${filePath}${options.fileName}.png`;
+    screenshotPath = `${filePath}/${options.fileName}.png`;
   }
   return page.screenshot({ path: screenshotPath });
 };
@@ -736,7 +740,7 @@ const saveAsJpeg = ({ page, filePath, options, route }) => {
   if (route.endsWith(".html")) {
     screenshotPath = filePath.replace(/\.html$/, ".jpeg");
   } else {
-    screenshotPath = `${filePath}${options.fileName}.jpeg`;
+    screenshotPath = `${filePath}/${options.fileName}.jpeg`;
   }
   return page.screenshot({ path: screenshotPath });
 };
@@ -838,7 +842,6 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
-      if (options.cleanPreloads) await cleanPreloads({ page, basePath }, logs);
       if (options.inlineCss) {
         const { cssFiles } = await inlineCss({
           page,
@@ -864,6 +867,8 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
           }
         }
       }
+
+      if (options.cleanPreloads) await cleanPreloads({ page, basePath }, logs);
 
       if (options.fixWebpackChunksIssue === "Parcel") {
         await fixParcelChunksIssue({

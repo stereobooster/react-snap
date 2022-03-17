@@ -252,6 +252,7 @@ const crawl = async opt => {
     }
 
     const logs = [];
+    // console.log(`Fetch page ${processed + 1} / ${enqued}`, pageUrl, {skipExistingFile, shuttingDown})
 
     if (!shuttingDown && !skipExistingFile) {
       try {
