@@ -67,8 +67,8 @@ const defaultOptions = {
   // Experimental. This config stands for two strategies inline and critical.
   // TODO: inline strategy can contain errors, like, confuse relative urls
   inlineCss: false,
-  leaveLinkCss: false,
   processCss: undefined,
+  leaveLinkCss: undefined,
   //# feature creeps to generate screenshots
   saveAs: "html", // options are "html", "png", "jpg" as string or array
   fileName: "index",
@@ -299,7 +299,7 @@ const cleanPreloads = async (opt, logs) => {
             })
     }) || [];
 
-  page.evaluate((unnecessaryPreloads) => {
+  return page.evaluate((unnecessaryPreloads) => {
     const preloads = Array.from(
       document.querySelectorAll("link[rel=preload]")
     );
@@ -316,7 +316,7 @@ const cleanPreloads = async (opt, logs) => {
  * @param {{
      * page: Page,
      * pageUrl: string,
-     * options: {minifyCss: object | boolean leaveLinkCss: boolean, processCss: (css: string, html: string, route: string) => Promise<string>, skipThirdPartyRequests: boolean, userAgent: string},
+     * options: {minifyCss: object | boolean, leaveLinkCss: boolean, processCss: (page: Page, css: string, html: string, route: string) => Promise<string>, skipThirdPartyRequests: boolean, userAgent: string},
      * basePath: string,
      * route: string,
      * browser: Browser,
@@ -369,7 +369,6 @@ const inlineCss = async opt => {
           allCss: cssArray.join("")
         };
       });
-
       const allCss = new CleanCSS(options.minifyCss).minify(result.allCss).styles;
       const allCssSize = Buffer.byteLength(allCss, "utf8");
 
@@ -386,7 +385,7 @@ const inlineCss = async opt => {
       if (options.processCss) {
           const {content} = await getPageContentAndTitle({page, options})
 
-          css = await options.processCss(css, content, route);
+          css = await options.processCss(page, css, content, route);
           cssSize = Buffer.byteLength(css, "utf8");
       }
 
@@ -412,7 +411,7 @@ const inlineCss = async opt => {
               document.querySelectorAll("link[rel=stylesheet]")
             );
             stylesheets.forEach(link => {
-              noscriptTag.appendChild(link.cloneNode(false));
+              noscriptTag.appendChild(linkroce);
               link.setAttribute("rel", "preload");
               link.setAttribute("as", "style");
               link.setAttribute("react-snap-onload", "this.rel='stylesheet'");
@@ -439,7 +438,7 @@ const inlineCss = async opt => {
 
           if (!head) throw new Error("No <head> element found in document");
 
-          head.insertBefore(head.querySelectorAll("link[rel=stylesheet]")[0], style);
+          head.appendChild(style);
 
           if (!leaveLinkCss) {
               const stylesheets = Array.from(
@@ -449,7 +448,7 @@ const inlineCss = async opt => {
                   link.parentNode && link.parentNode.removeChild(link);
               });
           }
-        }, css, options.leaveLinkCss);
+        }, css, !!options.leaveLinkCss);
       }
 
   } catch (e) {
@@ -703,13 +702,23 @@ const getPageContentAndTitle = async ({page, options}) => {
 }
 
 const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
-  let { content, title } = await getPageContentAndTitle({ page, options });
+  let contentAndTitle;
+
+  if (options.processPage) {
+      contentAndTitle = await options.processPage(page, route);
+  } else {
+    contentAndTitle = await getPageContentAndTitle({ page, options });
+  }
+
+  let {content, title} = contentAndTitle;
+
 
   if (options.processHtml) {
       content = await options.processHtml(content, route)
   }
 
   filePath = filePath.replace(/\//g, path.sep);
+
   if (route.endsWith(".html")) {
     if (route.endsWith("/404.html") && !title.includes("404"))
       console.log('⚠️  warning: 404 page title does not contain "404" string');
@@ -719,11 +728,15 @@ const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
     if (title.includes("404"))
       console.log(`⚠️  warning: page not found ${route}`);
     mkdirp.sync(filePath);
-    fs.writeFileSync(path.join(filePath, `${options.fileName}.html`), content);
+    filePath = path.join(filePath, `${options.fileName}.html`);
+
+    fs.writeFileSync(filePath, content);
   }
+
+  return filePath;
 };
 
-const saveAsPng = ({ page, filePath, options, route }) => {
+const saveAsPng = async ({ page, filePath, options, route }) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
   if (route.endsWith(".html")) {
@@ -731,10 +744,12 @@ const saveAsPng = ({ page, filePath, options, route }) => {
   } else {
     screenshotPath = `${filePath}/${options.fileName}.png`;
   }
-  return page.screenshot({ path: screenshotPath });
+  await page.screenshot({ path: screenshotPath });
+
+  return screenshotPath;
 };
 
-const saveAsJpeg = ({ page, filePath, options, route }) => {
+const saveAsJpeg = async ({ page, filePath, options, route }) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
   if (route.endsWith(".html")) {
@@ -742,7 +757,9 @@ const saveAsJpeg = ({ page, filePath, options, route }) => {
   } else {
     screenshotPath = `${filePath}/${options.fileName}.jpeg`;
   }
-  return page.screenshot({ path: screenshotPath });
+  await page.screenshot({ path: screenshotPath });
+
+  return screenshotPath;
 };
 
 const run = async (userOptions, { fs } = { fs: nativeFs }) => {
@@ -803,7 +820,8 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
   const http2PushManifestItems = {};
 
   console.log(`Crawling paths on ${basePath}${publicPath}`, options)
-    let redirects = [];
+  let redirects = [];
+  let paths = [];
 
   const allLogs = await crawl({
     options,
@@ -842,6 +860,8 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
+      if (options.cleanPreloads) await cleanPreloads({ page, basePath }, logs);
+
       if (options.inlineCss) {
         const { cssFiles } = await inlineCss({
           page,
@@ -867,8 +887,6 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
           }
         }
       }
-
-      if (options.cleanPreloads) await cleanPreloads({ page, basePath }, logs);
 
       if (options.fixWebpackChunksIssue === "Parcel") {
         await fixParcelChunksIssue({
@@ -942,12 +960,11 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       if (options.fixInsertRule) await fixInsertRule({ page });
       await fixFormFields({ page });
 
-      if (options.processPage) await options.processPage(page, route)
-
       let routePath = route.replace(publicPath, "");
       let filePath = path.join(destinationDir, routePath);
       if (Array.isArray(options.saveAs) ? options.saveAs.includes("html") : options.saveAs === "html") {
-        await saveAsHtml({ page, filePath, options, route, fs });
+        paths.push(await saveAsHtml({ page, filePath, options, route, fs }));
+
         let newRoute = await page.evaluate(() => location.toString());
         newPath = normalizePath(
           newRoute.replace(publicPath, "").replace(basePath, "")
@@ -963,11 +980,11 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       }
 
       if (Array.isArray(options.saveAs) ? options.saveAs.includes("png") : options.saveAs === "png") {
-        await saveAsPng({ page, filePath, options, route, fs });
+        paths.push(await saveAsPng({ page, filePath, options, route, fs }));
       }
 
       if (Array.isArray(options.saveAs) ? options.saveAs.includes("jpg") : options.saveAs === "jpg") {
-        await saveAsJpeg({ page, filePath, options, route, fs });
+        paths.push(await saveAsJpeg({ page, filePath, options, route, fs }));
       }
     },
     onEnd: () => {
@@ -999,9 +1016,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     }
   });
 
-  console.log("All redirects logged", redirects)
-
-  return allLogs;
+  return [paths, allLogs];
 };
 
 exports.defaultOptions = defaultOptions;
