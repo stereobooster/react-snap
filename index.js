@@ -316,7 +316,7 @@ const cleanPreloads = async (opt, logs) => {
  * @param {{
      * page: Page,
      * pageUrl: string,
-     * options: {minifyCss: object | boolean, leaveLinkCss: boolean, processCss: (page: Page, css: string, html: string, route: string) => Promise<string>, skipThirdPartyRequests: boolean, userAgent: string},
+     * options: {minifyCss: object | boolean, leaveLinkCss: boolean, processCss: (page: Page, css: string, html: string, route: string, options: object) => Promise<string>, skipThirdPartyRequests: boolean, userAgent: string},
      * basePath: string,
      * route: string,
      * browser: Browser,
@@ -383,9 +383,9 @@ const inlineCss = async opt => {
       }
 
       if (options.processCss) {
-          const {content} = await getPageContentAndTitle({page, options})
+          const {content} = await getPageContentAndTitle({page, route, options})
 
-          css = await options.processCss(page, css, content, route);
+          css = await options.processCss(page, css, content, route, options);
           cssSize = Buffer.byteLength(css, "utf8");
       }
 
@@ -690,7 +690,11 @@ const fixFormFields = ({ page }) => {
   });
 };
 
-const getPageContentAndTitle = async ({page, options}) => {
+const getPageContentAndTitle = async ({page, route, options}) => {
+    if (options.processPage) {
+        return await options.processPage(page, route, options);
+    }
+
     let content = await page.content();
     content = content.replace(/react-snap-onload/g, "onload");
     const title = await page.title();
@@ -702,19 +706,10 @@ const getPageContentAndTitle = async ({page, options}) => {
 }
 
 const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
-  let contentAndTitle;
-
-  if (options.processPage) {
-      contentAndTitle = await options.processPage(page, route);
-  } else {
-    contentAndTitle = await getPageContentAndTitle({ page, options });
-  }
-
-  let {content, title} = contentAndTitle;
-
+  let {content, title} = await getPageContentAndTitle({ page, route, options });
 
   if (options.processHtml) {
-      content = await options.processHtml(content, route)
+      content = await options.processHtml(content, route, options)
   }
 
   filePath = filePath.replace(/\//g, path.sep);
@@ -819,7 +814,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
   const { http2PushManifest } = options;
   const http2PushManifestItems = {};
 
-  console.log(`Crawling paths on ${basePath}${publicPath}`, options)
+  console.log(`Crawling paths on ${basePath}${publicPath}`)
   let redirects = [];
   let paths = [];
 

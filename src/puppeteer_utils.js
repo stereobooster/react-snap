@@ -215,7 +215,7 @@ const crawl = async opt => {
     // but options port is passed by a user and default value is a number
     // we are converting both to string to be sure
     // Port can be null, therefore we need the null check
-    const isOnAppPort = port && port.toString() === options.port.toString();
+    const isOnAppPort = (!port && !options.port) || (port && port.toString() === options.port.toString());
 
     if (exclude.filter(regex => regex.test(pathname)).length > 0) return;
     if (basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
@@ -235,16 +235,15 @@ const crawl = async opt => {
     ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
     handleSIGINT: false
   });
-
   /**
    * @param {string} pageUrl
    * @returns {Promise<UrlLogs>}
    */
   const fetchPage = async pageUrl => {
     const route = pageUrl.replace(basePath, "");
-
     let skipExistingFile = false;
     const routePath = route.replace(/\//g, path.sep);
+
     const { ext } = path.parse(routePath);
     if (ext !== ".html" && ext !== "") {
       const filePath = path.join(sourceDir, routePath);
@@ -252,7 +251,6 @@ const crawl = async opt => {
     }
 
     const logs = [];
-    // console.log(`Fetch page ${processed + 1} / ${enqued}`, pageUrl, {skipExistingFile, shuttingDown})
 
     if (!shuttingDown && !skipExistingFile) {
       try {
@@ -289,7 +287,8 @@ const crawl = async opt => {
         } finally {
           tracker.dispose();
         }
-        await responsePromise
+        await responsePromise;
+
         if (options.waitFor) await page.waitFor(options.waitFor);
         if (options.crawl) {
           const links = await getLinks({ page });
@@ -321,6 +320,7 @@ const crawl = async opt => {
   if (options.include) {
     options.include.map(x => addToQueue(`${basePath}${x}`));
   }
+
 
   return new Promise((resolve, reject) => {
     queue
