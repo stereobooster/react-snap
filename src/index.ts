@@ -838,7 +838,7 @@ export const run = async (userOptions: IReactSnapOptions, { fs } = { fs: nativeF
           const redirect = `${routePath} -> ${newRoute}`;
           redirects.push(redirect);
           console.log(`💬  in browser redirect (${redirect})`);
-          addToQueue(`${basePath}${publicPath}${newRoute}`);
+          await addToQueue(`${basePath}${publicPath}${newRoute}`);
         }
       }
 

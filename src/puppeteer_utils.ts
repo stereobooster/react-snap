@@ -1,5 +1,5 @@
 import puppeteer, {HTTPResponse} from "puppeteer";
-import _ from "highland";
+import {Cluster} from "puppeteer-cluster"
 import url from "url";
 import path from "path";
 import fs from "fs";
@@ -193,20 +193,32 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
   };
   process.on("unhandledRejection", onUnhandledRejection);
 
-  const queue = _();
   let enqueued = 0;
   let processed = 0;
+  let allLogs: IReactSnapRunLogs[] = [];
 
   const basePathHostname = options.basePath?.replace(/https?:\/\//, "");
   // use Set instead
   const uniqueUrls = new Set();
   const sourcemapStore = {};
 
+  const cluster = await Cluster.launch({
+    concurrency: Cluster.CONCURRENCY_BROWSER,
+    maxConcurrency: options.concurrency,
+    puppeteerOptions: {
+      headless: options.headless,
+      args: options.puppeteerArgs,
+      executablePath: options.puppeteerExecutablePath,
+      ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
+      handleSIGINT: false
+    }
+  })
+
   /**
    * @param {string} newUrl
    * @returns {void}
    */
-  const addToQueue = (newUrl: string) => {
+  const addToQueue = async (newUrl: string) => {
     const { hostname, search, hash, port, pathname } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
 
@@ -222,9 +234,10 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
     if (basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
       uniqueUrls.add(newUrl);
       enqueued++;
-      queue.write(newUrl);
+      await cluster.queue(newUrl);
+      // queue.write(newUrl);
       if (enqueued == 2 && options.crawl) {
-        addToQueue(`${basePath}${publicPath}/404.html`);
+        await addToQueue(`${basePath}${publicPath}/404.html`);
       }
     }
   };
@@ -240,7 +253,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
    * @param {string} pageUrl
    * @returns {Promise<UrlLogs>}
    */
-  const fetchPage = async pageUrl => {
+  const fetchPage = async (page: puppeteer.Page, pageUrl: string) => {
     const route = pageUrl.replace(basePath, "");
     let skipExistingFile = false;
     const routePath = route.replace(/\//g, path.sep);
@@ -255,7 +268,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
 
     if (!shuttingDown && !skipExistingFile) {
       try {
-        const page = await browser.newPage();
+        // const page = await browser.newPage();
         // @ts-ignore
         await page._client.send("ServiceWorker.disable");
         await page.setCacheEnabled(options.puppeteer.cache);
@@ -294,7 +307,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         if (options.waitFor) await page.waitForTimeout(options.waitFor);
         if (options.crawl) {
           const links = await getLinks({ page });
-          links.forEach(addToQueue);
+          await Promise.all(links.forEach(addToQueue));
         }
         afterFetch && (await afterFetch({ page, route, browser, addToQueue, logs }));
         await page.close();
@@ -312,31 +325,25 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
       console.log(`🚧  skipping (${processed + 1}/${enqueued}) ${route}`);
     }
     processed++;
+    allLogs.push({url: pageUrl, logs});
+
     if (enqueued === processed) {
       streamClosed = true;
-      queue.end();
+      await cluster.close();
     }
-    return {url: pageUrl, logs};
   };
 
+  await cluster.task(async ({page, data: pageUrl}) => await fetchPage(page, pageUrl));
+
   if (options.include) {
-    options.include.map(x => addToQueue(`${basePath}${x}`));
+    await Promise.all(options.include.map(x => addToQueue(`${basePath}${x}`)));
   }
 
+  await cluster.idle();
+  await cluster.close();
+  onEnd && onEnd();
 
-  return new Promise<IReactSnapRunLogs[]>((resolve, reject) => {
-    queue
-        .map(x => {
-            return _(fetchPage(x));
-        })
-      .mergeWithLimit(options.concurrency)
-      .toArray(async (allLogs) => {
-        process.removeListener("SIGINT", onSigint);
-        process.removeListener("unhandledRejection", onUnhandledRejection);
-        await browser.close();
-        onEnd && onEnd();
-        if (shuttingDown) return reject("");
-        resolve(allLogs);
-      });
-  });
+  if (shuttingDown) throw "";
+
+  return allLogs;
 };

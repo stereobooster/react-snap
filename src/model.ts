@@ -120,7 +120,7 @@ export interface ICrawlParams {
   publicPath?: string,
   sourceDir: string,
   beforeFetch(params: {page: puppeteer.Page, route: string}): any
-  afterFetch(params: {page: puppeteer.Page, browser: puppeteer.Browser, route: string, addToQueue: (newUrl: string) => void, logs: string[]}): any
+  afterFetch(params: {page: puppeteer.Page, browser: puppeteer.Browser, route: string, addToQueue: (newUrl: string) => Promise<void>, logs: string[]}): any
   onEnd(): void
 }
 

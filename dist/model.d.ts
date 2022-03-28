@@ -110,7 +110,7 @@ export interface ICrawlParams {
         page: puppeteer.Page;
         browser: puppeteer.Browser;
         route: string;
-        addToQueue: (newUrl: string) => void;
+        addToQueue: (newUrl: string) => Promise<void>;
         logs: string[];
     }): any;
     onEnd(): void;

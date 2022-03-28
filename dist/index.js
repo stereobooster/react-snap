@@ -544,7 +544,7 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
         savingAsHtml &&
         fs.existsSync(path_1.default.join(sourceDir, "200.html"))) {
         console.log(`🔥  200.html is present in the sourceDir (${sourceDir}). You can not run react-snap twice - this will break the build`);
-        return Promise.reject("200.html is present in the sourceDir");
+        return Promise.reject("");
     }
     fs.createReadStream(path_1.default.join(sourceDir, "index.html")).pipe(fs.createWriteStream(path_1.default.join(sourceDir, "200.html")));
     if (destinationDir !== sourceDir && savingAsHtml) {
@@ -696,13 +696,12 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
                 let newRoute = await page.evaluate(() => location.toString());
                 newRoute = normalizePath(newRoute.replace(publicPath, "").replace(basePath, ""));
                 routePath = normalizePath(routePath);
-                console.log("Searching for REDIRECTS, new route?", routePath !== newRoute, { routePath, newRoute }, `${routePath} -> ${newRoute}`);
                 if (routePath !== newRoute) {
                     console.log(newRoute);
                     const redirect = `${routePath} -> ${newRoute}`;
                     redirects.push(redirect);
                     console.log(`💬  in browser redirect (${redirect})`);
-                    addToQueue(newRoute);
+                    await addToQueue(`${basePath}${publicPath}${newRoute}`);
                 }
             }
             if (Array.isArray(options.saveAs) ? options.saveAs.includes("png") : options.saveAs === "png") {

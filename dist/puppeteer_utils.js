@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.crawl = exports.getLinks = exports.enableLogging = exports.skipThirdPartyRequests = void 0;
 const puppeteer_1 = __importDefault(require("puppeteer"));
-const highland_1 = __importDefault(require("highland"));
+const puppeteer_cluster_1 = require("puppeteer-cluster");
 const url_1 = __importDefault(require("url"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
@@ -173,18 +173,29 @@ const crawl = async (opt) => {
         }
     };
     process.on("unhandledRejection", onUnhandledRejection);
-    const queue = (0, highland_1.default)();
-    let enqued = 0;
+    let enqueued = 0;
     let processed = 0;
+    let allLogs = [];
     const basePathHostname = (_a = options.basePath) === null || _a === void 0 ? void 0 : _a.replace(/https?:\/\//, "");
     // use Set instead
     const uniqueUrls = new Set();
     const sourcemapStore = {};
+    const cluster = await puppeteer_cluster_1.Cluster.launch({
+        concurrency: puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER,
+        maxConcurrency: options.concurrency,
+        puppeteerOptions: {
+            headless: options.headless,
+            args: options.puppeteerArgs,
+            executablePath: options.puppeteerExecutablePath,
+            ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
+            handleSIGINT: false
+        }
+    });
     /**
      * @param {string} newUrl
      * @returns {void}
      */
-    const addToQueue = (newUrl) => {
+    const addToQueue = async (newUrl) => {
         const { hostname, search, hash, port, pathname } = url_1.default.parse(newUrl);
         newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
         // Ensures that only link on the same port are crawled
@@ -194,22 +205,15 @@ const crawl = async (opt) => {
         // we are converting both to string to be sure
         // Port can be null, therefore we need the null check
         const isOnAppPort = (!port && !options.port) || (port && port.toString() === options.port.toString());
-        console.log("AddToQueue", {
-            condition1: exclude.filter(regex => regex.test(pathname)).length > 0,
-            condition2: basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed,
-            condition2a: basePathHostname === hostname,
-            condition2b: isOnAppPort,
-            condition2c: !uniqueUrls.has(newUrl),
-            condition2d: !streamClosed,
-        });
         if (exclude.filter(regex => regex.test(pathname)).length > 0)
             return;
         if (basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
             uniqueUrls.add(newUrl);
-            enqued++;
-            queue.write(newUrl);
-            if (enqued == 2 && options.crawl) {
-                addToQueue(`${basePath}${publicPath}/404.html`);
+            enqueued++;
+            await cluster.queue(newUrl);
+            // queue.write(newUrl);
+            if (enqueued == 2 && options.crawl) {
+                await addToQueue(`${basePath}${publicPath}/404.html`);
             }
         }
     };
@@ -224,7 +228,7 @@ const crawl = async (opt) => {
      * @param {string} pageUrl
      * @returns {Promise<UrlLogs>}
      */
-    const fetchPage = async (pageUrl) => {
+    const fetchPage = async (page, pageUrl) => {
         const route = pageUrl.replace(basePath, "");
         let skipExistingFile = false;
         const routePath = route.replace(/\//g, path_1.default.sep);
@@ -236,7 +240,7 @@ const crawl = async (opt) => {
         const logs = [];
         if (!shuttingDown && !skipExistingFile) {
             try {
-                const page = await browser.newPage();
+                // const page = await browser.newPage();
                 // @ts-ignore
                 await page._client.send("ServiceWorker.disable");
                 await page.setCacheEnabled(options.puppeteer.cache);
@@ -277,11 +281,11 @@ const crawl = async (opt) => {
                     await page.waitForTimeout(options.waitFor);
                 if (options.crawl) {
                     const links = await (0, exports.getLinks)({ page });
-                    links.forEach(addToQueue);
+                    await Promise.all(links.forEach(addToQueue));
                 }
                 afterFetch && (await afterFetch({ page, route, browser, addToQueue, logs }));
                 await page.close();
-                console.log(`✅  crawled ${processed + 1} out of ${enqued} (${route})`);
+                console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route})`);
             }
             catch (e) {
                 if (!shuttingDown) {
@@ -294,33 +298,24 @@ const crawl = async (opt) => {
         }
         else {
             // this message creates a lot of noise if crawling enabled
-            console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
+            console.log(`🚧  skipping (${processed + 1}/${enqueued}) ${route}`);
         }
         processed++;
-        if (enqued === processed) {
+        allLogs.push({ url: pageUrl, logs });
+        if (enqueued === processed) {
             streamClosed = true;
-            queue.end();
+            await cluster.close();
         }
-        return { url: pageUrl, logs };
     };
+    await cluster.task(async ({ page, data: pageUrl }) => await fetchPage(page, pageUrl));
     if (options.include) {
-        options.include.map(x => addToQueue(`${basePath}${x}`));
+        await Promise.all(options.include.map(x => addToQueue(`${basePath}${x}`)));
     }
-    return new Promise((resolve, reject) => {
-        queue
-            .map(x => {
-            return (0, highland_1.default)(fetchPage(x));
-        })
-            .mergeWithLimit(options.concurrency)
-            .toArray(async (allLogs) => {
-            process.removeListener("SIGINT", onSigint);
-            process.removeListener("unhandledRejection", onUnhandledRejection);
-            await browser.close();
-            onEnd && onEnd();
-            if (shuttingDown)
-                return reject("Shutting down");
-            resolve(allLogs);
-        });
-    });
+    await cluster.idle();
+    await cluster.close();
+    onEnd && onEnd();
+    if (shuttingDown)
+        throw "";
+    return allLogs;
 };
 exports.crawl = crawl;
