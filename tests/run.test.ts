@@ -1,11 +1,17 @@
 // FIX: tests are slow - use unit tests instead of integration tests
 // TODO: capture console log from run function
-const fs = require("fs");
-const writeFileSpy = jest.spyOn(fs, "writeFile");
-writeFileSpy.mockImplementation((file, data, cb) => cb());
+import nativeFs from "fs";
+import path from "path";
 
-const { mockFs } = require("./helper.js");
-const { run } = require("./../index.js");
+const fs = require("fs");
+
+const writeFileSpy = jest.spyOn(fs, "writeFile");
+writeFileSpy.mockImplementation((file, data, cb) => (cb as any)());
+
+import { mockFs } from "./helper";
+import { run } from "../src";
+import {IReactSnapOptions} from "../src/model";
+
 const snapRun = (fs, options) =>
   run(
     {
@@ -24,17 +30,17 @@ const snapRun = (fs, options) =>
 
 describe("validates options", () => {
   test("include option should be an non-empty array", () =>
-    run({ include: "" })
+    run({ include: "" } as unknown as IReactSnapOptions)
       .then(() => expect(true).toEqual(false))
       .catch(e => expect(e).toEqual("")));
 
   test("preloadResources option deprecated. Use preloadImages or cacheAjaxRequests", () =>
-    run({ preloadResources: true })
+    run({ preloadResources: true } as unknown as IReactSnapOptions)
       .then(() => expect(true).toEqual(false))
       .catch(e => expect(e).toEqual("")));
 
   test("saveAs supported values are html and png", () =>
-    run({ saveAs: "json" })
+    run({ saveAs: "json" } as unknown as IReactSnapOptions)
       .then(() => expect(true).toEqual(false))
       .catch(e => expect(e).toEqual("")));
 });
@@ -71,13 +77,15 @@ describe("saveAs png", () => {
   const {
     fs: mockedFs,
     createReadStreamMock,
-    createWriteStreamMock
+    createWriteStreamMock,
   } = mockFs();
+  const pngFilePath = path.normalize(cwd + `/${source}/index.png`);
   beforeAll(() => snapRun(mockedFs, { source, saveAs: "png" }));
-  afterAll(() => writeFileSpy.mockClear());
+  afterAll(() => nativeFs.existsSync(pngFilePath) && nativeFs.rmSync(pngFilePath));
   test("crawls / and saves as index.png to the same folder", () => {
-    expect(writeFileSpy).toHaveBeenCalledTimes(1);
-    expect(writeFileSpy.mock.calls[0][0]).toEqual(cwd + `/${source}/index.png`);
+    expect(nativeFs.existsSync(pngFilePath)).toEqual(true);
+    // expect(writeFileSpy).toHaveBeenCalledTimes(1);
+    // expect(writeFileSpy.mock.calls[0][0]).toEqual(cwd + `/${source}/index.png`);
   });
   test("copies (original) index.html to 200.html", () => {
     expect(createReadStreamMock.mock.calls).toEqual([
@@ -93,15 +101,14 @@ describe("saveAs jpeg", () => {
   const {
     fs: mockedFs,
     createReadStreamMock,
-    createWriteStreamMock
+    createWriteStreamMock,
   } = mockFs();
+  const jpegFilePath = path.normalize(cwd + `/${source}/index.jpeg`);
   beforeAll(() => snapRun(mockedFs, { source, saveAs: "jpeg" }));
-  afterAll(() => writeFileSpy.mockClear());
+  afterAll(() => nativeFs.existsSync(jpegFilePath) && nativeFs.rmSync(jpegFilePath));
   test("crawls / and saves as index.jpeg to the same folder", () => {
-    expect(writeFileSpy).toHaveBeenCalledTimes(1);
-    expect(writeFileSpy.mock.calls[0][0]).toEqual(
-      cwd + `/${source}/index.jpeg`
-    );
+    // expect(writeFileSpy).toHaveBeenCalledTimes(1);
+    expect(nativeFs.existsSync(jpegFilePath)).toEqual(true);
   });
   test("copies (original) index.html to 200.html", () => {
     expect(createReadStreamMock.mock.calls).toEqual([
@@ -543,7 +550,6 @@ describe("history.pushState", () => {
   const { fs, filesCreated, names } = mockFs();
   beforeAll(() => snapRun(fs, { source, include }));
   test("in case of browser redirect it creates 2 files", () => {
-    expect(filesCreated()).toEqual(3);
     expect(names()).toEqual(
       expect.arrayContaining([
         `/${source}/404.html`,
@@ -551,6 +557,7 @@ describe("history.pushState", () => {
         `/${source}/hello/index.html`
       ])
     );
+    expect(filesCreated()).toEqual(3);
   });
 });
 
@@ -560,7 +567,6 @@ describe("history.pushState in sub-directory", () => {
   const { fs, filesCreated, names } = mockFs();
   beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
   test("in case of browser redirect it creates 2 files", () => {
-    expect(filesCreated()).toEqual(3);
     expect(names()).toEqual(
       expect.arrayContaining([
         `/${source}/404.html`,
@@ -568,6 +574,7 @@ describe("history.pushState in sub-directory", () => {
         `/${source}/hello/index.html`
       ])
     );
+    expect(filesCreated()).toEqual(3);
   });
 });
 
@@ -577,7 +584,6 @@ describe("history.pushState two redirects to the same file", () => {
   const { fs, filesCreated, names } = mockFs();
   beforeAll(() => snapRun(fs, { source, include, publicPath: "/other" }));
   test("in case of browser redirect it creates 2 files", () => {
-    expect(filesCreated()).toEqual(4);
     expect(names()).toEqual(
       expect.arrayContaining([
         `/${source}/404.html`,
@@ -586,6 +592,7 @@ describe("history.pushState two redirects to the same file", () => {
         `/${source}/history-push-more.html`
       ])
     );
+    expect(filesCreated()).toEqual(4);
   });
 });
 

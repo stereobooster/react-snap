@@ -125,7 +125,7 @@ If you need to pass some options for `react-snap`, you can do this in your `pack
 }
 ```
 
-Not all options are documented yet, but you can check `defaultOptions` in `index.js`.
+Not all options are documented yet, but you can check `defaultOptions` in `index.ts`.
 
 ### inlineCss
 

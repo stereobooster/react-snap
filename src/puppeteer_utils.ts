@@ -1,10 +1,11 @@
-const puppeteer = require("puppeteer");
-const _ = require("highland");
-const url = require("url");
+import puppeteer, {HTTPResponse} from "puppeteer";
+import _ from "highland";
+import url from "url";
+import path from "path";
+import fs from "fs";
+import { createTracker, augmentTimeoutError } from "./tracker";
+import {ICrawlParams, IEnableLoggingOptions, IReactSnapRunLogs} from "./model";
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
-const path = require("path");
-const fs = require("fs");
-const { createTracker, augmentTimeoutError } = require("./tracker");
 
 const errorToString = jsHandle =>
   jsHandle.executionContext().evaluate(e => e.toString(), jsHandle);
@@ -15,7 +16,7 @@ const objectToJson = jsHandle => jsHandle.jsonValue();
  * @param {{page: Page, options: {skipThirdPartyRequests: true}, basePath: string }} opt
  * @return {Promise<void>}
  */
-const skipThirdPartyRequests = async opt => {
+export const skipThirdPartyRequests = async opt => {
   const { page, options, basePath } = opt;
   if (!options.skipThirdPartyRequests) return;
   await page.setRequestInterception(true);
@@ -32,7 +33,7 @@ const skipThirdPartyRequests = async opt => {
  * @param {{page: Page, options: {sourceMaps: boolean}, route: string, onError: ?function }} opt
  * @return {void}
  */
-const enableLogging = (opt, logs = []) => {
+export const enableLogging = (opt: IEnableLoggingOptions, logs = []) => {
   const { page, options, basePath, route, onError, sourcemapStore } = opt;
   page.on("console", msg => {
 
@@ -48,7 +49,7 @@ const enableLogging = (opt, logs = []) => {
         console.log(`💬  console.log of JSHandle@error at ${route}:`, ...args)
       });
     } else {
-      const url = msg._location.url;
+      const url = msg.location().url;
       const ignoreThirdPartyError = options.skipThirdPartyRequests && text.includes("ERR_FAILED") && url && url.includes("http") && !url.includes(options.basePath)
 
       if (ignoreThirdPartyError) {
@@ -108,7 +109,7 @@ const enableLogging = (opt, logs = []) => {
     if (response.status() >= 400) {
       let route = "";
       try {
-        route = response._request
+        route = response.request()
           .headers()
           .referer.replace(basePath, "");
       } catch (e) {}
@@ -127,13 +128,13 @@ const enableLogging = (opt, logs = []) => {
  * @param {{page: Page}} opt
  * @return {Promise<Array<string>>}
  */
-const getLinks = async opt => {
+export const getLinks = async opt => {
   const { page } = opt;
   const anchors = await page.evaluate(() =>
-    Array.from(document.querySelectorAll("a,link[rel='alternate']")).map(anchor => {
-      if (anchor.href.baseVal) {
+    (Array.from(document.querySelectorAll("a,link[rel='alternate']")) as (HTMLAnchorElement | HTMLLinkElement)[]).map(anchor => {
+      if ((anchor.href as any).baseVal) {
         const a = document.createElement("a");
-        a.href = anchor.href.baseVal;
+        a.href = (anchor.href as any).baseVal;
         return a.href;
       }
       return anchor.href;
@@ -158,7 +159,7 @@ const getLinks = async opt => {
  * @param {{options: *, basePath: string, beforeFetch: ?(function({ page: Page, route: string }):Promise), afterFetch: ?(function({ page: Page, browser: Browser, route: string }):Promise), onEnd: ?(function():void)}} opt
  * @return {Promise<Array<UrlLogs>>}
  */
-const crawl = async opt => {
+export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => {
   const {
     options,
     basePath,
@@ -193,7 +194,7 @@ const crawl = async opt => {
   process.on("unhandledRejection", onUnhandledRejection);
 
   const queue = _();
-  let enqued = 0;
+  let enqueued = 0;
   let processed = 0;
 
   const basePathHostname = options.basePath?.replace(/https?:\/\//, "");
@@ -202,10 +203,10 @@ const crawl = async opt => {
   const sourcemapStore = {};
 
   /**
-   * @param {string} path
+   * @param {string} newUrl
    * @returns {void}
    */
-  const addToQueue = (newUrl) => {
+  const addToQueue = (newUrl: string) => {
     const { hostname, search, hash, port, pathname } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
 
@@ -220,9 +221,9 @@ const crawl = async opt => {
     if (exclude.filter(regex => regex.test(pathname)).length > 0) return;
     if (basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
       uniqueUrls.add(newUrl);
-      enqued++;
+      enqueued++;
       queue.write(newUrl);
-      if (enqued == 2 && options.crawl) {
+      if (enqueued == 2 && options.crawl) {
         addToQueue(`${basePath}${publicPath}/404.html`);
       }
     }
@@ -255,6 +256,7 @@ const crawl = async opt => {
     if (!shuttingDown && !skipExistingFile) {
       try {
         const page = await browser.newPage();
+        // @ts-ignore
         await page._client.send("ServiceWorker.disable");
         await page.setCacheEnabled(options.puppeteer.cache);
         if (options.viewport) await page.setViewport(options.viewport);
@@ -275,7 +277,7 @@ const crawl = async opt => {
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);
         const tracker = createTracker(page);
-        let responsePromise = Promise.resolve();
+        let responsePromise: Promise<void | HTTPResponse> = Promise.resolve();
         try {
           await page.goto(pageUrl, { waitUntil: "networkidle2" });
 
@@ -289,14 +291,14 @@ const crawl = async opt => {
         }
         await responsePromise;
 
-        if (options.waitFor) await page.waitFor(options.waitFor);
+        if (options.waitFor) await page.waitForTimeout(options.waitFor);
         if (options.crawl) {
           const links = await getLinks({ page });
           links.forEach(addToQueue);
         }
         afterFetch && (await afterFetch({ page, route, browser, addToQueue, logs }));
         await page.close();
-        console.log(`✅  crawled ${processed + 1} out of ${enqued} (${route})`);
+        console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route})`);
       } catch (e) {
         if (!shuttingDown) {
             console.log(`🔥 Crawl error at ${route}`, e);
@@ -307,10 +309,10 @@ const crawl = async opt => {
       }
     } else {
       // this message creates a lot of noise if crawling enabled
-      console.log(`🚧  skipping (${processed + 1}/${enqued}) ${route}`);
+      console.log(`🚧  skipping (${processed + 1}/${enqueued}) ${route}`);
     }
     processed++;
-    if (enqued === processed) {
+    if (enqueued === processed) {
       streamClosed = true;
       queue.end();
     }
@@ -322,7 +324,7 @@ const crawl = async opt => {
   }
 
 
-  return new Promise((resolve, reject) => {
+  return new Promise<IReactSnapRunLogs[]>((resolve, reject) => {
     queue
         .map(x => {
             return _(fetchPage(x));
@@ -338,8 +340,3 @@ const crawl = async opt => {
       });
   });
 };
-
-exports.skipThirdPartyRequests = skipThirdPartyRequests;
-exports.enableLogging = enableLogging;
-exports.getLinks = getLinks;
-exports.crawl = crawl;

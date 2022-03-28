@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-const url = require("url");
-const { run } = require("./index.js");
+import url from "url";
+import { run } from "./index";
 const {
   reactSnap,
   homepage,

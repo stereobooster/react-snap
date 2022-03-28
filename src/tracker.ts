@@ -1,3 +1,5 @@
+import {HTTPRequest} from "puppeteer";
+
 /**
  * Sets up event listeners on the Browser.Page instance to maintain a set
  * of URLs that have started but never finished or failed.
@@ -5,8 +7,8 @@
  * @param {Object} page
  * @return Object
  */
-const createTracker = page => {
-  const requests = new Set();
+export const createTracker = page => {
+  const requests = new Set<HTTPRequest>();
   const onStarted = request => requests.add(request);
   const onFinished = request => requests.delete(request);
   page.on("request", onStarted);
@@ -29,7 +31,7 @@ const createTracker = page => {
  * @param {Object} tracker ConnectionTracker
  * @returns {string}
  */
-const augmentTimeoutError = (message, tracker) => {
+export const augmentTimeoutError = (message, tracker) => {
   if (message.startsWith("Navigation Timeout Exceeded")) {
     const urls = tracker.urls();
     if (urls.length > 1) {
@@ -42,5 +44,3 @@ const augmentTimeoutError = (message, tracker) => {
   }
   return message;
 };
-
-module.exports = { createTracker, augmentTimeoutError };

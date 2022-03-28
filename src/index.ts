@@ -1,159 +1,21 @@
-const crawl = require("./src/puppeteer_utils.js").crawl;
-const http = require("http");
-const express = require("express");
-const serveStatic = require("serve-static");
-const fallback = require("express-history-api-fallback");
-const path = require("path");
-const nativeFs = require("fs");
-const mkdirp = require("mkdirp");
-const minify = require("html-minifier").minify;
-const url = require("url");
-const minimalcss = require("minimalcss");
-const CleanCSS = require("clean-css");
-const { round } = require("lodash");
-const twentyKb = 20 * 1024;
+require("setimmediate");
 
-const defaultOptions = {
-  //# stable configurations
-  port: 45678,
-  basePath: "http://localhost",
-  source: "build",
-  destination: null,
-  concurrency: 4,
-  include: ["/"],
-  exclude: [],
-  userAgent: "ReactSnap",
-  // 4 params below will be refactored to one: `puppeteer: {}`
-  // https://github.com/stereobooster/react-snap/issues/120
-  headless: true,
-  puppeteer: {
-    cache: true
-  },
-  puppeteerArgs: [],
-  puppeteerExecutablePath: undefined,
-  puppeteerIgnoreHTTPSErrors: false,
-  publicPath: "/",
-  minifyCss: {},
-  minifyHtml: {
-    collapseBooleanAttributes: true,
-    collapseWhitespace: true,
-    decodeEntities: true,
-    keepClosingSlash: true,
-    sortAttributes: true,
-    sortClassName: false
-  },
-  processHtml: undefined,
-  processPage: undefined,
-  // mobile first approach
-  viewport: {
-    width: 480,
-    height: 850
-  },
-  sourceMaps: true,
-  //# workarounds
-  // using CRA1 for compatibility with previous version will be changed to false in v2
-  fixWebpackChunksIssue: "CRA1",
-  removeBlobs: true,
-  fixInsertRule: true,
-  ignorePageErrors: false,
-  skipThirdPartyRequests: false,
-  cacheAjaxRequests: false,
-  http2PushManifest: false,
-  // may use some glob solution in the future, if required
-  // works when http2PushManifest: true
-  ignoreForPreload: ["service-worker.js"],
-  //# unstable configurations
-  preconnectThirdParty: true,
-  // Experimental. This config stands for two strategies inline and critical.
-  // TODO: inline strategy can contain errors, like, confuse relative urls
-  inlineCss: false,
-  processCss: undefined,
-  leaveLinkCss: undefined,
-  //# feature creeps to generate screenshots
-  saveAs: "html", // options are "html", "png", "jpeg" as string or array
-  fileName: "index",
-  crawl: true,
-  waitFor: false,
-  externalServer: false,
-  //# even more workarounds
-  removeStyleTags: false,
-  preloadImages: false,
-  cleanPreloads: false,
-  // add async true to script tags
-  asyncScriptTags: false,
-  //# another feature creep
-  // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
-  // but this will also remove code which registers service worker
-  removeScriptTags: false
-};
+import {defaults} from "./defaults";
+import {crawl} from "./puppeteer_utils";
+import http from "http";
+import express from "express";
+import serveStatic from "serve-static";
+import fallback from "express-history-api-fallback";
+import path from "path";
+import nativeFs from "fs";
+import mkdirp from "mkdirp";
+import {minify} from "html-minifier";
+import url from "url";
+import minimalcss from "minimalcss";
+import CleanCSS from "clean-css";
+import { round } from "lodash";
+import {IInlineCssParams, IReactSnapOptions, ISaveAsParams, ReactSnapRunInfo, ICrawlParams} from "./model";
 
-/**
- *
- * @param {{source: ?string, destination: ?string, include: ?Array<string>, sourceMaps: ?boolean, skipThirdPartyRequests: ?boolean }} userOptions
- * @return {*}
- */
-const defaults = userOptions => {
-  const options = {
-    ...defaultOptions,
-    ...userOptions
-  };
-  options.destination = options.destination || options.source;
-  options.basePath = options.basePath || defaultOptions.basePath;
-
-  let exit = false;
-  if (!options.include || !options.include.length) {
-    console.log("🔥  include option should be an non-empty array");
-    exit = true;
-  }
-  if (options.preloadResources) {
-    console.log(
-      "🔥  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
-    );
-    exit = true;
-  }
-  if (options.minifyOptions) {
-    console.log("🔥  minifyOptions option renamed to minifyHtml");
-    options.minifyHtml = options.minifyOptions;
-  }
-  if (options.asyncJs) {
-    console.log("🔥  asyncJs option renamed to asyncScriptTags");
-    options.asyncScriptTags = options.asyncJs;
-  }
-  if (/\.(html|jpg|jpeg|png)$/.test(options.fileName)) {
-    console.log("🔥  fileName should be base, appropritate extension will be added");
-    options.fileName = options.fileName.replace(/\.(html|jpg|jpeg|png)$/, "");
-  }
-  if (options.fixWebpackChunksIssue === true) {
-    console.log(
-      "🔥  fixWebpackChunksIssue - behaviour changed, valid options are CRA1, CRA2, Parcel, false"
-    );
-    options.fixWebpackChunksIssue = "CRA1";
-  }
-  const features = ["html", "png", "jpg", "jpeg"];
-  if (
-      Array.isArray(options.saveAs) ?
-        !options.saveAs.every(saveAs => features.includes(saveAs))
-        :
-        !features.includes(options.saveAs)
-  ) {
-    console.log("🔥  saveAs supported values are html, png, and jpeg");
-    exit = true;
-  }
-  if (exit) throw new Error();
-  if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
-    options.minifyHtml.minifyCSS = options.minifyCss || {};
-  }
-
-  if (!options.publicPath.startsWith("/")) {
-    options.publicPath = `/${options.publicPath}`;
-  }
-  options.publicPath = options.publicPath.replace(/\/$/, "");
-
-  options.include = options.include.map(
-    include => options.publicPath + include
-  );
-  return options;
-};
 
 const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
 
@@ -161,7 +23,7 @@ const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
  *
  * @param {{page: Page, basePath: string}} opt
  */
-const preloadResources = opt => {
+const preloadResources = (opt) => {
   const {
     page,
     preloadImages,
@@ -254,7 +116,7 @@ const removeScriptTags = ({ page }) =>
   });
 
 const preloadPolyfill = nativeFs.readFileSync(
-  `${__dirname}/vendor/preload_polyfill.min.js`,
+  path.normalize(`${__dirname}/../vendor/preload_polyfill.min.js`),
   "utf8"
 );
 
@@ -268,7 +130,7 @@ const removeBlobs = async opt => {
   return page.evaluate(() => {
     const stylesheets = Array.from(
       document.querySelectorAll("link[rel=stylesheet]")
-    );
+    ) as HTMLLinkElement[];
     stylesheets.forEach(link => {
       if (link.href && link.href.startsWith("blob:")) {
         link.parentNode && link.parentNode.removeChild(link);
@@ -302,7 +164,7 @@ const cleanPreloads = async (opt, logs) => {
   return page.evaluate((unnecessaryPreloads) => {
     const preloads = Array.from(
       document.querySelectorAll("link[rel=preload]")
-    );
+    ) as HTMLLinkElement[];
 
     preloads.forEach(link => {
       if (link.href && unnecessaryPreloads.some(preload => link.href.includes(preload))) {
@@ -311,6 +173,8 @@ const cleanPreloads = async (opt, logs) => {
     });
   }, unnecessaryPreloads);
 };
+
+const twentyKb = 20 * 1024;
 
 /**
  * @param {{
@@ -323,7 +187,7 @@ const cleanPreloads = async (opt, logs) => {
  * }} opt
  * @return {Promise}
  */
-const inlineCss = async opt => {
+const inlineCss = async (opt: IInlineCssParams) => {
   const { page, pageUrl, options, basePath, browser, route } = opt;
 
   let cssStrategy, cssSize, css, result;
@@ -350,7 +214,7 @@ const inlineCss = async opt => {
       result = await page.evaluate(async () => {
         const stylesheets = Array.from(
           document.querySelectorAll("link[rel=stylesheet]")
-        );
+        ) as HTMLLinkElement[];
         const ignored = []
         const cssArray = await Promise.all(
           stylesheets.map(async link => {
@@ -369,7 +233,8 @@ const inlineCss = async opt => {
           allCss: cssArray.join("")
         };
       });
-      const allCss = new CleanCSS(options.minifyCss).minify(result.allCss).styles;
+
+      const allCss = (await (new CleanCSS((options.minifyCss || {}) as CleanCSS.OptionsOutput).minify(result.allCss))).styles;
       const allCssSize = Buffer.byteLength(allCss, "utf8");
 
       if (!criticalCssSize || criticalCssSize * 2 >= allCssSize) {
@@ -540,7 +405,7 @@ const fixWebpackChunksIssue2 = ({
     (basePath, http2PushManifest, inlineCss) => {
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
-      );
+      ) as HTMLScriptElement[];
       // CRA v2
       const mainRegexp = /main\.[\w]{8}\.chunk\.js/;
       const mainScript = localScripts.find(x => mainRegexp.test(x.src));
@@ -550,7 +415,7 @@ const fixWebpackChunksIssue2 = ({
 
       const chunkRegexp = /(\w+)\.[\w]{8}\.chunk\.js/g;
 
-      const headScripts = Array.from(document.querySelectorAll("head script"))
+      const headScripts = (Array.from(document.querySelectorAll("head script")) as HTMLScriptElement[])
         .filter(x => x.src && x.src.startsWith(basePath))
         .filter(x => {
           const matched = chunkRegexp.exec(x.src);
@@ -666,14 +531,14 @@ const fixInsertRule = ({ page }) => {
 
 const fixFormFields = ({ page }) => {
   return page.evaluate(() => {
-    Array.from(document.querySelectorAll("[type=radio]")).forEach(element => {
+    (Array.from(document.querySelectorAll("[type=radio]")) as HTMLInputElement[]).forEach(element => {
       if (element.checked) {
         element.setAttribute("checked", "checked");
       } else {
         element.removeAttribute("checked");
       }
     });
-    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(
+    (Array.from(document.querySelectorAll("[type=checkbox]")) as HTMLInputElement[]).forEach(
       element => {
         if (element.checked) {
           element.setAttribute("checked", "checked");
@@ -707,7 +572,7 @@ const getPageContentAndTitle = async ({page, route, options}, process) => {
     return { content: minifiedContent, title };
 }
 
-const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
+const saveAsHtml = async ({ page, filePath, options, route, fs }: ISaveAsParams) => {
   let {content, title} = await getPageContentAndTitle({ page, route, options }, "html");
 
   if (options.processHtml) {
@@ -733,7 +598,7 @@ const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
   return filePath;
 };
 
-const saveAsPng = async ({ page, filePath, options, route }) => {
+const saveAsPng = async ({ page, filePath, options, route }: ISaveAsParams) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
   if (route.endsWith(".html")) {
@@ -746,7 +611,7 @@ const saveAsPng = async ({ page, filePath, options, route }) => {
   return screenshotPath;
 };
 
-const saveAsJpeg = async ({ page, filePath, options, route }) => {
+const saveAsJpeg = async ({ page, filePath, options, route }: ISaveAsParams) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
   if (route.endsWith(".html")) {
@@ -759,7 +624,7 @@ const saveAsJpeg = async ({ page, filePath, options, route }) => {
   return screenshotPath;
 };
 
-const run = async (userOptions, { fs } = { fs: nativeFs }) => {
+export const run = async (userOptions: IReactSnapOptions, { fs } = { fs: nativeFs }): Promise<ReactSnapRunInfo> => {
   let options;
   try {
     options = defaults(userOptions);
@@ -963,16 +828,17 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         paths.push(await saveAsHtml({ page, filePath, options, route, fs }));
 
         let newRoute = await page.evaluate(() => location.toString());
-        newPath = normalizePath(
+        newRoute = normalizePath(
           newRoute.replace(publicPath, "").replace(basePath, "")
         );
         routePath = normalizePath(routePath);
-        if (routePath !== newPath) {
-          console.log(newPath)
-          const redirect = `${routePath} -> ${newPath}`;
+
+        if (routePath !== newRoute) {
+          console.log(newRoute)
+          const redirect = `${routePath} -> ${newRoute}`;
           redirects.push(redirect);
           console.log(`💬  in browser redirect (${redirect})`);
-          addToQueue(newRoute);
+          addToQueue(`${basePath}${publicPath}${newRoute}`);
         }
       }
 
@@ -1016,5 +882,4 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
   return [paths, allLogs];
 };
 
-exports.defaultOptions = defaultOptions;
-exports.run = run;
+export {IReactSnapOptions, ReactSnapRunInfo};
