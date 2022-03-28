@@ -70,7 +70,7 @@ const defaultOptions = {
   processCss: undefined,
   leaveLinkCss: undefined,
   //# feature creeps to generate screenshots
-  saveAs: "html", // options are "html", "png", "jpg" as string or array
+  saveAs: "html", // options are "html", "png", "jpeg" as string or array
   fileName: "index",
   crawl: true,
   waitFor: false,
@@ -119,9 +119,9 @@ const defaults = userOptions => {
     console.log("🔥  asyncJs option renamed to asyncScriptTags");
     options.asyncScriptTags = options.asyncJs;
   }
-  if (/\.(html|jpg|png)$/.test(options.fileName)) {
+  if (/\.(html|jpg|jpeg|png)$/.test(options.fileName)) {
     console.log("🔥  fileName should be base, appropritate extension will be added");
-    options.fileName = options.fileName.replace(/\.(html|jpg|png)$/, "");
+    options.fileName = options.fileName.replace(/\.(html|jpg|jpeg|png)$/, "");
   }
   if (options.fixWebpackChunksIssue === true) {
     console.log(
@@ -129,7 +129,7 @@ const defaults = userOptions => {
     );
     options.fixWebpackChunksIssue = "CRA1";
   }
-  const features = ["html", "png", "jpg"];
+  const features = ["html", "png", "jpg", "jpeg"];
   if (
       Array.isArray(options.saveAs) ?
         !options.saveAs.every(saveAs => features.includes(saveAs))
@@ -382,8 +382,10 @@ const inlineCss = async opt => {
         css = criticalCss;
       }
 
+      console.log({cssStrategy, cssSize})
+
       if (options.processCss) {
-          const {content} = await getPageContentAndTitle({page, route, options})
+          const {content} = await getPageContentAndTitle({page, route, options}, "css")
 
           css = await options.processCss(page, css, content, route, options);
           cssSize = Buffer.byteLength(css, "utf8");
@@ -411,7 +413,7 @@ const inlineCss = async opt => {
               document.querySelectorAll("link[rel=stylesheet]")
             );
             stylesheets.forEach(link => {
-              noscriptTag.appendChild(linkroce);
+              noscriptTag.appendChild(link.cloneNode(false));
               link.setAttribute("rel", "preload");
               link.setAttribute("as", "style");
               link.setAttribute("react-snap-onload", "this.rel='stylesheet'");
@@ -690,9 +692,9 @@ const fixFormFields = ({ page }) => {
   });
 };
 
-const getPageContentAndTitle = async ({page, route, options}) => {
+const getPageContentAndTitle = async ({page, route, options}, process) => {
     if (options.processPage) {
-        return await options.processPage(page, route, options);
+        return await options.processPage(page, route, options, process);
     }
 
     let content = await page.content();
@@ -706,7 +708,7 @@ const getPageContentAndTitle = async ({page, route, options}) => {
 }
 
 const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
-  let {content, title} = await getPageContentAndTitle({ page, route, options });
+  let {content, title} = await getPageContentAndTitle({ page, route, options }, "html");
 
   if (options.processHtml) {
       content = await options.processHtml(content, route, options)
@@ -739,7 +741,7 @@ const saveAsPng = async ({ page, filePath, options, route }) => {
   } else {
     screenshotPath = `${filePath}/${options.fileName}.png`;
   }
-  await page.screenshot({ path: screenshotPath });
+  await page.screenshot({ path: path.normalize(screenshotPath) });
 
   return screenshotPath;
 };
@@ -752,7 +754,7 @@ const saveAsJpeg = async ({ page, filePath, options, route }) => {
   } else {
     screenshotPath = `${filePath}/${options.fileName}.jpeg`;
   }
-  await page.screenshot({ path: screenshotPath });
+  await page.screenshot({ path: path.normalize(screenshotPath) });
 
   return screenshotPath;
 };
@@ -978,7 +980,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         paths.push(await saveAsPng({ page, filePath, options, route, fs }));
       }
 
-      if (Array.isArray(options.saveAs) ? options.saveAs.includes("jpg") : options.saveAs === "jpg") {
+      if (Array.isArray(options.saveAs) ? (options.saveAs.includes("jpg") || options.saveAs.includes("jpeg")) : (options.saveAs === "jpg" || options.saveAs === "jpeg")) {
         paths.push(await saveAsJpeg({ page, filePath, options, route, fs }));
       }
     },

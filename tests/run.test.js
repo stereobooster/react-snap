@@ -97,7 +97,7 @@ describe("saveAs jpeg", () => {
   } = mockFs();
   beforeAll(() => snapRun(mockedFs, { source, saveAs: "jpeg" }));
   afterAll(() => writeFileSpy.mockClear());
-  test("crawls / and saves as index.png to the same folder", () => {
+  test("crawls / and saves as index.jpeg to the same folder", () => {
     expect(writeFileSpy).toHaveBeenCalledTimes(1);
     expect(writeFileSpy.mock.calls[0][0]).toEqual(
       cwd + `/${source}/index.jpeg`
@@ -248,7 +248,7 @@ describe("inlineCss - big file", () => {
   const source = "tests/examples/other";
   const include = ["/with-big-css.html"];
   const { fs, filesCreated, content } = mockFs();
-  beforeAll(() => snapRun(fs, { source, include, inlineCss: true }));
+  beforeAll(() => snapRun(fs, { source, include, inlineCss: true, minifyCss: {} }));
   test("inline style", () => {
     expect(filesCreated()).toEqual(1);
     expect(content(0)).toMatch('<style type="text/css">');

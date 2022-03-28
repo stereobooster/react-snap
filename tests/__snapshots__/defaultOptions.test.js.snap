@@ -5,11 +5,13 @@ Object {
   "asyncScriptTags": false,
   "basePath": "http://localhost",
   "cacheAjaxRequests": false,
+  "cleanPreloads": false,
   "concurrency": 4,
   "crawl": true,
   "destination": null,
   "exclude": Array [],
   "externalServer": false,
+  "fileName": "index",
   "fixInsertRule": true,
   "fixWebpackChunksIssue": "CRA1",
   "headless": true,
@@ -17,10 +19,12 @@ Object {
   "ignoreForPreload": Array [
     "service-worker.js",
   ],
+  "ignorePageErrors": false,
   "include": Array [
     "/",
   ],
   "inlineCss": false,
+  "leaveLinkCss": undefined,
   "minifyCss": Object {},
   "minifyHtml": Object {
     "collapseBooleanAttributes": true,
@@ -33,6 +37,9 @@ Object {
   "port": 45678,
   "preconnectThirdParty": true,
   "preloadImages": false,
+  "processCss": undefined,
+  "processHtml": undefined,
+  "processPage": undefined,
   "publicPath": "/",
   "puppeteer": Object {
     "cache": true,
