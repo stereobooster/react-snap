@@ -4,7 +4,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.crawl = exports.getLinks = exports.enableLogging = exports.skipThirdPartyRequests = void 0;
-const puppeteer_1 = __importDefault(require("puppeteer"));
 const puppeteer_cluster_1 = require("puppeteer-cluster");
 const url_1 = __importDefault(require("url"));
 const path_1 = __importDefault(require("path"));
@@ -217,13 +216,6 @@ const crawl = async (opt) => {
             }
         }
     };
-    const browser = await puppeteer_1.default.launch({
-        headless: options.headless,
-        args: options.puppeteerArgs,
-        executablePath: options.puppeteerExecutablePath,
-        ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
-        handleSIGINT: false
-    });
     /**
      * @param {string} pageUrl
      * @returns {Promise<UrlLogs>}
@@ -283,13 +275,14 @@ const crawl = async (opt) => {
                     const links = await (0, exports.getLinks)({ page });
                     await Promise.all(links.forEach(addToQueue));
                 }
-                afterFetch && (await afterFetch({ page, route, browser, addToQueue, logs }));
+                afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
                 await page.close();
                 console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route})`);
             }
             catch (e) {
                 if (!shuttingDown) {
                     console.log(`🔥 Crawl error at ${route}`, e);
+                    await page.close();
                     if (!options.ignorePageErrors) {
                         shuttingDown = true;
                     }
@@ -304,6 +297,7 @@ const crawl = async (opt) => {
         allLogs.push({ url: pageUrl, logs });
         if (enqueued === processed) {
             streamClosed = true;
+            console.log("Closing cluster due to reaching queue length");
             await cluster.close();
         }
     };
@@ -312,6 +306,7 @@ const crawl = async (opt) => {
         await Promise.all(options.include.map(x => addToQueue(`${basePath}${x}`)));
     }
     await cluster.idle();
+    console.log("Closing cluster due to becoming idle (all pages closed)");
     await cluster.close();
     onEnd && onEnd();
     if (shuttingDown)

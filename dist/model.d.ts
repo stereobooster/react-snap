@@ -108,7 +108,6 @@ export interface ICrawlParams {
     }): any;
     afterFetch(params: {
         page: puppeteer.Page;
-        browser: puppeteer.Browser;
         route: string;
         addToQueue: (newUrl: string) => Promise<void>;
         logs: string[];
@@ -120,6 +119,5 @@ export interface IInlineCssParams {
     pageUrl: string;
     options: IReactSnapOptions;
     basePath: string;
-    browser: puppeteer.Browser;
     route: string;
 }

@@ -188,7 +188,7 @@ const twentyKb = 20 * 1024;
  * @return {Promise}
  */
 const inlineCss = async (opt: IInlineCssParams) => {
-  const { page, pageUrl, options, basePath, browser, route } = opt;
+  const { page, pageUrl, options, basePath, route } = opt;
 
   let cssStrategy, cssSize, css, result;
   try {
@@ -200,7 +200,7 @@ const inlineCss = async (opt: IInlineCssParams) => {
                 urls: [pageUrl],
                 skippable: request =>
                   options.skipThirdPartyRequests && !request.url().startsWith(basePath),
-                browser: browser,
+                browser: page.browser(),
                 userAgent: options.userAgent
               });
 
@@ -246,8 +246,6 @@ const inlineCss = async (opt: IInlineCssParams) => {
         cssSize = criticalCssSize;
         css = criticalCss;
       }
-
-      console.log({cssStrategy, cssSize})
 
       if (options.processCss) {
           const {content} = await getPageContentAndTitle({page, route, options}, "css")
@@ -717,7 +715,7 @@ export const run = async (userOptions: IReactSnapOptions, { fs } = { fs: nativeF
         http2PushManifestItems[route] = hpm;
       }
     },
-    afterFetch: async ({ page, route, browser, addToQueue, logs }) => {
+    afterFetch: async ({ page, route, addToQueue, logs }) => {
       const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
@@ -730,7 +728,6 @@ export const run = async (userOptions: IReactSnapOptions, { fs } = { fs: nativeF
           pageUrl,
           options,
           basePath,
-          browser,
           route,
         });
 

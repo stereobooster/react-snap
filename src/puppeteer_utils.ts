@@ -195,6 +195,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
 
   let enqueued = 0;
   let processed = 0;
+  let added404 = false;
   let allLogs: IReactSnapRunLogs[] = [];
 
   const basePathHostname = options.basePath?.replace(/https?:\/\//, "");
@@ -235,20 +236,13 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
       uniqueUrls.add(newUrl);
       enqueued++;
       await cluster.queue(newUrl);
-      // queue.write(newUrl);
-      if (enqueued == 2 && options.crawl) {
+      if (enqueued > 1 && options.crawl && !added404) {
+        added404 = true;
         await addToQueue(`${basePath}${publicPath}/404.html`);
       }
     }
   };
 
-  const browser = await puppeteer.launch({
-    headless: options.headless,
-    args: options.puppeteerArgs,
-    executablePath: options.puppeteerExecutablePath,
-    ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
-    handleSIGINT: false
-  });
   /**
    * @param {string} pageUrl
    * @returns {Promise<UrlLogs>}
@@ -268,7 +262,6 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
 
     if (!shuttingDown && !skipExistingFile) {
       try {
-        // const page = await browser.newPage();
         // @ts-ignore
         await page._client.send("ServiceWorker.disable");
         await page.setCacheEnabled(options.puppeteer.cache);
@@ -307,14 +300,15 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         if (options.waitFor) await page.waitForTimeout(options.waitFor);
         if (options.crawl) {
           const links = await getLinks({ page });
-          await Promise.all(links.forEach(addToQueue));
+          await Promise.all(links.map(addToQueue));
         }
-        afterFetch && (await afterFetch({ page, route, browser, addToQueue, logs }));
+        afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
         await page.close();
         console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route})`);
       } catch (e) {
         if (!shuttingDown) {
             console.log(`🔥 Crawl error at ${route}`, e);
+            await page.close()
             if (!options.ignorePageErrors) {
                 shuttingDown = true;
             }
@@ -343,7 +337,9 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
   await cluster.close();
   onEnd && onEnd();
 
-  if (shuttingDown) throw "";
+  if (shuttingDown) {
+    throw "";
+  }
 
   return allLogs;
 };

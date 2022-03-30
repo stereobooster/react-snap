@@ -171,7 +171,7 @@ const twentyKb = 20 * 1024;
  * @return {Promise}
  */
 const inlineCss = async (opt) => {
-    const { page, pageUrl, options, basePath, browser, route } = opt;
+    const { page, pageUrl, options, basePath, route } = opt;
     let cssStrategy, cssSize, css, result;
     try {
         let minimalcssResult, criticalCss, criticalCssSize;
@@ -180,7 +180,7 @@ const inlineCss = async (opt) => {
                 minimalcssResult = await minimalcss_1.default.minimize({
                     urls: [pageUrl],
                     skippable: request => options.skipThirdPartyRequests && !request.url().startsWith(basePath),
-                    browser: browser,
+                    browser: page.browser(),
                     userAgent: options.userAgent
                 });
                 criticalCss = minimalcssResult.finalCss;
@@ -221,7 +221,6 @@ const inlineCss = async (opt) => {
             cssSize = criticalCssSize;
             css = criticalCss;
         }
-        console.log({ cssStrategy, cssSize });
         if (options.processCss) {
             const { content } = await getPageContentAndTitle({ page, route, options }, "css");
             css = await options.processCss(page, css, content, route, options);
@@ -587,7 +586,7 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
                 http2PushManifestItems[route] = hpm;
             }
         },
-        afterFetch: async ({ page, route, browser, addToQueue, logs }) => {
+        afterFetch: async ({ page, route, addToQueue, logs }) => {
             const pageUrl = `${basePath}${route}`;
             if (options.removeStyleTags)
                 await removeStyleTags({ page });
@@ -603,7 +602,6 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
                     pageUrl,
                     options,
                     basePath,
-                    browser,
                     route,
                 });
                 if (http2PushManifest) {
@@ -732,6 +730,7 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
                 }, []);
                 fs.writeFileSync(`${destinationDir}/http2-push-manifest.json`, JSON.stringify(manifest));
             }
+            console.log("Snapshots run finished");
         }
     });
     return [paths, allLogs];

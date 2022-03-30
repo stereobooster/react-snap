@@ -28,6 +28,8 @@ const snapRun = (fs, options) =>
     }
   );
 
+jest.setTimeout(15000);
+
 describe("validates options", () => {
   test("include option should be an non-empty array", () =>
     run({ include: "" } as unknown as IReactSnapOptions)
@@ -55,7 +57,7 @@ describe("one page", () => {
     content,
     name
   } = mockFs();
-  beforeAll(() => snapRun(fs, { source }));
+  beforeAll(async () => await snapRun(fs, { source }));
   test("crawls / and saves as index.html to the same folder", () => {
     expect(filesCreated()).toEqual(1);
     expect(name(0)).toEqual(`/${source}/index.html`);
