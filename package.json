@@ -47,6 +47,7 @@
   "files": [
     "src/index.ts",
     "src/run.ts",
+    "dist/",
     "src/",
     "vendor/"
   ]
