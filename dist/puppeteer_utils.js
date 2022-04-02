@@ -95,7 +95,7 @@ const enableLogging = (opt, logs = []) => {
         else {
             const msg = e;
             logs.push([msg]);
-            console.log(`🔥  pageerror at ${route}:`, msg);
+            console.log(`🔥  pageerror at ${route}:`, msg, msg.type, msg.message);
         }
         if (e.message !== "Event" && !e.message.startsWith("TypeError")) {
             onError && onError();
