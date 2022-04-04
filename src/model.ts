@@ -3,7 +3,7 @@ import nativeFs from "fs";
 import {Options} from "html-minifier-terser";
 // @ts-ignore
 import type CleanCSS from "@types/clean-css";
-import {OptionsOutput} from "clean-css";
+import type { Cluster } from "puppeteer-cluster";
 
 declare global {
   interface Window {
@@ -18,6 +18,7 @@ export interface IReactSnapOptions {
   source?: string,
   destination?: string,
   concurrency?: number,
+  concurrencyType: typeof Cluster.CONCURRENCY_PAGE | typeof Cluster.CONCURRENCY_CONTEXT | typeof Cluster.CONCURRENCY_BROWSER,
   include?: string[],
   exclude?: RegExp[],
   userAgent?: string, // Default: "ReactSnap"

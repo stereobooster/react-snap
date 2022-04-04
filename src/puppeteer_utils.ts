@@ -204,7 +204,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
   const sourcemapStore = {};
 
   const cluster = await Cluster.launch({
-    concurrency: Cluster.CONCURRENCY_BROWSER,
+    concurrency: options.concurrencyType,
     maxConcurrency: options.concurrency,
     puppeteerOptions: {
       headless: options.headless,

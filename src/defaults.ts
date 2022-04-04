@@ -1,3 +1,4 @@
+import { Cluster } from "puppeteer-cluster";
 import {IReactSnapOptions} from "./model";
 
 export const defaultOptions: IReactSnapOptions = {
@@ -7,6 +8,7 @@ export const defaultOptions: IReactSnapOptions = {
   source: "build",
   destination: null,
   concurrency: 4,
+  concurrencyType: Cluster.CONCURRENCY_BROWSER,
   include: ["/"],
   exclude: [],
   userAgent: "ReactSnap",
