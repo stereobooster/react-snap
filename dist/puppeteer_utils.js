@@ -95,7 +95,7 @@ const enableLogging = (opt, logs = []) => {
         else {
             const msg = e;
             logs.push([msg]);
-            console.log(`🔥  pageerror at ${route}:`, msg, msg.type, msg.message);
+            console.log(`🔥  pageerror at ${route}:`, msg);
         }
         if (e.message !== "Event" && !e.message.startsWith("TypeError")) {
             onError && onError();
@@ -174,13 +174,14 @@ const crawl = async (opt) => {
     process.on("unhandledRejection", onUnhandledRejection);
     let enqueued = 0;
     let processed = 0;
+    let added404 = false;
     let allLogs = [];
     const basePathHostname = (_a = options.basePath) === null || _a === void 0 ? void 0 : _a.replace(/https?:\/\//, "");
     // use Set instead
     const uniqueUrls = new Set();
     const sourcemapStore = {};
     const cluster = await puppeteer_cluster_1.Cluster.launch({
-        concurrency: puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER,
+        concurrency: options.concurrencyType,
         maxConcurrency: options.concurrency,
         puppeteerOptions: {
             headless: options.headless,
@@ -210,8 +211,8 @@ const crawl = async (opt) => {
             uniqueUrls.add(newUrl);
             enqueued++;
             await cluster.queue(newUrl);
-            // queue.write(newUrl);
-            if (enqueued == 2 && options.crawl) {
+            if (enqueued > 1 && options.crawl && !added404) {
+                added404 = true;
                 await addToQueue(`${basePath}${publicPath}/404.html`);
             }
         }
@@ -232,7 +233,6 @@ const crawl = async (opt) => {
         const logs = [];
         if (!shuttingDown && !skipExistingFile) {
             try {
-                // const page = await browser.newPage();
                 // @ts-ignore
                 await page._client.send("ServiceWorker.disable");
                 await page.setCacheEnabled(options.puppeteer.cache);
@@ -273,7 +273,7 @@ const crawl = async (opt) => {
                     await page.waitForTimeout(options.waitFor);
                 if (options.crawl) {
                     const links = await (0, exports.getLinks)({ page });
-                    await Promise.all(links.forEach(addToQueue));
+                    await Promise.all(links.map(addToQueue));
                 }
                 afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
                 await page.close();
@@ -297,7 +297,6 @@ const crawl = async (opt) => {
         allLogs.push({ url: pageUrl, logs });
         if (enqueued === processed) {
             streamClosed = true;
-            console.log("Closing cluster due to reaching queue length");
             await cluster.close();
         }
     };
@@ -306,11 +305,11 @@ const crawl = async (opt) => {
         await Promise.all(options.include.map(x => addToQueue(`${basePath}${x}`)));
     }
     await cluster.idle();
-    console.log("Closing cluster due to becoming idle (all pages closed)");
     await cluster.close();
     onEnd && onEnd();
-    if (shuttingDown)
+    if (shuttingDown) {
         throw "";
+    }
     return allLogs;
 };
 exports.crawl = crawl;

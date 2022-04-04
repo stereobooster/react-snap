@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.defaults = exports.defaultOptions = void 0;
+const puppeteer_cluster_1 = require("puppeteer-cluster");
 exports.defaultOptions = {
     //# stable configurations
     port: 45678,
@@ -8,6 +9,7 @@ exports.defaultOptions = {
     source: "build",
     destination: null,
     concurrency: 4,
+    concurrencyType: puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER,
     include: ["/"],
     exclude: [],
     userAgent: "ReactSnap",

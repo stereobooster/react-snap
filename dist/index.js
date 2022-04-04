@@ -730,7 +730,6 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
                 }, []);
                 fs.writeFileSync(`${destinationDir}/http2-push-manifest.json`, JSON.stringify(manifest));
             }
-            console.log("Snapshots run finished");
         }
     });
     return [paths, allLogs];
