@@ -1,13 +1,29 @@
 {
-  "name": "react-snap",
-  "version": "1.23.0",
+  "name": "react-snap-typed",
+  "version": "1.24.0",
   "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "dist/index.js",
+  "bin": {
+    "react-snap": "dist/run.js"
+  },
+  "files": [
+    "dist/",
+    "vendor/"
+  ],
   "author": "stereobooster",
+  "contributors": ["jan-rycko"],
   "license": "MIT",
-  "repository": "stereobooster/react-snap",
+  "repository": "jan-rycko/react-snap",
   "engines": {
     "node": ">= 12.22.11"
+  },
+  "scripts": {
+    "toc": "yarn run markdown-toc -i doc/recipes.md",
+    "pretest": "npm run build",
+    "test": "jest",
+    "build": "tsc",
+    "prepublish": "npm run build",
+    "precommit": "prettier --write {*,src/*}.{js,json,css}"
   },
   "dependencies": {
     "clean-css": "4.2.1",
@@ -33,22 +49,5 @@
     "prettier": "1.18.2",
     "ts-jest": "^27.1.4",
     "typescript": "^4.6.3"
-  },
-  "scripts": {
-    "toc": "yarn run markdown-toc -i doc/recipes.md",
-    "pretest": "npm run build",
-    "test": "jest",
-    "build": "tsc",
-    "precommit": "prettier --write {*,src/*}.{js,json,css}"
-  },
-  "bin": {
-    "react-snap": "dist/run.js"
-  },
-  "files": [
-    "src/index.ts",
-    "src/run.ts",
-    "dist/",
-    "src/",
-    "vendor/"
-  ]
+  }
 }
