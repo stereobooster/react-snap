@@ -372,7 +372,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
   waitForIdle = makeCancelable(cluster.idle());
 
   try {
-    await waitForIdle;
+    await waitForIdle.promise;
     await cluster.close();
   } finally {
     onEnd && onEnd();
