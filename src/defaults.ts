@@ -64,6 +64,7 @@ export const defaultOptions: IReactSnapOptions = {
   fileName: "index",
   crawl: true,
   waitFor: false,
+  cleanup: undefined,
   externalServer: false,
   //# even more workarounds
   removeStyleTags: false,
@@ -74,7 +75,7 @@ export const defaultOptions: IReactSnapOptions = {
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
-  removeScriptTags: false
+  removeScriptTags: false,
 };
 
 /**

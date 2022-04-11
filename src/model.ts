@@ -75,6 +75,7 @@ export interface IReactSnapOptions {
   asyncScriptTags?: boolean,
   removeScriptTags?: boolean,
   ignoreHTTPSErrors?: boolean,
+  cleanup?(): void
 
   /**
    * @deprecated preloadResources option deprecated. Use preloadImages or cacheAjaxRequests
