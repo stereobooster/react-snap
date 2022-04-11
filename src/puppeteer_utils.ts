@@ -354,6 +354,8 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
             }
         }
       } finally {
+        processed++;
+        
         await page.close()
 
         if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
@@ -361,10 +363,10 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         }
       }
     } else {
+      processed++;
       // this message creates a lot of noise if crawling enabled
       console.log(`🚧  skipping (${processed + 1}/${enqueued}) ${route}`);
     }
-    processed++;
     allLogs.push({url: pageUrl, logs});
 
     if (enqueued === processed) {

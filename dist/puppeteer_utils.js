@@ -312,6 +312,7 @@ const crawl = async (opt) => {
                 }
             }
             finally {
+                processed++;
                 await page.close();
                 if (options.concurrencyType === puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER) {
                     await page.browser().close();
@@ -319,10 +320,10 @@ const crawl = async (opt) => {
             }
         }
         else {
+            processed++;
             // this message creates a lot of noise if crawling enabled
             console.log(`🚧  skipping (${processed + 1}/${enqueued}) ${route}`);
         }
-        processed++;
         allLogs.push({ url: pageUrl, logs });
         if (enqueued === processed) {
             streamClosed = true;
