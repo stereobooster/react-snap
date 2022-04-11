@@ -57,6 +57,7 @@ exports.defaultOptions = {
     // Experimental. This config stands for two strategies inline and critical.
     // TODO: inline strategy can contain errors, like, confuse relative urls
     inlineCss: false,
+    warnOnInlineCssKb: 20,
     processCss: undefined,
     leaveLinkCss: undefined,
     //# feature creeps to generate screenshots

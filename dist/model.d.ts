@@ -51,6 +51,7 @@ export interface IReactSnapOptions {
     preconnectThirdParty?: boolean;
     minifyCss?: CleanCSS.OptionsOutput | CleanCSS.OptionsPromise | false;
     inlineCss?: boolean;
+    warnOnInlineCssKb?: number;
     leaveLinkCss?: boolean;
     processCss?(page: Page, css: string, html: string, route: string, options: IReactSnapOptions): Promise<string>;
     saveAs?: "html" | "png" | "jpeg" | ("html" | "png" | "jpeg")[];

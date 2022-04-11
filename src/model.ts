@@ -57,6 +57,7 @@ export interface IReactSnapOptions {
   // Experimental. This config stands for two strategies inline and critical. Inline strategy can contain errors, like, confuse relative urls.
   minifyCss?: CleanCSS.OptionsOutput | CleanCSS.OptionsPromise | false,
   inlineCss?: boolean,
+  warnOnInlineCssKb?: number,
   leaveLinkCss?: boolean
   processCss?(page: Page, css: string, html: string, route: string, options: IReactSnapOptions): Promise<string>
   // feature creeps to generate screenshots

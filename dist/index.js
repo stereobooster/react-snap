@@ -158,7 +158,6 @@ const cleanPreloads = async (opt, logs) => {
         });
     }, unnecessaryPreloads);
 };
-const twentyKb = 20 * 1024;
 /**
  * @param {{
      * page: Page,
@@ -226,10 +225,11 @@ const inlineCss = async (opt) => {
             css = await options.processCss(page, css, content, route, options);
             cssSize = Buffer.byteLength(css, "utf8");
         }
-        if (cssSize > twentyKb)
+        if (cssSize > (options.warnOnInlineCssKb * 1024)) {
             console.log(`⚠️  warning: inlining CSS more than 20kb (${(0, lodash_1.round)(cssSize /
                 1024, 2)}kb, ${(0, lodash_1.round)(allCssSize /
                 1024, 2)}kb before processing, ${cssStrategy}, ${route})`);
+        }
         if (cssStrategy === "critical") {
             await page.evaluate((css, preloadPolyfill) => {
                 const head = document.head || document.getElementsByTagName("head")[0], style = document.createElement("style");

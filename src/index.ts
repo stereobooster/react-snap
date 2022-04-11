@@ -174,8 +174,6 @@ const cleanPreloads = async (opt, logs) => {
   }, unnecessaryPreloads);
 };
 
-const twentyKb = 20 * 1024;
-
 /**
  * @param {{
      * page: Page,
@@ -254,12 +252,13 @@ const inlineCss = async (opt: IInlineCssParams) => {
           cssSize = Buffer.byteLength(css, "utf8");
       }
 
-      if (cssSize > twentyKb)
+      if (cssSize > (options.warnOnInlineCssKb * 1024)) {
         console.log(
           `⚠️  warning: inlining CSS more than 20kb (${round(cssSize /
             1024, 2)}kb, ${round(allCssSize /
             1024, 2)}kb before processing, ${cssStrategy}, ${route})`
         );
+      }
 
       if (cssStrategy === "critical") {
         await page.evaluate(

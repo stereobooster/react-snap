@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.crawl = exports.getLinks = exports.enableLogging = exports.skipThirdPartyRequests = void 0;
+exports.crawl = exports.makeCancelable = exports.getLinks = exports.enableLogging = exports.skipThirdPartyRequests = void 0;
 const puppeteer_cluster_1 = require("puppeteer-cluster");
 const url_1 = __importDefault(require("url"));
 const path_1 = __importDefault(require("path"));
@@ -88,14 +88,14 @@ const enableLogging = (opt, logs = []) => {
                 .catch(e2 => {
                 const msg = e;
                 logs.push([msg]);
-                console.log(`🔥  pageerror at ${route}:`, msg);
+                console.log(`🔥  pageerror at ${route}:`, e.stack || e.message);
                 console.log(`️️️⚠️  warning at ${route} (error in source maps):`, e2.message);
             });
         }
         else {
             const msg = e;
             logs.push([msg]);
-            console.log(`🔥  pageerror at ${route}:`, msg);
+            console.log(`🔥  pageerror at ${route}:`, e.stack || e.message);
         }
         if (e.message !== "Event" && !e.message.startsWith("TypeError")) {
             onError && onError();
@@ -138,6 +138,25 @@ const getLinks = async (opt) => {
     return anchors.concat(iframes);
 };
 exports.getLinks = getLinks;
+const makeCancelable = (promise) => {
+    let hasCanceled = false;
+    const wrappedPromise = new Promise((resolve, reject) => {
+        promise === null || promise === void 0 ? void 0 : promise.then(val => hasCanceled ? reject({ isCanceled: true }) : resolve(val), error => hasCanceled ? reject({ isCanceled: true }) : reject(error));
+    });
+    return {
+        promise: wrappedPromise,
+        cancel() {
+            hasCanceled = true;
+            wrappedPromise.catch(e => {
+                if (e.isCanceled) {
+                    return;
+                }
+                throw e;
+            });
+        },
+    };
+};
+exports.makeCancelable = makeCancelable;
 /**
  * @typedef UrlLogs
  * @property {string} url True if the token is valid.
@@ -217,6 +236,7 @@ const crawl = async (opt) => {
             }
         }
     };
+    let waitForIdle = (0, exports.makeCancelable)(Promise.resolve());
     /**
      * @param {string} pageUrl
      * @returns {Promise<UrlLogs>}
@@ -298,15 +318,21 @@ const crawl = async (opt) => {
         if (enqueued === processed) {
             streamClosed = true;
             await cluster.close();
+            waitForIdle.cancel();
         }
     };
     await cluster.task(async ({ page, data: pageUrl }) => await fetchPage(page, pageUrl));
     if (options.include) {
         await Promise.all(options.include.map(x => addToQueue(`${basePath}${x}`)));
     }
-    await cluster.idle();
-    await cluster.close();
-    onEnd && onEnd();
+    waitForIdle = (0, exports.makeCancelable)(cluster.idle());
+    try {
+        await waitForIdle;
+        await cluster.close();
+    }
+    finally {
+        onEnd && onEnd();
+    }
     if (shuttingDown) {
         throw "";
     }

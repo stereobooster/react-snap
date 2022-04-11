@@ -14,6 +14,11 @@ export declare const enableLogging: (opt: IEnableLoggingOptions, logs?: any[]) =
  * @return {Promise<Array<string>>}
  */
 export declare const getLinks: (opt: any) => Promise<any>;
+interface ICancelablePromise<R extends any = any> {
+    promise: Promise<R>;
+    cancel(): void;
+}
+export declare const makeCancelable: <R extends unknown = any>(promise: Promise<R>) => ICancelablePromise<R>;
 /**
  * @typedef UrlLogs
  * @property {string} url True if the token is valid.
@@ -26,3 +31,4 @@ export declare const getLinks: (opt: any) => Promise<any>;
  * @return {Promise<Array<UrlLogs>>}
  */
 export declare const crawl: (opt: ICrawlParams) => Promise<IReactSnapRunLogs[]>;
+export {};

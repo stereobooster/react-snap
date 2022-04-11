@@ -89,7 +89,7 @@ export const enableLogging = (opt: IEnableLoggingOptions, logs = []) => {
         .catch(e2 => {
           const msg = e;
           logs.push([msg])
-          console.log(`🔥  pageerror at ${route}:`, msg);
+          console.log(`🔥  pageerror at ${route}:`, e.stack || e.message);
           console.log(
             `️️️⚠️  warning at ${route} (error in source maps):`,
             e2.message
