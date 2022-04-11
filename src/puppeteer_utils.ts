@@ -358,6 +358,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
 
     if (enqueued === processed) {
       streamClosed = true;
+      console.log("Closing cluster and canceling waitForIdle as enqueued", enqueued, " = ", processed);
       await cluster.close();
       waitForIdle.cancel();
     }
