@@ -82,10 +82,10 @@ const enableLogging = (opt, logs = []) => {
                 const stackRows = result.split("\n");
                 const puppeteerLine = stackRows.findIndex(x => x.includes("puppeteer")) ||
                     stackRows.length - 1;
-                const stackToUse = stackRows.length ?
+                const stackToUse = stackRows.length && puppeteerLine > 0 ?
                     `${(e.stack || e.message).split("\n")[0] + "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
                     : (e.stack || e.message);
-                const msg = `🔥  pageerror at ${route}: ${stackToUse}`;
+                const msg = `🔥  pageerror stack at ${route}: ${stackToUse}`;
                 logs.push([msg]);
                 console.log(msg);
             })
@@ -99,7 +99,7 @@ const enableLogging = (opt, logs = []) => {
         else {
             const msg = e;
             logs.push([msg]);
-            console.log(`🔥  pageerror at ${route}:`, e.stack || e.message);
+            console.log(`🔥  pageerror pure at ${route}:`, e.stack || e.message);
         }
         if (e.message !== "Event" && !e.message.startsWith("TypeError")) {
             onError && onError();
@@ -300,7 +300,8 @@ const crawl = async (opt) => {
                     await Promise.all(links.map(addToQueue));
                 }
                 afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
-                console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route})`);
+                const extensions = Array.isArray(options.saveAs) ? options.saveAs : [options.saveAs].filter(v => v);
+                console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route}) – saved ${options.fileName} as ${extensions.join(", ")}`);
             }
             catch (e) {
                 if (!shuttingDown) {
