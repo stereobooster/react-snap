@@ -15,6 +15,7 @@ import minimalcss from "minimalcss";
 import CleanCSS from "clean-css";
 import { round } from "lodash";
 import {IInlineCssParams, IReactSnapOptions, ISaveAsParams, ReactSnapRunInfo, ICrawlParams} from "./model";
+import { version } from "../package.json";
 
 
 const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
@@ -678,7 +679,7 @@ export const run = async (userOptions: IReactSnapOptions, { fs } = { fs: nativeF
   const { http2PushManifest } = options;
   const http2PushManifestItems = {};
 
-  console.log(`Crawling paths on ${basePath}${publicPath}`)
+  console.log(`Crawling paths on ${basePath}${publicPath} with react-snap, version: ${version}`)
   let redirects = [];
   let paths = [];
 
