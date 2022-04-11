@@ -368,7 +368,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
       console.log("Cluster closed, canceling waitForIdle");
       waitForIdle.cancel();
       console.log("Forcing chrome to exit");
-      shell.exec("killall -wq nginx")
+      shell.exec("killall -u jenkins -wq chrome")
     }
   };
 

@@ -326,7 +326,7 @@ const crawl = async (opt) => {
             console.log("Cluster closed, canceling waitForIdle");
             waitForIdle.cancel();
             console.log("Forcing chrome to exit");
-            shelljs_1.default.exec("killall -wq nginx");
+            shelljs_1.default.exec("killall -u jenkins -wq chrome");
         }
     };
     await cluster.task(async ({ page, data: pageUrl }) => await fetchPage(page, pageUrl));
