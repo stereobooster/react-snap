@@ -322,6 +322,7 @@ const crawl = async (opt) => {
             streamClosed = true;
             console.log("Closing cluster and canceling waitForIdle as enqueued", enqueued, "= processed", processed);
             await cluster.close();
+            console.log("Cluster closed, canceling waitForIdle");
             waitForIdle.cancel();
         }
     };
@@ -338,6 +339,8 @@ const crawl = async (opt) => {
         if (!e.isCanceled) {
             throw e;
         }
+        console.log("Canceled waitForIdle successfully.");
+        return allLogs;
     }
     finally {
         onEnd && onEnd();

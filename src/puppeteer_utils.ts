@@ -364,6 +364,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
       streamClosed = true;
       console.log("Closing cluster and canceling waitForIdle as enqueued", enqueued, "= processed", processed);
       await cluster.close();
+      console.log("Cluster closed, canceling waitForIdle");
       waitForIdle.cancel();
     }
   };
@@ -383,6 +384,9 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
     if (!e.isCanceled) {
       throw e;
     }
+
+    console.log("Canceled waitForIdle successfully.")
+    return allLogs;
   } finally {
     onEnd && onEnd();
   }
