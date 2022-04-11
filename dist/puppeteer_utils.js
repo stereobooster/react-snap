@@ -255,6 +255,7 @@ const crawl = async (opt) => {
             skipExistingFile = fs_1.default.existsSync(filePath);
         }
         const logs = [];
+        let crawled = false;
         if (!shuttingDown && !skipExistingFile) {
             try {
                 // @ts-ignore
@@ -300,8 +301,7 @@ const crawl = async (opt) => {
                     await Promise.all(links.map(addToQueue));
                 }
                 afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
-                const extensions = Array.isArray(options.saveAs) ? options.saveAs : [options.saveAs].filter(v => v);
-                console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route}) – saved ${extensions.map(e => `${options.fileName}.${e}`).join(", ")}`);
+                crawled = true;
             }
             catch (e) {
                 if (!shuttingDown) {
@@ -312,7 +312,6 @@ const crawl = async (opt) => {
                 }
             }
             finally {
-                processed++;
                 await page.close();
                 if (options.concurrencyType === puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER) {
                     await page.browser().close();
@@ -320,11 +319,15 @@ const crawl = async (opt) => {
             }
         }
         else {
-            processed++;
             // this message creates a lot of noise if crawling enabled
             console.log(`🚧  skipping (${processed + 1}/${enqueued}) ${route}`);
         }
+        processed++;
         allLogs.push({ url: pageUrl, logs });
+        if (crawled) {
+            const extensions = Array.isArray(options.saveAs) ? options.saveAs : [options.saveAs].filter(v => v);
+            console.log(`✅  crawled ${processed} out of ${enqueued} (${route}) – saved ${extensions.map(e => `${options.fileName}.${e}`).join(", ")}`);
+        }
         if (enqueued === processed) {
             streamClosed = true;
             console.log("Closing cluster and canceling waitForIdle as enqueued", enqueued, "= processed", processed);

@@ -297,6 +297,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
     }
 
     const logs = [];
+    let crawled = false;
 
     if (!shuttingDown && !skipExistingFile) {
       try {
@@ -342,10 +343,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         }
         afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
 
-        const extensions = Array.isArray(options.saveAs) ? options.saveAs : [options.saveAs].filter(v => v)
-
-        console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route}) – saved ${extensions.map(e => `${options.fileName}.${e}`).join(", ")}`);
-
+        crawled = true;
       } catch (e) {
         if (!shuttingDown) {
             console.log(`🔥 Crawl error at ${route}`, e);
@@ -354,20 +352,25 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
             }
         }
       } finally {
-        processed++;
-
         await page.close()
-
+        
         if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
           await page.browser().close()
         }
       }
     } else {
-      processed++;
       // this message creates a lot of noise if crawling enabled
       console.log(`🚧  skipping (${processed + 1}/${enqueued}) ${route}`);
     }
+
+    processed++;
     allLogs.push({url: pageUrl, logs});
+
+    if (crawled) {
+      const extensions = Array.isArray(options.saveAs) ? options.saveAs : [options.saveAs].filter(v => v)
+
+      console.log(`✅  crawled ${processed} out of ${enqueued} (${route}) – saved ${extensions.map(e => `${options.fileName}.${e}`).join(", ")}`);
+    }
 
     if (enqueued === processed) {
       streamClosed = true;
