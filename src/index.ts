@@ -15,8 +15,10 @@ import minimalcss from "minimalcss";
 import CleanCSS from "clean-css";
 import { round } from "lodash";
 import {IInlineCssParams, IReactSnapOptions, ISaveAsParams, ReactSnapRunInfo, ICrawlParams} from "./model";
-import { version } from "../package.json";
 
+const {
+  version
+} = require(`../package.json`);
 
 const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
 

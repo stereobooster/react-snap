@@ -19,6 +19,7 @@ const url_1 = __importDefault(require("url"));
 const minimalcss_1 = __importDefault(require("minimalcss"));
 const clean_css_1 = __importDefault(require("clean-css"));
 const lodash_1 = require("lodash");
+const { version } = require(`../package.json`);
 const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
 /**
  *
@@ -559,7 +560,7 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
     const ajaxCache = {};
     const { http2PushManifest } = options;
     const http2PushManifestItems = {};
-    console.log(`Crawling paths on ${basePath}${publicPath}`);
+    console.log(`Crawling paths on ${basePath}${publicPath} with react-snap, version: ${version}`);
     let redirects = [];
     let paths = [];
     const allLogs = await (0, puppeteer_utils_1.crawl)({

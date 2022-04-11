@@ -317,6 +317,7 @@ const crawl = async (opt) => {
         allLogs.push({ url: pageUrl, logs });
         if (enqueued === processed) {
             streamClosed = true;
+            console.log("Closing cluster and canceling waitForIdle as enqueued", enqueued, " = ", processed);
             await cluster.close();
             waitForIdle.cancel();
         }
@@ -327,7 +328,7 @@ const crawl = async (opt) => {
     }
     waitForIdle = (0, exports.makeCancelable)(cluster.idle());
     try {
-        await waitForIdle;
+        await waitForIdle.promise;
         await cluster.close();
     }
     finally {
