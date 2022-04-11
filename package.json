@@ -1,6 +1,6 @@
 {
   "name": "react-snap-typed",
-  "version": "1.26.7",
+  "version": "1.26.8",
   "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "dist/index.js",
   "bin": {
@@ -11,7 +11,9 @@
     "vendor/"
   ],
   "author": "stereobooster",
-  "contributors": ["jan-rycko"],
+  "contributors": [
+    "jan-rycko"
+  ],
   "license": "MIT",
   "repository": "jan-rycko/react-snap",
   "engines": {
@@ -36,6 +38,7 @@
     "puppeteer-cluster": "^0.23.0",
     "serve-static": "1.14.1",
     "setimmediate": "^1.0.5",
+    "shelljs": "^0.8.5",
     "sourcemapped-stacktrace-node": "2.1.8"
   },
   "devDependencies": {
@@ -43,6 +46,7 @@
     "@types/express": "^4.17.13",
     "@types/html-minifier-terser": "^6.1.0",
     "@types/jest": "^27.4.1",
+    "@types/shelljs": "^0.8.11",
     "dev-null-stream": "0.0.1",
     "jest": "^27.5.1",
     "markdown-toc": "1.2.0",

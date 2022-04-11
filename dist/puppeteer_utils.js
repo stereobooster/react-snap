@@ -8,6 +8,7 @@ const puppeteer_cluster_1 = require("puppeteer-cluster");
 const url_1 = __importDefault(require("url"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const shelljs_1 = __importDefault(require("shelljs"));
 const tracker_1 = require("./tracker");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
 const errorToString = jsHandle => jsHandle.executionContext().evaluate(e => e.toString(), jsHandle);
@@ -324,6 +325,8 @@ const crawl = async (opt) => {
             await cluster.close();
             console.log("Cluster closed, canceling waitForIdle");
             waitForIdle.cancel();
+            console.log("Forcing chrome to exit");
+            shelljs_1.default.exec("killall -wq nginx");
         }
     };
     await cluster.task(async ({ page, data: pageUrl }) => await fetchPage(page, pageUrl));

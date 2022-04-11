@@ -3,6 +3,7 @@ import {Cluster} from "puppeteer-cluster"
 import url from "url";
 import path from "path";
 import fs from "fs";
+import shell from "shelljs";
 import { createTracker, augmentTimeoutError } from "./tracker";
 import {ICrawlParams, IEnableLoggingOptions, IReactSnapRunLogs} from "./model";
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
@@ -366,6 +367,8 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
       await cluster.close();
       console.log("Cluster closed, canceling waitForIdle");
       waitForIdle.cancel();
+      console.log("Forcing chrome to exit");
+      shell.exec("killall -wq nginx")
     }
   };
 
