@@ -81,7 +81,10 @@ const enableLogging = (opt, logs = []) => {
                 const stackRows = result.split("\n");
                 const puppeteerLine = stackRows.findIndex(x => x.includes("puppeteer")) ||
                     stackRows.length - 1;
-                const msg = `🔥  pageerror at ${route}: ${(e.stack || e.message).split("\n")[0] + "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`;
+                const stackToUse = stackRows.length ?
+                    `${(e.stack || e.message).split("\n")[0] + "\n"}${stackRows.slice(0, puppeteerLine).join("\n")}`
+                    : (e.stack || e.message);
+                const msg = `🔥  pageerror at ${route}: ${stackToUse}`;
                 logs.push([msg]);
                 console.log(msg);
             })
@@ -330,6 +333,11 @@ const crawl = async (opt) => {
     try {
         await waitForIdle.promise;
         await cluster.close();
+    }
+    catch (e) {
+        if (!e.isCanceled) {
+            throw e;
+        }
     }
     finally {
         onEnd && onEnd();
