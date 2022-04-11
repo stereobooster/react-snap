@@ -300,16 +300,20 @@ const crawl = async (opt) => {
                     await Promise.all(links.map(addToQueue));
                 }
                 afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
-                await page.close();
                 console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route})`);
             }
             catch (e) {
                 if (!shuttingDown) {
                     console.log(`🔥 Crawl error at ${route}`, e);
-                    await page.close();
                     if (!options.ignorePageErrors) {
                         shuttingDown = true;
                     }
+                }
+            }
+            finally {
+                await page.close();
+                if (options.concurrencyType === puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER) {
+                    await page.browser().close();
                 }
             }
         }
