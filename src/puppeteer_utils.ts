@@ -98,7 +98,7 @@ export const enableLogging = (opt: IEnableLoggingOptions, logs = []) => {
     } else {
       const msg = e;
       logs.push([msg])
-      console.log(`🔥  pageerror at ${route}:`, msg);
+      console.log(`🔥  pageerror at ${route}:`, e.stack || e.message);
     }
 
     if (e.message !== "Event" && !e.message.startsWith("TypeError")) {
@@ -145,6 +145,37 @@ export const getLinks = async opt => {
     Array.from(document.querySelectorAll("iframe")).map(iframe => iframe.src)
   );
   return anchors.concat(iframes);
+};
+interface ICancelablePromise<R extends any = any> {
+  promise: Promise<R>
+
+  cancel(): void
+}
+
+export const makeCancelable = <R extends any = any>(promise: Promise<R>): ICancelablePromise<R> => {
+  let hasCanceled = false;
+
+  const wrappedPromise = new Promise<R>((resolve, reject) => {
+      promise
+          ?.then(
+              val => hasCanceled ? reject({ isCanceled: true }) : resolve(val),
+              error => hasCanceled ? reject({ isCanceled: true }) : reject(error),
+          )
+  });
+
+  return {
+      promise: wrappedPromise,
+      cancel() {
+          hasCanceled = true;
+          wrappedPromise.catch(e => {
+              if (e.isCanceled) {
+                  return;
+              }
+
+              throw e;
+          })
+      },
+  };
 };
 
 /**
@@ -243,6 +274,8 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
     }
   };
 
+  let waitForIdle = makeCancelable(Promise.resolve());
+
   /**
    * @param {string} pageUrl
    * @returns {Promise<UrlLogs>}
@@ -304,7 +337,9 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         }
         afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
         await page.close();
+
         console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route})`);
+
       } catch (e) {
         if (!shuttingDown) {
             console.log(`🔥 Crawl error at ${route}`, e);
@@ -324,6 +359,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
     if (enqueued === processed) {
       streamClosed = true;
       await cluster.close();
+      waitForIdle.cancel();
     }
   };
 
@@ -333,9 +369,14 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
     await Promise.all(options.include.map(x => addToQueue(`${basePath}${x}`)));
   }
 
-  await cluster.idle();
-  await cluster.close();
-  onEnd && onEnd();
+  waitForIdle = makeCancelable(cluster.idle());
+
+  try {
+    await waitForIdle;
+    await cluster.close();
+  } finally {
+    onEnd && onEnd();
+  }
 
   if (shuttingDown) {
     throw "";
