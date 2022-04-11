@@ -301,7 +301,7 @@ const crawl = async (opt) => {
                 }
                 afterFetch && (await afterFetch({ page, route, addToQueue, logs }));
                 const extensions = Array.isArray(options.saveAs) ? options.saveAs : [options.saveAs].filter(v => v);
-                console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route}) – saved ${options.fileName} as ${extensions.join(", ")}`);
+                console.log(`✅  crawled ${processed + 1} out of ${enqueued} (${route}) – saved ${extensions.map(e => `${options.fileName}.${e}`).join(", ")}`);
             }
             catch (e) {
                 if (!shuttingDown) {
