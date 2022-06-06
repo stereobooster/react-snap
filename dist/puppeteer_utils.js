@@ -313,7 +313,13 @@ const crawl = async (opt) => {
             finally {
                 await page.close();
                 if (options.concurrencyType === puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER) {
-                    await page.browser().close();
+                    const browser = page.browser();
+                    if (options.cleanupBrowser) {
+                        await options.cleanupBrowser(browser);
+                    }
+                    else {
+                        await browser.close();
+                    }
                 }
             }
         }

@@ -68,6 +68,7 @@ export interface IReactSnapOptions {
     removeScriptTags?: boolean;
     ignoreHTTPSErrors?: boolean;
     cleanup?(): void;
+    cleanupBrowser?(browser: puppeteer.Browser): Promise<void>;
     /**
      * @deprecated preloadResources option deprecated. Use preloadImages or cacheAjaxRequests
      */

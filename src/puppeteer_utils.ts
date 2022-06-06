@@ -355,7 +355,13 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         await page.close()
         
         if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
-          await page.browser().close()
+          const browser = page.browser();
+
+          if (options.cleanupBrowser) {
+              await options.cleanupBrowser(browser);
+          } else {
+              await browser.close();
+          }
         }
       }
     } else {
