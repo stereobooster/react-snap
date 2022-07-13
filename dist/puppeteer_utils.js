@@ -234,7 +234,7 @@ const crawl = async (opt) => {
     const uniqueUrls = new Set();
     const sourcemapStore = {};
     const cluster = await puppeteer_cluster_1.Cluster.launch({
-        puppeteer: puppeteerWithExtra,
+        // puppeteer: puppeteerWithExtra,
         concurrency: options.concurrencyType,
         maxConcurrency: options.concurrency,
         puppeteerOptions: {

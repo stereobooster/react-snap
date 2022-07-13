@@ -9,6 +9,7 @@ import shell from "shelljs";
 import { createTracker, augmentTimeoutError } from "./tracker";
 import {ICrawlParams, IEnableLoggingOptions, IReactSnapRunLogs} from "./model";
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
+
 const puppeteerWithExtra = addExtra(puppeteer as unknown as VanillaPuppeteer);
 puppeteerWithExtra.use(blockResourcesPlugin({
   blockedTypes: new Set(['websocket']),
@@ -249,7 +250,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
 
 
   const cluster = await Cluster.launch({
-    puppeteer: puppeteerWithExtra,
+    // puppeteer: puppeteerWithExtra,
     concurrency: options.concurrencyType,
     maxConcurrency: options.concurrency,
     puppeteerOptions: {
