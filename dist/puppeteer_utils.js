@@ -1,15 +1,46 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.crawl = exports.makeCancelable = exports.getLinks = exports.enableLogging = exports.skipThirdPartyRequests = void 0;
+const puppeteer_1 = __importStar(require("puppeteer"));
 const puppeteer_cluster_1 = require("puppeteer-cluster");
+const puppeteer_extra_1 = require("puppeteer-extra");
+const puppeteer_extra_plugin_block_resources_1 = __importDefault(require("puppeteer-extra-plugin-block-resources"));
 const url_1 = __importDefault(require("url"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const tracker_1 = require("./tracker");
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
+const puppeteerWithExtra = (0, puppeteer_extra_1.addExtra)(puppeteer_1.default);
+puppeteerWithExtra.use((0, puppeteer_extra_plugin_block_resources_1.default)({
+    blockedTypes: new Set(['websocket']),
+    interceptResolutionPriority: puppeteer_1.DEFAULT_INTERCEPT_RESOLUTION_PRIORITY,
+}));
 const errorToString = jsHandle => jsHandle.executionContext().evaluate(e => e.toString(), jsHandle);
 const objectToJson = jsHandle => jsHandle.jsonValue();
 /**
@@ -203,6 +234,7 @@ const crawl = async (opt) => {
     const uniqueUrls = new Set();
     const sourcemapStore = {};
     const cluster = await puppeteer_cluster_1.Cluster.launch({
+        puppeteer: puppeteerWithExtra,
         concurrency: options.concurrencyType,
         maxConcurrency: options.concurrency,
         puppeteerOptions: {

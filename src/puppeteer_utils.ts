@@ -1,5 +1,7 @@
-import puppeteer, {HTTPResponse} from "puppeteer";
+import puppeteer, {DEFAULT_INTERCEPT_RESOLUTION_PRIORITY, HTTPResponse, Puppeteer} from "puppeteer";
 import {Cluster} from "puppeteer-cluster"
+import { addExtra, VanillaPuppeteer } from "puppeteer-extra";
+import blockResourcesPlugin from "puppeteer-extra-plugin-block-resources"
 import url from "url";
 import path from "path";
 import fs from "fs";
@@ -7,6 +9,11 @@ import shell from "shelljs";
 import { createTracker, augmentTimeoutError } from "./tracker";
 import {ICrawlParams, IEnableLoggingOptions, IReactSnapRunLogs} from "./model";
 const mapStackTrace = require("sourcemapped-stacktrace-node").default;
+const puppeteerWithExtra = addExtra(puppeteer as unknown as VanillaPuppeteer);
+puppeteerWithExtra.use(blockResourcesPlugin({
+  blockedTypes: new Set(['websocket']),
+  interceptResolutionPriority: DEFAULT_INTERCEPT_RESOLUTION_PRIORITY,
+}))
 
 const errorToString = jsHandle =>
   jsHandle.executionContext().evaluate(e => e.toString(), jsHandle);
@@ -239,7 +246,10 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
   const uniqueUrls = new Set();
   const sourcemapStore = {};
 
+
+
   const cluster = await Cluster.launch({
+    puppeteer: puppeteerWithExtra,
     concurrency: options.concurrencyType,
     maxConcurrency: options.concurrency,
     puppeteerOptions: {
