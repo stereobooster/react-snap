@@ -6,16 +6,16 @@
 |-------------------------------|------------|----------------------------------------------|----------------------------------|--------------|----------------------------|
 | State                         | supported  | supported                                    | unsupported                      | unsupported  | experimental               |
 | DOM implementation            | puppeteer  | phantomjs-prebuilt                           | jsdom                            | nightmare    | puppeteer                  |
-| Doesn't depend on Webpack     | +          | -                                            | +                                | +            | +                          |
-| Doesn't depend on React       | +          | +                                            | -                                | +            | +                          |
-| Load performance optimisation | +          | -                                            | -                                | -            | +                          |
-| Zero-configuration            | +          | -                                            | +                                | -            | +                          |
-| Redux                         | +          | -                                            | +                                | -            | -                          |
-| Async components             | +          | -                                            | -                                | -            | +                          |
-| Webpack code splitting        | +          | [+][code-splitting]                          | -                                | -            | +                          |
-| `CSSStyleSheet.insertRule`    | +          | -                                            | -                                | -            | +                          |
-| blob urls                     | +          | ?                                            | -                                | -            | -                          |
-| All browser features          | +          | -                                            | -                                | ?            | +                          |
+| Doesn't depend on Webpack     | ✅          | ❌                                            | ✅                                | ✅            | ✅                          |
+| Doesn't depend on React       | ✅          | ✅                                            | ❌                                | ✅            | ✅                          |
+| Load performance optimisation | ✅          | ❌                                            | ❌                                | ❌            | ✅                          |
+| Zero-configuration            | ✅          | ❌                                            | ✅                                | ❌            | ✅                          |
+| Redux                         | ✅          | ❌                                            | ✅                                | ❌            | ❌                          |
+| Async components             | ✅          | ❌                                            | ❌                                | ❌            | ✅                          |
+| Webpack code splitting        | ✅          | [✅][code-splitting]                          | ❌                                | ❌            | ✅                          |
+| `CSSStyleSheet.insertRule`    | ✅          | ❌                                            | ❌                                | ❌            | ✅                          |
+| blob urls                     | ✅          | ❔                                            | ❌                                | ❌            | ❌                          |
+| All browser features          | ✅          | ❌                                            | ❌                                | ❔            | ✅                          |
 
 [prerender-spa-plugin]: https://github.com/chrisvfritz/prerender-spa-plugin
 [react-snapshot]: https://github.com/geelen/react-snapshot
