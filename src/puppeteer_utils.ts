@@ -191,7 +191,7 @@ export const makeCancelable = <R extends any = any>(promise: Promise<R>): ICance
   };
 };
 
-const crawledPage: Record<string, boolean> = {};
+const pageRetries: Record<string, number> = {};
 
 /**
  * @typedef UrlLogs
@@ -365,23 +365,30 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         crawled = true;
       } catch (e) {
         if (!shuttingDown) {
-            console.log(`🔥 Crawl error at ${route}`, e);
-            if (!options.ignorePageErrors) {
-                shuttingDown = true;
-            }
+          console.log(`🔥 Crawl error at ${route}`, e);
+
+          if ((options.pageRetry ?? 0) > (pageRetries[pageUrl] ?? 0)) {
+            pageRetries[pageUrl] = (pageRetries[pageUrl] ?? 0) + 1;
+            console.log(`⚠️ Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time`);
+            await addToQueue(pageUrl);
+          }
+
+          if (!options.ignorePageErrors) {
+              shuttingDown = true;
+          }
         }
       } finally {
         await page.close()
         
-        // if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
-        //   const browser = page.browser();
+        if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
+          const browser = page.browser();
 
-        //   if (options.cleanupBrowser) {
-        //       await options.cleanupBrowser(browser);
-        //   } else {
-        //       await browser.close();
-        //   }
-        // }
+          if (options.cleanupBrowser) {
+              await options.cleanupBrowser(browser);
+          } else {
+              await browser.close();
+          }
+        }
       }
     } else {
       // this message creates a lot of noise if crawling enabled

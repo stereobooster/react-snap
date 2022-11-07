@@ -71,6 +71,7 @@ export interface IReactSnapOptions {
   waitUntil?: PuppeteerLifeCycleEvent | PuppeteerLifeCycleEvent[],
   waitFor?: number | false,
   waitForResponse?(res: HTTPResponse): boolean
+  pageRetry?: number
   externalServer?: boolean,
   removeStyleTags?: boolean,
   preloadImages?: boolean,

@@ -191,7 +191,7 @@ const makeCancelable = (promise) => {
     };
 };
 exports.makeCancelable = makeCancelable;
-const crawledPage = {};
+const pageRetries = {};
 /**
  * @typedef UrlLogs
  * @property {string} url True if the token is valid.
@@ -278,7 +278,7 @@ const crawl = async (opt) => {
      * @returns {Promise<UrlLogs>}
      */
     const fetchPage = async (page, pageUrl) => {
-        var _a, _b;
+        var _a, _b, _c, _d, _e;
         const route = pageUrl.replace(basePath, "");
         let skipExistingFile = false;
         const routePath = route.replace(/\//g, path_1.default.sep);
@@ -344,6 +344,11 @@ const crawl = async (opt) => {
             catch (e) {
                 if (!shuttingDown) {
                     console.log(`🔥 Crawl error at ${route}`, e);
+                    if (((_c = options.pageRetry) !== null && _c !== void 0 ? _c : 0) > ((_d = pageRetries[pageUrl]) !== null && _d !== void 0 ? _d : 0)) {
+                        pageRetries[pageUrl] = ((_e = pageRetries[pageUrl]) !== null && _e !== void 0 ? _e : 0) + 1;
+                        console.log(`⚠️ Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time`);
+                        await addToQueue(pageUrl);
+                    }
                     if (!options.ignorePageErrors) {
                         shuttingDown = true;
                     }
@@ -351,14 +356,15 @@ const crawl = async (opt) => {
             }
             finally {
                 await page.close();
-                // if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
-                //   const browser = page.browser();
-                //   if (options.cleanupBrowser) {
-                //       await options.cleanupBrowser(browser);
-                //   } else {
-                //       await browser.close();
-                //   }
-                // }
+                if (options.concurrencyType === puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER) {
+                    const browser = page.browser();
+                    if (options.cleanupBrowser) {
+                        await options.cleanupBrowser(browser);
+                    }
+                    else {
+                        await browser.close();
+                    }
+                }
             }
         }
         else {
