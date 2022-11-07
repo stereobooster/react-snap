@@ -191,6 +191,8 @@ export const makeCancelable = <R extends any = any>(promise: Promise<R>): ICance
   };
 };
 
+const crawledPage: Record<string, boolean> = {};
+
 /**
  * @typedef UrlLogs
  * @property {string} url True if the token is valid.
@@ -371,15 +373,15 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
       } finally {
         await page.close()
         
-        if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
-          const browser = page.browser();
+        // if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
+        //   const browser = page.browser();
 
-          if (options.cleanupBrowser) {
-              await options.cleanupBrowser(browser);
-          } else {
-              await browser.close();
-          }
-        }
+        //   if (options.cleanupBrowser) {
+        //       await options.cleanupBrowser(browser);
+        //   } else {
+        //       await browser.close();
+        //   }
+        // }
       }
     } else {
       // this message creates a lot of noise if crawling enabled
