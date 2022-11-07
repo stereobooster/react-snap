@@ -314,6 +314,12 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
       try {
         // @ts-ignore
         await page._client.send("ServiceWorker.disable");
+        if (options.basicAuth) {
+          await page.setExtraHTTPHeaders({
+            Authorization: `Basic ${Buffer.from(`${options.basicAuth.username}:${options.basicAuth.password}`).toString('base64')}`
+          })
+        }
+
         await page.setCacheEnabled(options.puppeteer.cache);
         if (options.viewport) await page.setViewport(options.viewport);
         if (options.skipThirdPartyRequests) await skipThirdPartyRequests({ page, options, basePath });

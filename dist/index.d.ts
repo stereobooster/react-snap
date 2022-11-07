@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import nativeFs from "fs";
 import { IReactSnapOptions, ReactSnapRunInfo } from "./model";
 export declare const run: (userOptions: IReactSnapOptions, { fs }?: {

@@ -15,6 +15,10 @@ declare global {
 export interface IReactSnapOptions {
   port?: number | null,
   basePath?: string | null,
+  basicAuth?: {
+    username: string
+    password: string
+  }
   source?: string,
   destination?: string,
   concurrency?: number,
