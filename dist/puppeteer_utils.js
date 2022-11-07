@@ -277,6 +277,7 @@ const crawl = async (opt) => {
      * @returns {Promise<UrlLogs>}
      */
     const fetchPage = async (page, pageUrl) => {
+        var _a, _b;
         const route = pageUrl.replace(basePath, "");
         let skipExistingFile = false;
         const routePath = route.replace(/\//g, path_1.default.sep);
@@ -318,7 +319,7 @@ const crawl = async (opt) => {
                 const tracker = (0, tracker_1.createTracker)(page);
                 let responsePromise = Promise.resolve();
                 try {
-                    await page.goto(pageUrl, { waitUntil: "networkidle2" });
+                    await page.goto(pageUrl, { waitUntil: "networkidle2", timeout: (_b = (_a = options.puppeteer) === null || _a === void 0 ? void 0 : _a.timeout) !== null && _b !== void 0 ? _b : 30000 });
                     if (options.waitForResponse)
                         responsePromise = page.waitForResponse(options.waitForResponse, { timeout: 0 });
                 }

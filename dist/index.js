@@ -560,8 +560,7 @@ const run = async (userOptions, { fs } = { fs: fs_1.default }) => {
     const ajaxCache = {};
     const { http2PushManifest } = options;
     const http2PushManifestItems = {};
-    const hashedBasePath = basePath.includes("@") ? basePath.replace(/:[^:]*@/, ":********@") : basePath;
-    console.log(`Crawling paths on ${hashedBasePath}${publicPath} with react-snap version: ${version}`);
+    console.log(`Crawling paths on ${basePath}${publicPath} with react-snap version: ${version}`);
     let redirects = [];
     let paths = [];
     const allLogs = await (0, puppeteer_utils_1.crawl)({
