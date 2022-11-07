@@ -319,7 +319,7 @@ const crawl = async (opt) => {
                 const tracker = (0, tracker_1.createTracker)(page);
                 let responsePromise = Promise.resolve();
                 try {
-                    await page.goto(pageUrl, { waitUntil: "networkidle2", timeout: (_b = (_a = options.puppeteer) === null || _a === void 0 ? void 0 : _a.timeout) !== null && _b !== void 0 ? _b : 30000 });
+                    await page.goto(pageUrl, { waitUntil: ["load", "networkidle2"], timeout: (_b = (_a = options.puppeteer) === null || _a === void 0 ? void 0 : _a.timeout) !== null && _b !== void 0 ? _b : 30000 });
                     if (options.waitForResponse)
                         responsePromise = page.waitForResponse(options.waitForResponse, { timeout: 0 });
                 }

@@ -341,7 +341,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         const tracker = createTracker(page);
         let responsePromise: Promise<void | HTTPResponse> = Promise.resolve();
         try {
-          await page.goto(pageUrl, { waitUntil: "networkidle2", timeout: options.puppeteer?.timeout ?? 30000 });
+          await page.goto(pageUrl, { waitUntil: ["load", "networkidle2"], timeout: options.puppeteer?.timeout ?? 30000 });
 
           if (options.waitForResponse) responsePromise = page.waitForResponse(options.waitForResponse, {timeout: 0});
 
