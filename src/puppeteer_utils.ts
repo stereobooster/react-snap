@@ -268,7 +268,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
    * @param {string} newUrl
    * @returns {void}
    */
-  const addToQueue = async (newUrl: string) => {
+  const addToQueue = async (newUrl: string, notUnique?: boolean) => {
     const { hostname, search, hash, port, pathname } = url.parse(newUrl);
     newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
 
@@ -281,8 +281,8 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
     const isOnAppPort = (!port && !options.port) || (port && port.toString() === options.port.toString());
 
     if (exclude.filter(regex => regex.test(pathname)).length > 0) return;
-    if (basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
-      uniqueUrls.add(newUrl);
+    if (basePathHostname === hostname && isOnAppPort && (notUnique || !uniqueUrls.has(newUrl)) && !streamClosed) {
+      if (!notUnique) uniqueUrls.add(newUrl);
       enqueued++;
       await cluster.queue(newUrl);
       if (enqueued > 1 && options.crawl && !added404) {
@@ -368,7 +368,7 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
           if ((options.pageRetry ?? 0) > (pageRetries[pageUrl] ?? 0)) {
             pageRetries[pageUrl] = (pageRetries[pageUrl] ?? 0) + 1;
             console.log(`🔥 Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time after crawl error`, e);
-            await addToQueue(pageUrl);
+            await addToQueue(pageUrl, true);
           } else if (options.pageRetry) {
             console.log(`🔥 Crawl error at ${route} after trying ${options.pageRetry + 1} times`, e);
           } else {

@@ -250,7 +250,7 @@ const crawl = async (opt) => {
      * @param {string} newUrl
      * @returns {void}
      */
-    const addToQueue = async (newUrl) => {
+    const addToQueue = async (newUrl, notUnique) => {
         const { hostname, search, hash, port, pathname } = url_1.default.parse(newUrl);
         newUrl = newUrl.replace(`${search || ""}${hash || ""}`, "");
         // Ensures that only link on the same port are crawled
@@ -262,8 +262,9 @@ const crawl = async (opt) => {
         const isOnAppPort = (!port && !options.port) || (port && port.toString() === options.port.toString());
         if (exclude.filter(regex => regex.test(pathname)).length > 0)
             return;
-        if (basePathHostname === hostname && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
-            uniqueUrls.add(newUrl);
+        if (basePathHostname === hostname && isOnAppPort && (notUnique || !uniqueUrls.has(newUrl)) && !streamClosed) {
+            if (!notUnique)
+                uniqueUrls.add(newUrl);
             enqueued++;
             await cluster.queue(newUrl);
             if (enqueued > 1 && options.crawl && !added404) {
@@ -346,7 +347,7 @@ const crawl = async (opt) => {
                     if (((_c = options.pageRetry) !== null && _c !== void 0 ? _c : 0) > ((_d = pageRetries[pageUrl]) !== null && _d !== void 0 ? _d : 0)) {
                         pageRetries[pageUrl] = ((_e = pageRetries[pageUrl]) !== null && _e !== void 0 ? _e : 0) + 1;
                         console.log(`🔥 Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time after crawl error`, e);
-                        await addToQueue(pageUrl);
+                        await addToQueue(pageUrl, true);
                     }
                     else if (options.pageRetry) {
                         console.log(`🔥 Crawl error at ${route} after trying ${options.pageRetry + 1} times`, e);
