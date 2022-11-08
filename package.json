@@ -1,6 +1,6 @@
 {
   "name": "react-snap-typed",
-  "version": "1.26.26",
+  "version": "1.26.27",
   "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "dist/index.js",
   "bin": {

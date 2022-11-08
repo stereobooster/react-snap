@@ -365,12 +365,14 @@ export const crawl = async (opt: ICrawlParams): Promise<IReactSnapRunLogs[]> => 
         crawled = true;
       } catch (e) {
         if (!shuttingDown) {
-          console.log(`🔥 Crawl error at ${route}`, e);
-
           if ((options.pageRetry ?? 0) > (pageRetries[pageUrl] ?? 0)) {
             pageRetries[pageUrl] = (pageRetries[pageUrl] ?? 0) + 1;
-            console.log(`⚠️ Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time`);
+            console.log(`🔥 Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time after crawl error`, e);
             await addToQueue(pageUrl);
+          } else if (options.pageRetry) {
+            console.log(`🔥 Crawl error at ${route} after trying ${options.pageRetry + 1} times`, e);
+          } else {
+            console.log(`🔥 Crawl error at ${route}`, e);
           }
 
           if (!options.ignorePageErrors) {

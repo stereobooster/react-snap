@@ -343,11 +343,16 @@ const crawl = async (opt) => {
             }
             catch (e) {
                 if (!shuttingDown) {
-                    console.log(`🔥 Crawl error at ${route}`, e);
                     if (((_c = options.pageRetry) !== null && _c !== void 0 ? _c : 0) > ((_d = pageRetries[pageUrl]) !== null && _d !== void 0 ? _d : 0)) {
                         pageRetries[pageUrl] = ((_e = pageRetries[pageUrl]) !== null && _e !== void 0 ? _e : 0) + 1;
-                        console.log(`⚠️ Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time`);
+                        console.log(`🔥 Requesting retry for ${route} for the ${pageRetries[pageUrl]}. time after crawl error`, e);
                         await addToQueue(pageUrl);
+                    }
+                    else if (options.pageRetry) {
+                        console.log(`🔥 Crawl error at ${route} after trying ${options.pageRetry + 1} times`, e);
+                    }
+                    else {
+                        console.log(`🔥 Crawl error at ${route}`, e);
                     }
                     if (!options.ignorePageErrors) {
                         shuttingDown = true;
