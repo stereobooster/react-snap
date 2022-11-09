@@ -362,15 +362,14 @@ const crawl = async (opt) => {
             }
             finally {
                 await page.close();
-                if (options.concurrencyType === puppeteer_cluster_1.Cluster.CONCURRENCY_BROWSER) {
-                    const browser = page.browser();
-                    if (options.cleanupBrowser) {
-                        await options.cleanupBrowser(browser);
-                    }
-                    else {
-                        await browser.close();
-                    }
-                }
+                // if (options.concurrencyType === Cluster.CONCURRENCY_BROWSER) {
+                //   const browser = page.browser();
+                //   if (options.cleanupBrowser) {
+                //       await options.cleanupBrowser(browser);
+                //   } else {
+                //       await browser.close();
+                //   }
+                // }
             }
         }
         else {
