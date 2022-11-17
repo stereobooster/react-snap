@@ -139,6 +139,22 @@ Use `inlineCss: true` to enable this feature.
 
 TODO: as soon as this feature is stable, it should be enabled by default.
 
+### preloadImages
+
+Use `preloadImages: true` to enable this feature.
+
+Will add preload `<link rel="preload">` tags to the document head for images as described in [the preload critical assets guide of web.dev](https://web.dev/preload-critical-assets/).
+
+Note this only works for images that are self-hosted.
+
+### preloadFonts
+
+Use `preloadFonts: true` to enable this feature.
+
+Will add preload `<link rel="preload">` tags to the document head for fonts as described in [the preload critical assets guide of web.dev](https://web.dev/preload-critical-assets/).
+
+Note when using Google Fonts the react-snap `User-Agent` header will cause only `ttf` fonts to be preloaded. This can be avoided by setting `"userAgent": null` in your configuration. Alternatively you could self-host the `@font-face` declaration so that it will specify modern and fallback fonts regardless of the `User-Agent`.
+
 ## ⚠️ Caveats
 
 ### Async components
@@ -351,7 +367,7 @@ See [alternatives](doc/alternatives.md).
 ## Who uses it
 
 | [![cloud.gov.au](doc/who-uses-it/cloud.gov.au.png)](https://github.com/govau/cloud.gov.au/blob/0187dd78d8f1751923631d3ff16e0fbe4a82bcc6/www/ui/package.json#L29) | [![blacklane](doc/who-uses-it/blacklane.png)](http://m.blacklane.com/) | [![reformma](doc/who-uses-it/reformma.png)](http://reformma.com) |
-| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- | ---------------------------------------------------------------- |
 
 
 ## Contributing

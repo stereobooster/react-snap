@@ -164,7 +164,7 @@ describe("many pages", () => {
         `/${source}/2/index.html`, // with slash in the end
         `/${source}/3/index.html`, // ignores hash
         `/${source}/4/index.html`, // ignores query
-        `/${source}/5/index.html`, // link rel="alternate"
+        `/${source}/5/index.html` // link rel="alternate"
       ])
     );
   });
@@ -396,6 +396,21 @@ describe("preloadImages", () => {
   });
 });
 
+describe("preloadFonts", () => {
+  const source = "tests/examples/other";
+  const include = ["/with-font.html"];
+  const { fs, filesCreated, content } = mockFs();
+  beforeAll(() =>
+    snapRun(fs, { source, include, preloadFonts: true, userAgent: null })
+  );
+  test("adds <link rel=preconnect>", () => {
+    expect(filesCreated()).toEqual(1);
+    expect(content(0)).toMatch(
+      /<link href="https:\/\/fonts.gstatic.com\/s\/opensans.*" rel="preload" as="font" crossorigin="anonymous" type="font\/woff2">/
+    );
+  });
+});
+
 describe("handles JS errors", () => {
   const source = "tests/examples/other";
   const include = ["/with-script-error.html"];
@@ -511,21 +526,17 @@ describe("cacheAjaxRequests", () => {
 describe("don't crawl localhost links on different port", () => {
   const source = "tests/examples/other";
   const include = ["/localhost-links-different-port.html"];
-  
+
   const { fs, filesCreated, names } = mockFs();
 
   beforeAll(() => snapRun(fs, { source, include }));
   test("only one file is crawled", () => {
     expect(filesCreated()).toEqual(1);
     expect(names()).toEqual(
-      expect.arrayContaining([
-        `/${source}/localhost-links-different-port.html`
-      ])
+      expect.arrayContaining([`/${source}/localhost-links-different-port.html`])
     );
   });
-  
 });
-
 
 describe("svgLinks", () => {
   const source = "tests/examples/other";
