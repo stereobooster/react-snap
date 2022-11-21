@@ -20,15 +20,15 @@ const defaultOptions = {
   concurrency: 4,
   include: ["/"],
   userAgent: "ReactSnap",
-  // 4 params below will be refactored to one: `puppeteer: {}`
-  // https://github.com/stereobooster/react-snap/issues/120
-  headless: true,
   puppeteer: {
-    cache: true
+    args: [],
+    cache: true,
+    headless: true,
+    executablePath: undefined,
+    ignoreHTTPSErrors: false,
+    handleSIGINT: false,
+    timeout: 2 * 60 * 1000 // 2mins
   },
-  puppeteerArgs: [],
-  puppeteerExecutablePath: undefined,
-  puppeteerIgnoreHTTPSErrors: false,
   publicPath: "/",
   minifyCss: {},
   minifyHtml: {
@@ -82,10 +82,13 @@ const defaultOptions = {
  * @param {{source: ?string, destination: ?string, include: ?Array<string>, sourceMaps: ?boolean, skipThirdPartyRequests: ?boolean }} userOptions
  * @return {*}
  */
-const defaults = userOptions => {
+const defaults = (userOptions = {}) => {
+  const puppeteer = { ...defaultOptions.puppeteer, ...userOptions.puppeteer };
+
   const options = {
     ...defaultOptions,
-    ...userOptions
+    ...userOptions,
+    puppeteer
   };
   options.destination = options.destination || options.source;
 
@@ -514,8 +517,9 @@ const fixParcelChunksIssue = ({
 }) => {
   return page.evaluate(
     (basePath, http2PushManifest, inlineCss) => {
-      const localScripts = Array.from(document.scripts)
-        .filter(x => x.src && x.src.startsWith(basePath))
+      const localScripts = Array.from(document.scripts).filter(
+        x => x.src && x.src.startsWith(basePath)
+      );
 
       const mainRegexp = /main\.[\w]{8}\.js/;
       const mainScript = localScripts.find(x => mainRegexp.test(x.src));
@@ -840,7 +844,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         );
         routePath = normalizePath(routePath);
         if (routePath !== newPath) {
-          console.log(newPath)
+          console.log(newPath);
           console.log(`💬  in browser redirect (${newPath})`);
           addToQueue(newRoute);
         }

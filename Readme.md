@@ -286,7 +286,9 @@ Puppeteer (Headless Chrome) may fail due to sandboxing issues. To get around thi
 you may use:
 
 ```json
-"puppeteerArgs": ["--no-sandbox", "--disable-setuid-sandbox"]
+"puppeteer": { 
+  "args": ["--no-sandbox", "--disable-setuid-sandbox"]
+}
 ```
 
 Read more about [puppeteer troubleshooting](https://github.com/GoogleChrome/puppeteer/blob/master/docs/troubleshooting.md).
