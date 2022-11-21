@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-const url = require("url");
 const { run } = require("./index.js");
 const {
   reactSnap,
@@ -39,7 +38,7 @@ if (parcel) {
 }
 
 run({
-  publicPath: publicUrl ? url.parse(publicUrl).pathname : "/",
+  publicPath: publicUrl,
   fixWebpackChunksIssue,
   ...reactSnap
 }).catch(error => {
