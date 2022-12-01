@@ -199,7 +199,8 @@ const crawl = async opt => {
     args: options.puppeteerArgs,
     executablePath: options.puppeteerExecutablePath,
     ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
-    handleSIGINT: false
+    handleSIGINT: false,
+    ...options.puppeteerSettings
   });
 
   /**
@@ -238,7 +239,7 @@ const crawl = async opt => {
         await page.setUserAgent(options.userAgent);
         const tracker = createTracker(page);
         try {
-          await page.goto(pageUrl, { waitUntil: "networkidle0" });
+          await page.goto(pageUrl, { waitUntil: options.puppeteerSettings["waitUntil"] || "networkidle0" });
         } catch (e) {
           e.message = augmentTimeoutError(e.message, tracker);
           throw e;
