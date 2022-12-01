@@ -129,6 +129,33 @@ If you need to pass some options for `react-snap`, you can do this in your `pack
 
 Not all options are documented yet, but you can check `defaultOptions` in `index.js`.
 
+### Callbacks
+
+* `onJsonFetch` 
+
+  Called every time JSON file is fetched, with `route` and `json` passed to it.
+  
+  It needs to be a string, path to the file which contains a callback function. Function needs to be file's default export. 
+
+  Example usage in package json:
+
+  ```json
+  "reactSnap": {
+    "onJsonFetch": "./callbacks/on-json-fetch.js"
+  }
+  ```
+
+  Example of the script:
+
+  ```js
+  function onJsonFetch(route, json) {
+    console.log('onJsonFetch callback', route, json);
+  }
+
+  module.exports = onJsonFetch;
+  ```
+
+
 ### inlineCss
 
 Experimental feature - requires improvements.
