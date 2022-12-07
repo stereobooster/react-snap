@@ -74,7 +74,11 @@ const defaultOptions = {
   //# another feature creep
   // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
   // but this will also remove code which registers service worker
-  removeScriptTags: false
+  removeScriptTags: false,
+  //# another feature creep
+  // sometimes errors on the page should be ignored and not skipped for things
+  // like external scripts that may error even if the page is fine
+  ignorePageErrors: false
 };
 
 /**
