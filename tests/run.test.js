@@ -589,6 +589,27 @@ describe("history.pushState two redirects to the same file", () => {
   });
 });
 
+describe("excludes urls in options.exclude array", () => {
+  const source = "tests/examples/other";
+  const include = ["/exclude-url.html"];
+
+  const exclude = ["http://localhost:45671/bar.html", "http://localhost:45671/baz.html"]
+  
+  const { fs, filesCreated, names } = mockFs();
+
+  beforeAll(() => snapRun(fs, { source, include, exclude, port: 45671 }));
+  test("should not crawl urls in exclude", () => {
+    expect(filesCreated()).toEqual(3);
+    expect(names()).toEqual(
+      expect.arrayContaining([
+        `/${source}/exclude-url.html`,
+        `/${source}/foo.html`,
+        `/${source}/404.html`,
+      ])
+    );
+  });
+});
+
 describe.skip("publicPath", () => {});
 
 describe.skip("skipThirdPartyRequests", () => {});
