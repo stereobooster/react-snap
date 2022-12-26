@@ -185,7 +185,7 @@ const crawl = async opt => {
     const isOnAppPort = port && port.toString() === options.port.toString();
 
     // Do not add excluded urls to the queue
-    const isExcluded = options.exclude.includes(newUrl)
+    const isExcluded = options.exclude && options.exclude.includes(newUrl)
 
     if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed && !isExcluded) {
       uniqueUrls.add(newUrl);
