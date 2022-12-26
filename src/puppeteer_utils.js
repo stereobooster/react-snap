@@ -184,7 +184,10 @@ const crawl = async opt => {
     // Port can be null, therefore we need the null check
     const isOnAppPort = port && port.toString() === options.port.toString();
 
-    if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed) {
+    // Do not add excluded urls to the queue
+    const isExcluded = options.exclude.includes(newUrl)
+
+    if (hostname === "localhost" && isOnAppPort && !uniqueUrls.has(newUrl) && !streamClosed && !isExcluded) {
       uniqueUrls.add(newUrl);
       enqued++;
       queue.write(newUrl);
