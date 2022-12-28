@@ -272,7 +272,8 @@ const inlineCss = async opt => {
     skippable: request =>
       options.skipThirdPartyRequests && !request.url().startsWith(basePath),
     browser: browser,
-    userAgent: options.userAgent
+    userAgent: options.userAgent,
+    ...options.minifyCss
   });
   const criticalCss = minimalcssResult.finalCss;
   const criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
