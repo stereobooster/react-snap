@@ -157,7 +157,9 @@ const crawl = async opt => {
 
   const onUnhandledRejection = error => {
     console.log("🔥  UnhandledPromiseRejectionWarning", error);
-    shuttingDown = true;
+    if (options.fastFail) {
+      shuttingDown = true;
+    }
   };
   process.on("unhandledRejection", onUnhandledRejection);
 
@@ -237,20 +239,28 @@ const crawl = async opt => {
         beforeFetch && beforeFetch({ page, route });
         await page.setUserAgent(options.userAgent);
         const tracker = createTracker(page);
+        let skipPage = false;
         try {
           await page.goto(pageUrl, { waitUntil: "networkidle0" });
         } catch (e) {
           e.message = augmentTimeoutError(e.message, tracker);
-          throw e;
+          if (opt.fastFail) {
+            throw e;
+          } else {
+            console.log(`🔥  failed to crawl page: ${pageUrl}`, e);
+            skipPage = true;
+          }
         } finally {
           tracker.dispose();
         }
-        if (options.waitFor) await page.waitFor(options.waitFor);
-        if (options.crawl) {
-          const links = await getLinks({ page });
-          links.forEach(addToQueue);
+        if (skipPage == false) {
+          if (options.waitFor) await page.waitFor(options.waitFor);
+          if (options.crawl) {
+            const links = await getLinks({ page });
+            links.forEach(addToQueue);
+          }
+          afterFetch && (await afterFetch({ page, route, browser, addToQueue }));
         }
-        afterFetch && (await afterFetch({ page, route, browser, addToQueue }));
         await page.close();
         console.log(`✅  crawled ${processed + 1} out of ${enqued} (${route})`);
       } catch (e) {
