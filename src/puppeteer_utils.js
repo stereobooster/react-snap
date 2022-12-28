@@ -221,6 +221,9 @@ const crawl = async opt => {
       try {
         const page = await browser.newPage();
         await page._client.send("ServiceWorker.disable");
+        await page._client.send('ServiceWorker.enable');
+        await page._client.send('ServiceWorker.stopAllWorkers');
+
         await page.setCacheEnabled(options.puppeteer.cache);
         if (options.viewport) await page.setViewport(options.viewport);
         if (options.skipThirdPartyRequests)
