@@ -1,6 +1,6 @@
 {
   "name": "react-snap-typed",
-  "version": "1.26.29",
+  "version": "1.26.30",
   "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "dist/index.js",
   "bin": {
@@ -25,14 +25,19 @@
     "test": "jest",
     "build": "tsc",
     "prepublish": "npm run build",
-    "precommit": "prettier --write {*,src/*}.{js,json,css}"
+    "precommit": "prettier --write {*,src/*}.{js,json,css}",
+    "preinstall": "npx --yes npm-force-resolutions"
+  },
+  "resolutions": {
+    "node-fetch": "2.6.7",
+    "nth-check": "2.0.1"
   },
   "dependencies": {
     "clean-css": "4.2.1",
-    "express": "4.17.1",
+    "express": "4.17.3",
     "express-history-api-fallback": "2.2.1",
     "html-minifier": "4.0.0",
-    "minimalcss": "0.8.2",
+    "minimalcss": "0.8.3",
     "mkdirp": "^1.0.4",
     "puppeteer": "^13.5.1",
     "puppeteer-cluster": "^0.23.0",
