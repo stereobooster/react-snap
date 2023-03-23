@@ -1,6 +1,6 @@
 {
   "name": "react-snap-typed",
-  "version": "1.26.30",
+  "version": "1.26.31",
   "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "dist/index.js",
   "bin": {
@@ -26,7 +26,7 @@
     "build": "tsc",
     "prepublish": "npm run build",
     "precommit": "prettier --write {*,src/*}.{js,json,css}",
-    "preinstall": "npx --yes npm-force-resolutions"
+    "force-resolutions": "npx --yes npm-force-resolutions"
   },
   "resolutions": {
     "node-fetch": "2.6.7",
