@@ -1,0 +1,38 @@
+{
+  "compileOnSave": false,
+  "buildOnSave": false,
+  "exclude": [
+    "dist/**"
+  ],
+  "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
+    "declaration": true,
+    "allowJs": true,
+    "esModuleInterop": true,
+    "incremental": true,
+    "jsx": "react-jsx",
+    "lib": [
+      "dom",
+      "esnext"
+    ],
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveConstEnums": true,
+    "removeComments": false,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "target": "es2017",
+    "outDir": "dist",
+    "baseUrl": "./src"
+  },
+  "include": [
+    "src/*.ts"
+  ],
+  "files": [
+    "src/index.ts",
+    "src/run.ts"
+  ]
+}

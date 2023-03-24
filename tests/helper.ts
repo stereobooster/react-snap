@@ -3,11 +3,12 @@ const nativeFs = require("fs");
 const DevNullStream = require("dev-null-stream");
 const cwd = process.cwd();
 
-const mockFs = () => {
+export const mockFs = () => {
   const devNullStream = new DevNullStream();
   const createReadStreamMock = jest.fn();
   const createWriteStreamMock = jest.fn();
   const writeFileSyncMock = jest.fn();
+  const writeFileMock = jest.fn((file, data, cb) => (cb as any)());
   const fs = {
     existsSync: nativeFs.existsSync,
     createReadStream: path => {
@@ -20,7 +21,10 @@ const mockFs = () => {
     },
     writeFileSync: (path, content) => {
       writeFileSyncMock(path.replace(cwd, ""), content);
-    }
+    },
+    writeFile: (path, content, cb) => {
+      writeFileMock(path.replace(cwd, ""), content, cb);
+    },
   };
   const filesCreated = () => writeFileSyncMock.mock.calls.length;
   const name = index => writeFileSyncMock.mock.calls[index][0];
@@ -31,6 +35,7 @@ const mockFs = () => {
     createReadStreamMock,
     createWriteStreamMock,
     writeFileSyncMock,
+    writeFileMock,
     fs,
     // helpers
     filesCreated,
@@ -39,5 +44,3 @@ const mockFs = () => {
     names
   };
 };
-
-exports.mockFs = mockFs;

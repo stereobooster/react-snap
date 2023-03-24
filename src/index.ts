@@ -1,142 +1,24 @@
-const crawl = require("./src/puppeteer_utils.js").crawl;
-const http = require("http");
-const express = require("express");
-const serveStatic = require("serve-static");
-const fallback = require("express-history-api-fallback");
-const path = require("path");
-const nativeFs = require("fs");
-const mkdirp = require("mkdirp");
-const minify = require("html-minifier").minify;
-const url = require("url");
-const minimalcss = require("minimalcss");
-const CleanCSS = require("clean-css");
-const twentyKb = 20 * 1024;
+require("setimmediate");
 
-const defaultOptions = {
-  //# stable configurations
-  port: 45678,
-  source: "build",
-  destination: null,
-  concurrency: 4,
-  include: ["/"],
-  userAgent: "ReactSnap",
-  // 4 params below will be refactored to one: `puppeteer: {}`
-  // https://github.com/stereobooster/react-snap/issues/120
-  headless: true,
-  puppeteer: {
-    cache: true
-  },
-  puppeteerArgs: [],
-  puppeteerExecutablePath: undefined,
-  puppeteerIgnoreHTTPSErrors: false,
-  publicPath: "/",
-  minifyCss: {},
-  minifyHtml: {
-    collapseBooleanAttributes: true,
-    collapseWhitespace: true,
-    decodeEntities: true,
-    keepClosingSlash: true,
-    sortAttributes: true,
-    sortClassName: false
-  },
-  // mobile first approach
-  viewport: {
-    width: 480,
-    height: 850
-  },
-  sourceMaps: true,
-  //# workarounds
-  // using CRA1 for compatibility with previous version will be changed to false in v2
-  fixWebpackChunksIssue: "CRA1",
-  removeBlobs: true,
-  fixInsertRule: true,
-  skipThirdPartyRequests: false,
-  cacheAjaxRequests: false,
-  http2PushManifest: false,
-  // may use some glob solution in the future, if required
-  // works when http2PushManifest: true
-  ignoreForPreload: ["service-worker.js"],
-  //# unstable configurations
-  preconnectThirdParty: true,
-  // Experimental. This config stands for two strategies inline and critical.
-  // TODO: inline strategy can contain errors, like, confuse relative urls
-  inlineCss: false,
-  //# feature creeps to generate screenshots
-  saveAs: "html",
-  crawl: true,
-  waitFor: false,
-  externalServer: false,
-  //# even more workarounds
-  removeStyleTags: false,
-  preloadImages: false,
-  // add async true to script tags
-  asyncScriptTags: false,
-  //# another feature creep
-  // tribute to Netflix Server Side Only React https://twitter.com/NetflixUIE/status/923374215041912833
-  // but this will also remove code which registers service worker
-  removeScriptTags: false
-};
+import {defaults} from "./defaults";
+import {crawl} from "./puppeteer_utils";
+import http from "http";
+import express from "express";
+import serveStatic from "serve-static";
+import fallback from "express-history-api-fallback";
+import path from "path";
+import nativeFs from "fs";
+import mkdirp from "mkdirp";
+import {minify} from "html-minifier";
+import url from "url";
+import minimalcss from "minimalcss";
+import CleanCSS from "clean-css";
+import { round } from "lodash";
+import {IInlineCssParams, IReactSnapOptions, ISaveAsParams, ReactSnapRunInfo, ICrawlParams} from "./model";
 
-/**
- *
- * @param {{source: ?string, destination: ?string, include: ?Array<string>, sourceMaps: ?boolean, skipThirdPartyRequests: ?boolean }} userOptions
- * @return {*}
- */
-const defaults = userOptions => {
-  const options = {
-    ...defaultOptions,
-    ...userOptions
-  };
-  options.destination = options.destination || options.source;
-
-  let exit = false;
-  if (!options.include || !options.include.length) {
-    console.log("🔥  include option should be an non-empty array");
-    exit = true;
-  }
-  if (options.preloadResources) {
-    console.log(
-      "🔥  preloadResources option deprecated. Use preloadImages or cacheAjaxRequests"
-    );
-    exit = true;
-  }
-  if (options.minifyOptions) {
-    console.log("🔥  minifyOptions option renamed to minifyHtml");
-    options.minifyHtml = options.minifyOptions;
-  }
-  if (options.asyncJs) {
-    console.log("🔥  asyncJs option renamed to asyncScriptTags");
-    options.asyncScriptTags = options.asyncJs;
-  }
-  if (options.fixWebpackChunksIssue === true) {
-    console.log(
-      "🔥  fixWebpackChunksIssue - behaviour changed, valid options are CRA1, CRA2, Parcel, false"
-    );
-    options.fixWebpackChunksIssue = "CRA1";
-  }
-  if (
-    options.saveAs !== "html" &&
-    options.saveAs !== "png" &&
-    options.saveAs !== "jpeg"
-  ) {
-    console.log("🔥  saveAs supported values are html, png, and jpeg");
-    exit = true;
-  }
-  if (exit) throw new Error();
-  if (options.minifyHtml && !options.minifyHtml.minifyCSS) {
-    options.minifyHtml.minifyCSS = options.minifyCss;
-  }
-
-  if (!options.publicPath.startsWith("/")) {
-    options.publicPath = `/${options.publicPath}`;
-  }
-  options.publicPath = options.publicPath.replace(/\/$/, "");
-
-  options.include = options.include.map(
-    include => options.publicPath + include
-  );
-  return options;
-};
+const {
+  version
+} = require(`../package.json`);
 
 const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
 
@@ -144,15 +26,15 @@ const normalizePath = path => (path === "/" ? "/" : path.replace(/\/$/, ""));
  *
  * @param {{page: Page, basePath: string}} opt
  */
-const preloadResources = opt => {
+const preloadResources = (opt) => {
   const {
     page,
-    basePath,
     preloadImages,
     cacheAjaxRequests,
     preconnectThirdParty,
     http2PushManifest,
-    ignoreForPreload
+    ignoreForPreload,
+    basePath,
   } = opt;
   const ajaxCache = {};
   const http2PushManifestItems = [];
@@ -162,7 +44,7 @@ const preloadResources = opt => {
     if (/^data:|blob:/i.test(responseUrl)) return;
     const ct = response.headers()["content-type"] || "";
     const route = responseUrl.replace(basePath, "");
-    if (/^http:\/\/localhost/i.test(responseUrl)) {
+    if (new RegExp(`^${basePath.replace(/:\d+$/, "")}`).test(responseUrl)) {
       if (uniqueResources.has(responseUrl)) return;
       if (preloadImages && /\.(png|jpg|jpeg|webp|gif|svg)$/.test(responseUrl)) {
         if (http2PushManifest) {
@@ -237,7 +119,7 @@ const removeScriptTags = ({ page }) =>
   });
 
 const preloadPolyfill = nativeFs.readFileSync(
-  `${__dirname}/vendor/preload_polyfill.min.js`,
+  path.normalize(`${__dirname}/../vendor/preload_polyfill.min.js`),
   "utf8"
 );
 
@@ -251,7 +133,7 @@ const removeBlobs = async opt => {
   return page.evaluate(() => {
     const stylesheets = Array.from(
       document.querySelectorAll("link[rel=stylesheet]")
-    );
+    ) as HTMLLinkElement[];
     stylesheets.forEach(link => {
       if (link.href && link.href.startsWith("blob:")) {
         link.parentNode && link.parentNode.removeChild(link);
@@ -260,110 +142,187 @@ const removeBlobs = async opt => {
   });
 };
 
+
+const getLinkFilename = (link, basePath) => {
+    const [_, file] = link.match(new RegExp(`(${basePath}/[^ ]+)`)) ?? []
+
+    return file;
+}
 /**
- * @param {{page: Page, pageUrl: string, options: {skipThirdPartyRequests: boolean, userAgent: string}, basePath: string, browser: Browser}} opt
+ *
+ * @param {{page: Page, basePath: string}} opt
+ * @param {Array<Array<string | null | object>>} logs
+ * @return Promise
+ */
+const cleanPreloads = async (opt, logs) => {
+  const { page } = opt;
+    const unnecessaryPreloads = logs.flatMap(v => {
+        return v
+            .filter(v => typeof v === "string" && v.includes("was preloaded using link preload but not used") && !v.includes(".json"))
+            .map(v => {
+                return getLinkFilename(v, opt.basePath);
+            })
+    }) || [];
+
+  return page.evaluate((unnecessaryPreloads) => {
+    const preloads = Array.from(
+      document.querySelectorAll("link[rel=preload]")
+    ) as HTMLLinkElement[];
+
+    preloads.forEach(link => {
+      if (link.href && unnecessaryPreloads.some(preload => link.href.includes(preload))) {
+        if (link.parentNode) link.parentNode.removeChild(link);
+      }
+    });
+  }, unnecessaryPreloads);
+};
+
+/**
+ * @param {{
+     * page: Page,
+     * pageUrl: string,
+     * options: {minifyCss: object | boolean, leaveLinkCss: boolean, processCss: (page: Page, css: string, html: string, route: string, options: object) => Promise<string>, skipThirdPartyRequests: boolean, userAgent: string},
+     * basePath: string,
+     * route: string,
+     * browser: Browser,
+ * }} opt
  * @return {Promise}
  */
-const inlineCss = async opt => {
-  const { page, pageUrl, options, basePath, browser } = opt;
+const inlineCss = async (opt: IInlineCssParams) => {
+  const { page, pageUrl, options, basePath, route } = opt;
 
-  const minimalcssResult = await minimalcss.minimize({
-    urls: [pageUrl],
-    skippable: request =>
-      options.skipThirdPartyRequests && !request.url().startsWith(basePath),
-    browser: browser,
-    userAgent: options.userAgent
-  });
-  const criticalCss = minimalcssResult.finalCss;
-  const criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
+  let cssStrategy, cssSize, css, result;
+  try {
+      let minimalcssResult, criticalCss, criticalCssSize;
 
-  const result = await page.evaluate(async () => {
-    const stylesheets = Array.from(
-      document.querySelectorAll("link[rel=stylesheet]")
-    );
-    const cssArray = await Promise.all(
-      stylesheets.map(async link => {
-        const response = await fetch(link.href);
-        return response.text();
-      })
-    );
-    return {
-      cssFiles: stylesheets.map(link => link.href),
-      allCss: cssArray.join("")
-    };
-  });
-  const allCss = new CleanCSS(options.minifyCss).minify(result.allCss).styles;
-  const allCssSize = Buffer.byteLength(allCss, "utf8");
+      try {
+          if (options.minifyCss) {
+              minimalcssResult = await minimalcss.minimize({
+                urls: [pageUrl],
+                skippable: request =>
+                  options.skipThirdPartyRequests && !request.url().startsWith(basePath),
+                browser: page.browser(),
+                userAgent: options.userAgent
+              });
 
-  let cssStrategy, cssSize;
-  if (criticalCssSize * 2 >= allCssSize) {
-    cssStrategy = "inline";
-    cssSize = allCssSize;
-  } else {
-    cssStrategy = "critical";
-    cssSize = criticalCssSize;
-  }
+              criticalCss = minimalcssResult.finalCss;
+              criticalCssSize = Buffer.byteLength(criticalCss, "utf8");
+          }
+      } catch (e) {
+          console.log(`🔥 Error when minimizing css on ${pageUrl}`, e)
+      }
 
-  if (cssSize > twentyKb)
-    console.log(
-      `⚠️  warning: inlining CSS more than 20kb (${cssSize /
-        1024}kb, ${cssStrategy})`
-    );
-
-  if (cssStrategy === "critical") {
-    await page.evaluate(
-      (criticalCss, preloadPolyfill) => {
-        const head = document.head || document.getElementsByTagName("head")[0],
-          style = document.createElement("style");
-        style.type = "text/css";
-        style.appendChild(document.createTextNode(criticalCss));
-        head.appendChild(style);
-        const noscriptTag = document.createElement("noscript");
-        document.head.appendChild(noscriptTag);
-
+      result = await page.evaluate(async () => {
         const stylesheets = Array.from(
           document.querySelectorAll("link[rel=stylesheet]")
+        ) as HTMLLinkElement[];
+        const ignored = []
+        const cssArray = await Promise.all(
+          stylesheets.map(async link => {
+          let response;
+          try {
+            response = await fetch(link.href);
+          } catch (e) {
+              ignored.push(link.href);
+              console.log(`🔥 Error when fetching css from ${link.href}`, e)
+          }
+            return response ? response.text() : "";
+          })
         );
-        stylesheets.forEach(link => {
-          noscriptTag.appendChild(link.cloneNode(false));
-          link.setAttribute("rel", "preload");
-          link.setAttribute("as", "style");
-          link.setAttribute("react-snap-onload", "this.rel='stylesheet'");
-          document.head.appendChild(link);
-        });
-
-        const scriptTag = document.createElement("script");
-        scriptTag.type = "text/javascript";
-        scriptTag.text = preloadPolyfill;
-        // scriptTag.id = "preloadPolyfill";
-        document.body.appendChild(scriptTag);
-      },
-      criticalCss,
-      preloadPolyfill
-    );
-  } else {
-    await page.evaluate(allCss => {
-      if (!allCss) return;
-
-      const head = document.head || document.getElementsByTagName("head")[0],
-        style = document.createElement("style");
-      style.type = "text/css";
-      style.appendChild(document.createTextNode(allCss));
-
-      if (!head) throw new Error("No <head> element found in document");
-
-      head.appendChild(style);
-
-      const stylesheets = Array.from(
-        document.querySelectorAll("link[rel=stylesheet]")
-      );
-      stylesheets.forEach(link => {
-        link.parentNode && link.parentNode.removeChild(link);
+        return {
+          cssFiles: stylesheets.map(link => link.href).filter(link => !ignored.includes(link)),
+          allCss: cssArray.join("")
+        };
       });
-    }, allCss);
+
+      const allCss = (await (new CleanCSS((options.minifyCss || {}) as CleanCSS.OptionsOutput).minify(result.allCss))).styles;
+      const allCssSize = Buffer.byteLength(allCss, "utf8");
+
+      if (!criticalCssSize || criticalCssSize * 2 >= allCssSize) {
+        cssStrategy = "inline";
+        cssSize = allCssSize;
+        css = allCss;
+      } else {
+        cssStrategy = "critical";
+        cssSize = criticalCssSize;
+        css = criticalCss;
+      }
+
+      if (options.processCss) {
+          const {content} = await getPageContentAndTitle({page, route, options}, "css")
+
+          css = await options.processCss(page, css, content, route, options);
+          cssSize = Buffer.byteLength(css, "utf8");
+      }
+
+      if (cssSize > (options.warnOnInlineCssKb * 1024)) {
+        console.log(
+          `⚠️  warning: inlining CSS more than 20kb (${round(cssSize /
+            1024, 2)}kb, ${round(allCssSize /
+            1024, 2)}kb before processing, ${cssStrategy}, ${route})`
+        );
+      }
+
+      if (cssStrategy === "critical") {
+        await page.evaluate(
+          (css, preloadPolyfill) => {
+            const head = document.head || document.getElementsByTagName("head")[0],
+              style = document.createElement("style");
+            style.type = "text/css";
+            style.appendChild(document.createTextNode(css));
+            head.appendChild(style);
+            const noscriptTag = document.createElement("noscript");
+            document.head.appendChild(noscriptTag);
+
+            const stylesheets = Array.from(
+              document.querySelectorAll("link[rel=stylesheet]")
+            );
+            stylesheets.forEach(link => {
+              noscriptTag.appendChild(link.cloneNode(false));
+              link.setAttribute("rel", "preload");
+              link.setAttribute("as", "style");
+              link.setAttribute("react-snap-onload", "this.rel='stylesheet'");
+              document.head.appendChild(link);
+            });
+
+            const scriptTag = document.createElement("script");
+            scriptTag.type = "text/javascript";
+            scriptTag.text = preloadPolyfill;
+            // scriptTag.id = "preloadPolyfill";
+            document.body.appendChild(scriptTag);
+          },
+          css,
+          preloadPolyfill
+        );
+      } else {
+        await page.evaluate((css, leaveLinkCss) => {
+          if (!css) return;
+
+          const head = document.head || document.getElementsByTagName("head")[0],
+            style = document.createElement("style");
+          style.type = "text/css";
+          style.appendChild(document.createTextNode(css));
+
+          if (!head) throw new Error("No <head> element found in document");
+
+          head.appendChild(style);
+
+          if (!leaveLinkCss) {
+              const stylesheets = Array.from(
+                document.querySelectorAll("link[rel=stylesheet]")
+              );
+              stylesheets.forEach(link => {
+                  link.parentNode && link.parentNode.removeChild(link);
+              });
+          }
+        }, css, !!options.leaveLinkCss);
+      }
+
+  } catch (e) {
+      console.log(`🔥 Error when inlining css at ${pageUrl}`, e)
   }
   return {
-    cssFiles: cssStrategy === "inline" ? result.cssFiles : []
+    cssFiles: (result && cssStrategy === "inline") ? result.cssFiles : []
   };
 };
 
@@ -446,7 +405,7 @@ const fixWebpackChunksIssue2 = ({
     (basePath, http2PushManifest, inlineCss) => {
       const localScripts = Array.from(document.scripts).filter(
         x => x.src && x.src.startsWith(basePath)
-      );
+      ) as HTMLScriptElement[];
       // CRA v2
       const mainRegexp = /main\.[\w]{8}\.chunk\.js/;
       const mainScript = localScripts.find(x => mainRegexp.test(x.src));
@@ -456,7 +415,7 @@ const fixWebpackChunksIssue2 = ({
 
       const chunkRegexp = /(\w+)\.[\w]{8}\.chunk\.js/g;
 
-      const headScripts = Array.from(document.querySelectorAll("head script"))
+      const headScripts = (Array.from(document.querySelectorAll("head script")) as HTMLScriptElement[])
         .filter(x => x.src && x.src.startsWith(basePath))
         .filter(x => {
           const matched = chunkRegexp.exec(x.src);
@@ -572,14 +531,14 @@ const fixInsertRule = ({ page }) => {
 
 const fixFormFields = ({ page }) => {
   return page.evaluate(() => {
-    Array.from(document.querySelectorAll("[type=radio]")).forEach(element => {
+    (Array.from(document.querySelectorAll("[type=radio]")) as HTMLInputElement[]).forEach(element => {
       if (element.checked) {
         element.setAttribute("checked", "checked");
       } else {
         element.removeAttribute("checked");
       }
     });
-    Array.from(document.querySelectorAll("[type=checkbox]")).forEach(
+    (Array.from(document.querySelectorAll("[type=checkbox]")) as HTMLInputElement[]).forEach(
       element => {
         if (element.checked) {
           element.setAttribute("checked", "checked");
@@ -598,54 +557,74 @@ const fixFormFields = ({ page }) => {
   });
 };
 
-const saveAsHtml = async ({ page, filePath, options, route, fs }) => {
-  let content = await page.content();
-  content = content.replace(/react-snap-onload/g, "onload");
-  const title = await page.title();
-  const minifiedContent = options.minifyHtml
-    ? minify(content, options.minifyHtml)
-    : content;
+const getPageContentAndTitle = async ({page, route, options}, process) => {
+    if (options.processPage) {
+        return await options.processPage(page, route, options, process);
+    }
+
+    let content = await page.content();
+    content = content.replace(/react-snap-onload/g, "onload");
+    const title = await page.title();
+    const minifiedContent = options.minifyHtml
+        ? minify(content, options.minifyHtml)
+        : content;
+
+    return { content: minifiedContent, title };
+}
+
+const saveAsHtml = async ({ page, filePath, options, route, fs }: ISaveAsParams) => {
+  let {content, title} = await getPageContentAndTitle({ page, route, options }, "html");
+
+  if (options.processHtml) {
+      content = await options.processHtml(content, route, options)
+  }
+
   filePath = filePath.replace(/\//g, path.sep);
+
   if (route.endsWith(".html")) {
     if (route.endsWith("/404.html") && !title.includes("404"))
       console.log('⚠️  warning: 404 page title does not contain "404" string');
     mkdirp.sync(path.dirname(filePath));
-    fs.writeFileSync(filePath, minifiedContent);
+    fs.writeFileSync(filePath, content);
   } else {
     if (title.includes("404"))
       console.log(`⚠️  warning: page not found ${route}`);
     mkdirp.sync(filePath);
-    fs.writeFileSync(path.join(filePath, "index.html"), minifiedContent);
+    filePath = path.join(filePath, `${options.fileName}.html`);
+
+    fs.writeFileSync(filePath, content);
   }
+
+  return filePath;
 };
 
-const saveAsPng = ({ page, filePath, options, route }) => {
+const saveAsPng = async ({ page, filePath, options, route }: ISaveAsParams) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
   if (route.endsWith(".html")) {
     screenshotPath = filePath.replace(/\.html$/, ".png");
-  } else if (route === "/") {
-    screenshotPath = `${filePath}index.png`;
   } else {
-    screenshotPath = `${filePath.replace(/\/$/, "")}.png`;
+    screenshotPath = `${filePath}/${options.fileName}.png`;
   }
-  return page.screenshot({ path: screenshotPath });
+  await page.screenshot({ path: path.normalize(screenshotPath) });
+
+  return screenshotPath;
 };
 
-const saveAsJpeg = ({ page, filePath, options, route }) => {
+const saveAsJpeg = async ({ page, filePath, options, route }: ISaveAsParams) => {
   mkdirp.sync(path.dirname(filePath));
   let screenshotPath;
   if (route.endsWith(".html")) {
     screenshotPath = filePath.replace(/\.html$/, ".jpeg");
-  } else if (route === "/") {
-    screenshotPath = `${filePath}index.jpeg`;
   } else {
-    screenshotPath = `${filePath.replace(/\/$/, "")}.jpeg`;
+    screenshotPath = `${filePath}/${options.fileName}.jpeg`;
   }
-  return page.screenshot({ path: screenshotPath });
+  await page.screenshot({ path: path.normalize(screenshotPath) });
+
+  return screenshotPath;
 };
 
-const run = async (userOptions, { fs } = { fs: nativeFs }) => {
+export const run = async (userOptions: IReactSnapOptions, { fs } = { fs: nativeFs }): Promise<ReactSnapRunInfo> => {
   let options;
   try {
     options = defaults(userOptions);
@@ -666,9 +645,11 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     return server;
   };
 
+  const savingAsHtml = Array.isArray(options.saveAs) ? options.saveAs.includes("html") : options.saveAs === "html";
+
   if (
     destinationDir === sourceDir &&
-    options.saveAs === "html" &&
+      savingAsHtml &&
     fs.existsSync(path.join(sourceDir, "200.html"))
   ) {
     console.log(
@@ -681,7 +662,7 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
     fs.createWriteStream(path.join(sourceDir, "200.html"))
   );
 
-  if (destinationDir !== sourceDir && options.saveAs === "html") {
+  if (destinationDir !== sourceDir && savingAsHtml) {
     mkdirp.sync(destinationDir);
     fs.createReadStream(path.join(sourceDir, "index.html")).pipe(
       fs.createWriteStream(path.join(destinationDir, "200.html"))
@@ -690,13 +671,21 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
 
   const server = options.externalServer ? null : startServer(options);
 
-  const basePath = `http://localhost:${options.port}`;
+  const getFinalBasePath = options => {
+    return [options.basePath, options.port].filter(v => !!v).join(":");
+  }
+
+  const basePath = getFinalBasePath(options);
   const publicPath = options.publicPath;
   const ajaxCache = {};
   const { http2PushManifest } = options;
   const http2PushManifestItems = {};
 
-  await crawl({
+  console.log(`Crawling paths on ${basePath}${publicPath} with react-snap version: ${version}`)
+  let redirects = [];
+  let paths = [];
+
+  const allLogs = await crawl({
     options,
     basePath,
     publicPath,
@@ -728,18 +717,20 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
         http2PushManifestItems[route] = hpm;
       }
     },
-    afterFetch: async ({ page, route, browser, addToQueue }) => {
+    afterFetch: async ({ page, route, addToQueue, logs }) => {
       const pageUrl = `${basePath}${route}`;
       if (options.removeStyleTags) await removeStyleTags({ page });
       if (options.removeScriptTags) await removeScriptTags({ page });
       if (options.removeBlobs) await removeBlobs({ page });
+      if (options.cleanPreloads) await cleanPreloads({ page, basePath }, logs);
+
       if (options.inlineCss) {
         const { cssFiles } = await inlineCss({
           page,
           pageUrl,
           options,
           basePath,
-          browser
+          route,
         });
 
         if (http2PushManifest) {
@@ -832,22 +823,30 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
 
       let routePath = route.replace(publicPath, "");
       let filePath = path.join(destinationDir, routePath);
-      if (options.saveAs === "html") {
-        await saveAsHtml({ page, filePath, options, route, fs });
+      if (Array.isArray(options.saveAs) ? options.saveAs.includes("html") : options.saveAs === "html") {
+        paths.push(await saveAsHtml({ page, filePath, options, route, fs }));
+
         let newRoute = await page.evaluate(() => location.toString());
-        newPath = normalizePath(
+        newRoute = normalizePath(
           newRoute.replace(publicPath, "").replace(basePath, "")
         );
         routePath = normalizePath(routePath);
-        if (routePath !== newPath) {
-          console.log(newPath)
-          console.log(`💬  in browser redirect (${newPath})`);
-          addToQueue(newRoute);
+
+        if (routePath !== newRoute) {
+          console.log(newRoute)
+          const redirect = `${routePath} -> ${newRoute}`;
+          redirects.push(redirect);
+          console.log(`💬  in browser redirect (${redirect})`);
+          await addToQueue(`${basePath}${publicPath}${newRoute}`);
         }
-      } else if (options.saveAs === "png") {
-        await saveAsPng({ page, filePath, options, route, fs });
-      } else if (options.saveAs === "jpeg") {
-        await saveAsJpeg({ page, filePath, options, route, fs });
+      }
+
+      if (Array.isArray(options.saveAs) ? options.saveAs.includes("png") : options.saveAs === "png") {
+        paths.push(await saveAsPng({ page, filePath, options, route, fs }));
+      }
+
+      if (Array.isArray(options.saveAs) ? (options.saveAs.includes("jpg") || options.saveAs.includes("jpeg")) : (options.saveAs === "jpg" || options.saveAs === "jpeg")) {
+        paths.push(await saveAsJpeg({ page, filePath, options, route, fs }));
       }
     },
     onEnd: () => {
@@ -878,7 +877,8 @@ const run = async (userOptions, { fs } = { fs: nativeFs }) => {
       }
     }
   });
+
+  return [paths, allLogs];
 };
 
-exports.defaultOptions = defaultOptions;
-exports.run = run;
+export {IReactSnapOptions, ReactSnapRunInfo};
