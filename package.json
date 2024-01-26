@@ -7,18 +7,18 @@
   "license": "MIT",
   "repository": "stereobooster/react-snap",
   "engines": {
-    "node": ">= 8.6.0"
+    "node": ">= 18.7.0"
   },
   "dependencies": {
-    "clean-css": "4.2.1",
-    "express": "4.17.1",
+    "clean-css": "5.3.3",
+    "express": "4.18.2",
     "express-history-api-fallback": "2.2.1",
     "highland": "2.13.4",
     "html-minifier": "4.0.0",
-    "minimalcss": "0.8.2",
-    "mkdirp": "0.5.1",
-    "puppeteer": "^1.8.0",
-    "serve-static": "1.14.1",
+    "minimalcss": "0.11.3",
+    "mkdirp": "3.0.1",
+    "puppeteer": "21.9.0",
+    "serve-static": "1.15.0",
     "sourcemapped-stacktrace-node": "2.1.8"
   },
   "devDependencies": {
