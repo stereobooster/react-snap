@@ -199,7 +199,8 @@ const crawl = async opt => {
     args: options.puppeteerArgs,
     executablePath: options.puppeteerExecutablePath,
     ignoreHTTPSErrors: options.puppeteerIgnoreHTTPSErrors,
-    handleSIGINT: false
+    handleSIGINT: false,
+    timeout: options.timeout ?? 30000
   });
 
   /**
