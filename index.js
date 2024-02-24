@@ -10,6 +10,7 @@ const minify = require("html-minifier").minify;
 const url = require("url");
 const minimalcss = require("minimalcss");
 const CleanCSS = require("clean-css");
+const { JSDOM } = require("jsdom");
 const twentyKb = 20 * 1024;
 
 const defaultOptions = {
@@ -29,6 +30,7 @@ const defaultOptions = {
   puppeteerArgs: [],
   puppeteerExecutablePath: undefined,
   puppeteerIgnoreHTTPSErrors: false,
+  sitemapPath: null,
   publicPath: "/",
   minifyCss: {},
   minifyHtml: {
@@ -88,11 +90,25 @@ const defaults = userOptions => {
     ...userOptions
   };
   options.destination = options.destination || options.source;
-
   let exit = false;
   if (!options.include || !options.include.length) {
     console.log("🔥  include option should be an non-empty array");
     exit = true;
+  } else if (options.sitemapPath != null) {
+    try {
+      const urls = [];
+      const xmlString = nativeFs.readFileSync(options.sitemapPath, 'utf8');
+      const xmlDoc = (new JSDOM(xmlString)).window.document;
+      for (const url of xmlDoc.getElementsByTagName('url')) {
+        urls.push(url.getElementsByTagName('loc')[0].textContent);
+        for (const xhtmlLink of url.getElementsByTagName('xhtml:link')) {
+          urls.push(xhtmlLink.getAttribute('href'));
+        }
+      }
+      options.include = [...options.include, ...urls.map(url => (new URL(url)).pathname)];
+    } catch (err) {
+      console.log(`Error when processing the sitemap XML file: ${err}`);
+    }
   }
   if (options.preloadResources) {
     console.log(
