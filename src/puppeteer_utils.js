@@ -6,8 +6,14 @@ const path = require("path");
 const fs = require("fs");
 const { createTracker, augmentTimeoutError } = require("./tracker");
 
-const errorToString = jsHandle =>
-  jsHandle.executionContext().evaluate(e => e.toString(), jsHandle);
+const errorToString = jsHandle => {
+  try{
+    jsHandle.evaluate(e => e.toString(), jsHandle);
+  }catch(e){
+    console.log(jsHandle);
+    console.log(e);
+  }
+}
 
 const objectToJson = jsHandle => jsHandle.jsonValue();
 
@@ -37,10 +43,12 @@ const enableLogging = opt => {
   page.on("console", msg => {
     const text = msg.text();
     if (text === "JSHandle@object") {
+      console.log("Args", msg.args())
       Promise.all(msg.args().map(objectToJson)).then(args =>
         console.log(`💬  console.log at ${route}:`, ...args)
       );
     } else if (text === "JSHandle@error") {
+      console.log("Args", msg.args())
       Promise.all(msg.args().map(errorToString)).then(args =>
         console.log(`💬  console.log at ${route}:`, ...args)
       );

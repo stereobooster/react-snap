@@ -1,11 +1,11 @@
 {
-  "name": "react-snap",
-  "version": "1.23.0",
+  "name": "react-snap-dominusmi",
+  "version": "1.23.2",
   "description": "Zero-configuration framework-agnostic static prerendering for SPAs",
   "main": "index.js",
-  "author": "stereobooster",
+  "author": "dominusmi (fork from stereobooster)",
   "license": "MIT",
-  "repository": "stereobooster/react-snap",
+  "repository": "dominusmi/react-snap",
   "engines": {
     "node": ">= 8.6.0"
   },
